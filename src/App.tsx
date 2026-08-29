@@ -12,6 +12,14 @@ import {
 
 type ViewName = 'journey' | 'collection' | 'passport' | 'kitsu'
 
+type ConfirmationRequest = {
+  title: string
+  description: string
+  confirmLabel: string
+  onConfirm: () => void
+  caution?: boolean
+}
+
 type Progress = {
   claimed: string[]
   checkedStops: Record<string, string[]>
@@ -49,6 +57,13 @@ const emptyProgress: Progress = {
   photos: {},
   fujiDate: '2026-10-09',
 }
+
+const stopAchievementRules = [
+  { dayId: 'hello-tokyo', achievementId: 'weather-child', stops: ['shiba', 'tower'] },
+  { dayId: 'shibuya-story', achievementId: 'shibuya-incident', stops: ['jujutsu-route'] },
+  { dayId: 'shibuya-story', achievementId: 'i-remember-you', stops: ['suga-steps'] },
+  { dayId: 'ginza-akihabara', achievementId: 'el-psy-kongroo', stops: ['kanda-myojin-anime', 'steins-gate-line'] },
+] as const
 
 function loadProgress(): Progress {
   try {
@@ -194,8 +209,7 @@ function Icon({ name, size = 20 }: { name: string; size?: number }) {
 }
 
 function AchievementVisual({ achievement, locked = false }: { achievement: Achievement; locked?: boolean }) {
-  if (achievement.image) return <img className={locked ? 'badge-image is-locked' : 'badge-image'} src={achievement.image} alt="" loading="lazy" decoding="async" />
-  return <div className={locked ? 'seal-badge is-locked' : 'seal-badge'} aria-hidden="true"><span>{locked ? '?' : achievement.seal ?? '?'}</span></div>
+  return <img className={locked ? 'badge-image is-locked' : 'badge-image'} src={achievement.image} alt="" loading="lazy" decoding="async" />
 }
 
 function AchievementModal({ achievement, isNew, onClose }: { achievement: Achievement; isNew: boolean; onClose: () => void }) {
@@ -211,6 +225,40 @@ function AchievementModal({ achievement, isNew, onClose }: { achievement: Achiev
         <h2>{achievement.title}</h2>
         <p>{achievement.description}</p>
         <button ref={closeRef} className="primary-button" type="button" onClick={onClose}>Продолжить путь</button>
+      </div>
+    </div>
+  )
+}
+
+function ConfirmationDialog({ request, onCancel }: { request: ConfirmationRequest; onCancel: () => void }) {
+  const cancelRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    cancelRef.current?.focus()
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onCancel()
+    }
+    document.addEventListener('keydown', closeOnEscape)
+    return () => document.removeEventListener('keydown', closeOnEscape)
+  }, [onCancel])
+
+  const confirm = () => {
+    const action = request.onConfirm
+    onCancel()
+    action()
+  }
+
+  return (
+    <div className="confirmation-dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirmation-title" aria-describedby="confirmation-description" onClick={onCancel}>
+      <div className="confirmation-card" onClick={(event) => event.stopPropagation()}>
+        <span className={request.caution ? 'confirmation-icon is-caution' : 'confirmation-icon'}><Icon name={request.caution ? 'eye' : 'quest'} size={22} /></span>
+        <span className="section-kicker">Проверка от Кицу</span>
+        <h2 id="confirmation-title">{request.title}</h2>
+        <p id="confirmation-description">{request.description}</p>
+        <div className="confirmation-actions">
+          <button ref={cancelRef} type="button" className="confirmation-cancel" onClick={onCancel}>Не сейчас</button>
+          <button type="button" className={request.caution ? 'confirmation-accept is-caution' : 'confirmation-accept'} onClick={confirm}>{request.confirmLabel}</button>
+        </div>
       </div>
     </div>
   )
@@ -237,7 +285,8 @@ function App() {
   const latestUnlocked = [...tripDays].reverse().find((day) => day.date <= today)
   const [selectedDate, setSelectedDate] = useState(latestUnlocked?.date ?? tripDays[0].date)
   const [riddleAnswers, setRiddleAnswers] = useState<Record<string, number>>({})
-  const [modal, setModal] = useState<{ id: string; isNew: boolean } | null>(null)
+  const [modal, setModal] = useState<{ id: string; isNew: boolean; queue: string[] } | null>(null)
+  const [confirmation, setConfirmation] = useState<ConfirmationRequest | null>(null)
   const [photoError, setPhotoError] = useState('')
 
   const selectedDay = dayContentForDate(selectedDate, progress.fujiDate)
@@ -247,8 +296,11 @@ function App() {
   const selectedStops = progress.checkedStops[selectedDay.id] ?? []
   const selectedClaimed = progress.claimed.includes(selectedDay.achievementId)
   const solvedRiddles = progress.solvedRiddles ?? []
+  const selectedRiddleSolved = solvedRiddles.includes(selectedDay.id)
+  const selectedRiddleRevealed = progress.reveals.includes(selectedDay.id)
+  const selectedHintUsed = progress.hints.includes(selectedDay.id)
   const selectedAnswer = riddleAnswers[selectedDay.id]
-    ?? (solvedRiddles.includes(selectedDay.id) ? selectedDay.riddle.answer : undefined)
+    ?? (selectedRiddleSolved ? selectedDay.riddle.answer : undefined)
   const isCorrect = selectedAnswer === selectedDay.riddle.answer
   const rating = progress.ratings[selectedDay.id]
   const discoveredCount = progress.claimed.length
@@ -266,6 +318,7 @@ function App() {
   useEffect(() => {
     const claimed = new Set(progress.claimed)
     const unlock = (condition: boolean, id: string) => { if (condition && !claimed.has(id)) claimed.add(id) }
+    const stopDone = (dayId: string, stopId: string) => (progress.checkedStops[dayId] ?? []).includes(stopId)
     unlock(progress.ramen, 'ramen-initiation')
     unlock(progress.konbini.length >= 3, 'konbini-connoisseur')
     unlock(progress.stamps.length >= 5, 'stamp-hunter')
@@ -283,6 +336,10 @@ function App() {
     unlock((progress.sideQuests ?? []).includes('gachapon-oracle'), 'capsule-of-fate')
     unlock((progress.sideQuests ?? []).includes('paper-fortune'), 'fortune-found')
     unlock(sideQuests.every((quest) => (progress.sideQuests ?? []).includes(quest.id)), 'wandering-legend')
+    unlock(stopDone('hello-tokyo', 'shiba') && stopDone('hello-tokyo', 'tower'), 'weather-child')
+    unlock(stopDone('shibuya-story', 'jujutsu-route'), 'shibuya-incident')
+    unlock(stopDone('shibuya-story', 'suga-steps'), 'i-remember-you')
+    unlock(stopDone('ginza-akihabara', 'kanda-myojin-anime') && stopDone('ginza-akihabara', 'steins-gate-line'), 'el-psy-kongroo')
     unlock(claimed.size >= 15, 'japan-collector')
     unlock(achievements.filter((item) => item.id !== 'completionist').every((item) => claimed.has(item.id)), 'completionist')
     const next = [...claimed]
@@ -290,7 +347,10 @@ function App() {
     if (newlyUnlocked.length > 0) {
       const timer = window.setTimeout(() => {
         setProgress((current) => ({ ...current, claimed: next }))
-        setModal((current) => current ?? { id: newlyUnlocked[0], isNew: true })
+        setModal((current) => {
+          if (!current) return { id: newlyUnlocked[0], isNew: true, queue: newlyUnlocked.slice(1) }
+          return { ...current, queue: [...current.queue, ...newlyUnlocked] }
+        })
       }, 0)
       return () => window.clearTimeout(timer)
     }
@@ -299,15 +359,48 @@ function App() {
   const claimAchievement = (id: string) => {
     if (progress.claimed.includes(id)) return
     setProgress((current) => ({ ...current, claimed: [...current.claimed, id] }))
-    setModal({ id, isNew: true })
+    setModal({ id, isNew: true, queue: [] })
   }
 
-  const toggleStop = (dayId: string, stopId: string) => {
+  const closeAchievementModal = () => {
+    setModal((current) => {
+      if (!current || current.queue.length === 0) return null
+      const [next, ...queue] = current.queue
+      return { id: next, isNew: true, queue }
+    })
+  }
+
+  const applyStopToggle = (dayId: string, stopId: string) => {
     setProgress((current) => {
       const stops = current.checkedStops[dayId] ?? []
       const nextStops = stops.includes(stopId) ? stops.filter((id) => id !== stopId) : [...stops, stopId]
       return { ...current, checkedStops: { ...current.checkedStops, [dayId]: nextStops } }
     })
+  }
+
+  const toggleStop = (dayId: string, stopId: string) => {
+    const stops = progress.checkedStops[dayId] ?? []
+    if (stops.includes(stopId)) {
+      applyStopToggle(dayId, stopId)
+      return
+    }
+
+    const rule = stopAchievementRules.find((item) => item.dayId === dayId && item.stops.some((id) => id === stopId))
+    const completesAchievement = rule
+      && !progress.claimed.includes(rule.achievementId)
+      && rule.stops.every((id) => id === stopId || stops.some((completedId) => completedId === id))
+
+    if (completesAchievement) {
+      setConfirmation({
+        title: 'Миссия точно выполнена?',
+        description: 'Эта отметка завершит задание и навсегда откроет секретную ачивку на этом телефоне.',
+        confirmLabel: 'Да, выполнено',
+        onConfirm: () => applyStopToggle(dayId, stopId),
+      })
+      return
+    }
+
+    applyStopToggle(dayId, stopId)
   }
 
   const addHint = (dayId: string) => {
@@ -339,7 +432,7 @@ function App() {
     }
   }
 
-  const toggleListValue = (field: 'stamps' | 'sideQuests' | 'konbini', id: string) => {
+  const applyListToggle = (field: 'stamps' | 'sideQuests' | 'konbini', id: string) => {
     setProgress((current) => {
       const values = current[field] ?? []
       const next = values.includes(id) ? values.filter((value) => value !== id) : [...values, id]
@@ -347,12 +440,136 @@ function App() {
     })
   }
 
+  const toggleListValue = (field: 'stamps' | 'sideQuests' | 'konbini', id: string) => {
+    const values = progress[field] ?? []
+    if (values.includes(id)) {
+      applyListToggle(field, id)
+      return
+    }
+
+    const specialSideQuestAchievements: Record<string, string> = {
+      'manhole-hunter': 'manhole-hunter',
+      'gachapon-oracle': 'capsule-of-fate',
+      'paper-fortune': 'fortune-found',
+    }
+    const completesAllSideQuests = field === 'sideQuests'
+      && sideQuests.every((quest) => quest.id === id || values.includes(quest.id))
+    const opensAchievement = (
+      field === 'stamps' && values.length === 4 && !progress.claimed.includes('stamp-hunter')
+    ) || (
+      field === 'konbini' && values.length === 2 && !progress.claimed.includes('konbini-connoisseur')
+    ) || (
+      field === 'sideQuests' && (
+        !progress.claimed.includes('side-quest-accepted')
+        || (Boolean(specialSideQuestAchievements[id]) && !progress.claimed.includes(specialSideQuestAchievements[id]))
+        || (completesAllSideQuests && !progress.claimed.includes('wandering-legend'))
+      )
+    )
+
+    if (opensAchievement) {
+      setConfirmation({
+        title: 'Засчитать находку?',
+        description: 'Эта отметка откроет ачивку. Саму отметку можно снять, но полученная награда уже останется в коллекции.',
+        confirmLabel: 'Да, засчитать',
+        onConfirm: () => applyListToggle(field, id),
+      })
+      return
+    }
+
+    applyListToggle(field, id)
+  }
+
+  const requestHint = (dayId: string) => {
+    if (progress.hints.includes(dayId) || solvedRiddles.includes(dayId) || progress.reveals.includes(dayId)) return
+    setConfirmation({
+      title: 'Открыть подсказку?',
+      description: 'Использованная подсказка сохранится в дневнике и будет учитываться в секретных ачивках.',
+      confirmLabel: 'Открыть',
+      onConfirm: () => addHint(dayId),
+    })
+  }
+
+  const requestReveal = (day: TripDay) => {
+    if (progress.reveals.includes(day.id) || solvedRiddles.includes(day.id)) return
+    setConfirmation({
+      title: 'Точно показать ответ?',
+      description: 'Это нельзя отменить. Reveal покажет разгадку, но эта глава больше не будет считаться решённой самостоятельно.',
+      confirmLabel: 'Показать ответ',
+      caution: true,
+      onConfirm: () => revealAnswer(day),
+    })
+  }
+
+  const requestRiddleAnswer = (day: TripDay, answer: number) => {
+    if (solvedRiddles.includes(day.id) || progress.reveals.includes(day.id)) return
+    setConfirmation({
+      title: 'Проверить этот вариант?',
+      description: `Выбран ответ «${day.riddle.options[answer]}». Если он верный, решение сохранится и сможет открыть ачивку.`,
+      confirmLabel: 'Проверить',
+      onConfirm: () => answerRiddle(day, answer),
+    })
+  }
+
+  const requestChapterClaim = (id: string) => {
+    setConfirmation({
+      title: 'Забрать награду главы?',
+      description: 'Подтверди, что реальная миссия выполнена. Полученную ачивку нельзя будет убрать из коллекции.',
+      confirmLabel: 'Да, забрать',
+      onConfirm: () => claimAchievement(id),
+    })
+  }
+
+  const toggleRamen = () => {
+    if (progress.ramen || progress.claimed.includes('ramen-initiation')) {
+      setProgress((current) => ({ ...current, ramen: !current.ramen }))
+      return
+    }
+    setConfirmation({
+      title: 'Первая миска съедена?',
+      description: 'Эта отметка навсегда откроет ачивку за первый ramen поездки.',
+      confirmLabel: 'Да, съедена',
+      onConfirm: () => setProgress((current) => ({ ...current, ramen: true })),
+    })
+  }
+
+  const updateRating = (value: number) => {
+    const save = () => setProgress((current) => ({ ...current, ratings: { ...current.ratings, [selectedDay.id]: value } }))
+    if (value === 10 && !progress.claimed.includes('perfect-day')) {
+      setConfirmation({
+        title: 'День правда на 10 из 10?',
+        description: 'Максимальная оценка навсегда откроет секретную ачивку.',
+        confirmLabel: 'Точно 10/10',
+        onConfirm: save,
+      })
+      return
+    }
+    save()
+  }
+
+  const selectPhoto = (file: File | undefined, dayId: string) => {
+    if (!file) return
+    const isNewDayPhoto = !progress.photos[dayId]
+    const opensAchievement = isNewDayPhoto
+      && Object.keys(progress.photos).length === 4
+      && !progress.claimed.includes('memory-keeper')
+    if (opensAchievement) {
+      setConfirmation({
+        title: 'Сохранить пятую фотографию?',
+        description: 'Она останется только на этом телефоне и откроет ачивку хранительницы воспоминаний.',
+        confirmLabel: 'Сохранить фото',
+        onConfirm: () => void handlePhoto(file, dayId),
+      })
+      return
+    }
+    void handlePhoto(file, dayId)
+  }
+
   return (
     <div className="app-shell">
       <header className="topbar">
         <button type="button" className="brand" onClick={() => { setView('journey'); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>
           <img src="/assets/chonchetrip-icon.png" alt="" />
-          <span><strong>Chonchetrip</strong><small>Japan · 2026</small></span>
+          <span><strong>Chonchetrip</strong><small>Юльчона · Japan 2026</small></span>
         </button>
         <button className="progress-token" type="button" onClick={() => setView('collection')} aria-label={`${discoveredCount} из ${achievements.length} достижений`}><Icon name="collection" size={17} /><span>{discoveredCount}/{achievements.length}</span></button>
       </header>
@@ -419,15 +636,16 @@ function App() {
                     {selectedDay.riddle.options.map((option, index) => {
                       const chosen = selectedAnswer === index
                       const answerClass = chosen ? (index === selectedDay.riddle.answer ? ' is-correct' : ' is-wrong') : ''
-                      return <button key={option} type="button" className={`answer-button${answerClass}`} onClick={() => answerRiddle(selectedDay, index)}>{option}</button>
+                      const answerLocked = selectedRiddleSolved || selectedRiddleRevealed
+                      return <button key={option} type="button" className={`answer-button${answerClass}`} disabled={answerLocked} onClick={() => requestRiddleAnswer(selectedDay, index)}>{option}</button>
                     })}
                   </div>
                   {isCorrect && <p className="answer-note"><Icon name="check" size={16} /> {selectedDay.riddle.explanation}</p>}
                   {selectedAnswer !== undefined && !isCorrect && <p className="try-again">Почти. Кицу разрешает попробовать ещё раз.</p>}
-                  {progress.hints.includes(selectedDay.id) && <p className="hint-text">Подсказка: {selectedDay.riddle.hint}</p>}
+                  {selectedHintUsed && <p className="hint-text">Подсказка: {selectedDay.riddle.hint}</p>}
                   <div className="riddle-actions">
-                    <button type="button" className="text-button" onClick={() => addHint(selectedDay.id)}><Icon name="hint" size={17} /> Подсказка</button>
-                    <button type="button" className="text-button muted" onClick={() => revealAnswer(selectedDay)}><Icon name="eye" size={17} /> Reveal answer</button>
+                    <button type="button" className="text-button" disabled={selectedHintUsed || selectedRiddleSolved || selectedRiddleRevealed} onClick={() => requestHint(selectedDay.id)}><Icon name="hint" size={17} /> {selectedHintUsed ? 'Подсказка открыта' : selectedRiddleSolved ? 'Разгадано' : 'Подсказка'}</button>
+                    <button type="button" className="text-button muted" disabled={selectedRiddleRevealed || selectedRiddleSolved} onClick={() => requestReveal(selectedDay)}><Icon name="eye" size={17} /> {selectedRiddleRevealed ? 'Ответ открыт' : selectedRiddleSolved ? 'Решено честно' : 'Reveal answer'}</button>
                   </div>
                 </section>
 
@@ -439,7 +657,7 @@ function App() {
                       <p>{selectedClaimed ? selectedAchievement.description : 'Когда реальная миссия выполнена, забери награду. Никаких проверок — Кицу тебе верит.'}</p>
                     </div>
                     <div className="claim-badge"><AchievementVisual achievement={selectedAchievement} locked={!selectedClaimed} /></div>
-                    <button type="button" className={selectedClaimed ? 'claimed-button' : 'primary-button'} disabled={selectedClaimed} onClick={() => claimAchievement(selectedAchievement.id)}>
+                    <button type="button" className={selectedClaimed ? 'claimed-button' : 'primary-button'} disabled={selectedClaimed} onClick={() => requestChapterClaim(selectedAchievement.id)}>
                       {selectedClaimed ? <><Icon name="check" size={18} /> Получено</> : selectedDay.claimLabel}
                     </button>
                   </section>
@@ -450,14 +668,14 @@ function App() {
                   {progress.photos[selectedDay.id] ? (
                     <div className="photo-preview">
                       <img src={progress.photos[selectedDay.id]} alt={`Фото дня · ${selectedDay.dateLabel}`} />
-                      <label className="photo-change">Заменить<input type="file" accept="image/*" onChange={(event) => void handlePhoto(event.target.files?.[0], selectedDay.id)} /></label>
+                      <label className="photo-change">Заменить<input type="file" accept="image/*" onChange={(event) => { const file = event.currentTarget.files?.[0]; event.currentTarget.value = ''; selectPhoto(file, selectedDay.id) }} /></label>
                     </div>
                   ) : (
-                    <label className="photo-drop"><Icon name="camera" size={22} /><span>Добавить Photo of the Day</span><small>Фото уменьшится и останется только на этом телефоне</small><input type="file" accept="image/*" onChange={(event) => void handlePhoto(event.target.files?.[0], selectedDay.id)} /></label>
+                    <label className="photo-drop"><Icon name="camera" size={22} /><span>Добавить Photo of the Day</span><small>Фото уменьшится и останется только на этом телефоне</small><input type="file" accept="image/*" onChange={(event) => { const file = event.currentTarget.files?.[0]; event.currentTarget.value = ''; selectPhoto(file, selectedDay.id) }} /></label>
                   )}
                   {photoError && <p className="error-message">{photoError}</p>}
                   <div className="rating-row"><label htmlFor="day-rating">Как прошёл день?</label><strong>{rating ? `${rating}/10` : '—'}</strong></div>
-                  <input id="day-rating" className="rating-slider" type="range" min="1" max="10" value={rating ?? 5} onChange={(event) => setProgress((current) => ({ ...current, ratings: { ...current.ratings, [selectedDay.id]: Number(event.target.value) } }))} />
+                  <input id="day-rating" className="rating-slider" type="range" min="1" max="10" value={rating ?? 5} onChange={(event) => updateRating(Number(event.target.value))} />
                   <div className="rating-scale"><span>тихо</span><span>легендарно</span></div>
                 </section>
               </div>
@@ -493,7 +711,7 @@ function App() {
                 const futureStory = achievement.type === 'story' && effectiveUnlockDate && effectiveUnlockDate > today
                 const conceal = !unlocked
                 return (
-                  <button key={achievement.id} type="button" className={unlocked ? 'badge-tile is-unlocked' : 'badge-tile'} disabled={!unlocked} onClick={() => setModal({ id: achievement.id, isNew: false })}>
+                  <button key={achievement.id} type="button" className={unlocked ? 'badge-tile is-unlocked' : 'badge-tile'} disabled={!unlocked} onClick={() => setModal({ id: achievement.id, isNew: false, queue: [] })}>
                     <span className="badge-frame"><AchievementVisual achievement={achievement} locked={!unlocked} />{!unlocked && <span className="badge-lock"><Icon name="lock" size={16} /></span>}</span>
                     <strong>{conceal ? '???' : achievement.title}</strong>
                     <small>{unlocked ? achievement.description : futureStory ? 'Будущая глава' : 'Пока скрыто'}</small>
@@ -540,7 +758,7 @@ function App() {
             <section className="paper-card side-quests">
               <div className="card-label"><Icon name="quest" size={18} /> Side quests</div>
               <h3>Вкусные секреты</h3>
-              <button type="button" className={progress.ramen ? 'quest-toggle is-complete' : 'quest-toggle'} onClick={() => setProgress((current) => ({ ...current, ramen: !current.ramen }))}>
+              <button type="button" className={progress.ramen ? 'quest-toggle is-complete' : 'quest-toggle'} onClick={toggleRamen}>
                 <span className="quest-toggle-icon"><Icon name="bowl" size={23} /></span><span><strong>Первый ramen</strong><small>Отметить после первой миски</small></span><span className="mini-check">{progress.ramen && <Icon name="check" size={16} />}</span>
               </button>
               <p className="mini-label">Три разных konbini</p>
@@ -578,7 +796,7 @@ function App() {
         {view === 'kitsu' && (
           <div className="screen-content kitsu-screen">
             <section className="kitsu-hero">
-              <div><span className="section-kicker">Твой проводник</span><h1>Кицу</h1><p>Маленький лисий дух, который прячет секреты до нужного дня и замечает чудеса по дороге.</p></div>
+              <div><span className="section-kicker">Проводник Юльчоны</span><h1>Кицу</h1><p>Маленький лисий дух, который прячет секреты до нужного дня и замечает чудеса по дороге.</p></div>
               <img src="/assets/kitsune-guide.png" alt="Кицу — лисий проводник путешествия" />
             </section>
 
@@ -587,18 +805,6 @@ function App() {
               <h2>Хранитель этой истории</h2>
               <p>Кицу появился специально для Chonchetrip. Он не гид и не контролёр: не проверяет геолокацию, не считает опоздания и всегда верит честному слову.</p>
               <p>Его работа — открывать новую главу в полночь по Японии, подбрасывать маленькие загадки и беречь найденные воспоминания.</p>
-            </section>
-
-            <section className="kitsu-guide">
-              <div className="section-title"><div><span className="section-kicker">Как играть</span><h2>Четыре лёгких шага</h2></div></div>
-              {[
-                ['01', 'Открой день', 'Новая глава просыпается в 00:00 по времени Японии.'],
-                ['02', 'Живи маршрут', 'Сцены можно отмечать, пропускать и менять местами без штрафов.'],
-                ['03', 'Заметь улику', 'Полевые загадки предлагают внимательнее посмотреть вокруг.'],
-                ['04', 'Забери память', 'После настоящего момента можно честно забрать его бейдж.'],
-              ].map(([number, title, copy]) => (
-                <article key={number} className="kitsu-step"><span>{number}</span><div><strong>{title}</strong><p>{copy}</p></div></article>
-              ))}
             </section>
 
             <section className="paper-card kitsu-pact">
@@ -637,7 +843,8 @@ function App() {
         <button type="button" className={view === 'kitsu' ? 'is-active' : ''} onClick={() => { setView('kitsu'); window.scrollTo({ top: 0, behavior: 'smooth' }) }}><Icon name="fox" size={20} /><span>Кицу</span></button>
       </nav>
 
-      {modalAchievement && modal && <AchievementModal achievement={modalAchievement} isNew={modal.isNew} onClose={() => setModal(null)} />}
+      {modalAchievement && modal && <AchievementModal achievement={modalAchievement} isNew={modal.isNew} onClose={closeAchievementModal} />}
+      {confirmation && <ConfirmationDialog request={confirmation} onCancel={() => setConfirmation(null)} />}
     </div>
   )
 }

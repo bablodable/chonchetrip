@@ -38,8 +38,7 @@ export type Achievement = {
   description: string
   type: 'story' | 'secret' | 'meta'
   unlockDate?: string
-  image?: string
-  seal?: string
+  image: string
 }
 
 export type SideQuest = {
@@ -315,7 +314,7 @@ export const tripDays: TripDay[] = [
     city: 'Tokyo',
     eyebrow: 'Глава 08 · Новый горизонт',
     title: 'Hello, Tokyo',
-    subtitle: 'Shinkansen, Zojo-ji и огни Tokyo Tower',
+    subtitle: 'Shinkansen и первый аниме-кадр Tokyo',
     cover: cover.tokyo,
     achievementId: 'hello-tokyo',
     achievementTitle: 'Hello, Tokyo',
@@ -334,8 +333,8 @@ export const tripDays: TripDay[] = [
       { id: 'matcha-ekiben', time: 'Перед поездом', title: 'Собрать идеальный набор в Shinkansen', kind: 'food', details: ['Matcha-десерт сейчас, красивый ekiben — с собой.'] },
       { id: 'shinkansen', time: 'Около 12:30', title: 'Промчаться через Японию', kind: 'route', details: ['Nozomi доставит из Kyoto в Shinagawa быстрее, чем закончится ощущение дороги.'] },
       { id: 'tokyo-checkin', time: 'После прибытия', title: 'Оставить вещи в новом доме', kind: 'rest', details: ['Небольшая пауза в Shiba перед первым вечером Tokyo.'] },
-      { id: 'shiba', time: 'Ближе к закату', title: 'Увидеть башню между храмовыми воротами', kind: 'place', details: ['Пройди через Zojo-ji и Shiba Park, не торопясь к красной башне.'] },
-      { id: 'tower', time: 'Когда зажгутся огни', title: 'Поздороваться с Tokyo сверху', kind: 'quest', details: ['Поднимись на Main Deck и дождись, пока город станет бесконечным.'] },
+      { id: 'shiba', time: 'Ближе к закату', title: 'Войти в кадр Weathering With You', kind: 'quest', details: ['Пройди через Zojo-ji в Shiba Park и поймай Tokyo Tower между деревьями. Не копируй кадр идеально — найди своё небо над городом.'] },
+      { id: 'tower', time: 'Когда зажгутся огни', title: 'Подняться ближе к небу', kind: 'quest', details: ['Поднимись на Main Deck и дождись первых огней. Отметь обе точки — парк и башню — чтобы закрыть аниме-миссию.'] },
       { id: 'jangara', time: 'После башни', title: 'Закрепить знакомство ramen', kind: 'food', details: ['Tonkotsu ramen и спокойная прогулка домой через Shiba Park.'] },
     ],
   },
@@ -346,7 +345,7 @@ export const tripDays: TripDay[] = [
     city: 'Tokyo',
     eyebrow: 'Глава 09 · Живая сказка',
     title: 'От леса к неону',
-    subtitle: 'Meiji Jingu, Shibuya Sky и ночной Shinjuku',
+    subtitle: 'Meiji, две аниме-миссии и неоновый Shibuya',
     cover: cover.tokyo,
     achievementId: 'into-the-storybook',
     achievementTitle: 'Into the Storybook',
@@ -362,8 +361,10 @@ export const tripDays: TripDay[] = [
     },
     timeline: [
       { id: 'meiji', time: 'Утром', title: 'Начать день в лесу посреди мегаполиса', kind: 'place', details: ['Большие torii, тишина Meiji Jingu и первый спокойный вдох Tokyo.'] },
+      { id: 'jujutsu-route', time: 'На выходе к городу', title: 'Открыть свою главу Jujutsu Kaisen', kind: 'quest', details: ['Заметь название Meiji-jingumae, а позже закрой миссию среди экранов и переходов Shibuya. Нужен не точный кадр, а ощущение знакомого города — и никакой остановки посреди людского потока.'] },
       { id: 'harajuku', time: 'После тишины', title: 'Выйти из леса прямо в Harajuku', kind: 'place', details: ['Takeshita, Omotesando и Cat Street — смена миров за одну прогулку.'] },
-      { id: 'gyukatsu', time: 'В обед', title: 'Дожарить свой обед на камне', kind: 'food', details: ['Хрустящий gyukatsu требует маленького участия — и это половина удовольствия.'] },
+      { id: 'suga-steps', time: 'До Shibuya', title: 'Встретиться на ступенях из «Твоего имени»', kind: 'quest', details: ['Сделай короткий прыжок до Yotsuya-sanchome и найди внешнюю лестницу Suga Shrine с красными перилами. Это тихий жилой уголок: один спокойный кадр — и дальше в путь.'] },
+      { id: 'gyukatsu', time: 'После возвращения в Shibuya', title: 'Дожарить свой обед на камне', kind: 'food', details: ['Хрустящий gyukatsu требует маленького участия — и это половина удовольствия.'] },
       { id: 'shibuya', time: 'После обеда', title: 'Перейти самый знаменитый перекрёсток', kind: 'place', details: ['Поздоровайся с Hachiko, а потом отправляйся собирать мерч в PARCO.'] },
       { id: 'shibuya-sky', time: 'Вход 16:20–16:40', title: 'Поймать Tokyo между днём и ночью', kind: 'quest', details: ['Поднимись на SHIBUYA SKY до заката и останься до первых огней.'] },
       { id: 'shinjuku-night', time: 'После заката', title: 'Пойти туда, где живёт Godzilla', kind: 'place', details: ['Yakitori, Kabukicho и огромная голова над ночным Shinjuku.'] },
@@ -407,7 +408,7 @@ export const tripDays: TripDay[] = [
     city: 'Tokyo',
     eyebrow: 'Глава 11 · Электрический город',
     title: 'Tokyo Explorer',
-    subtitle: 'Tsukiji, Ginza и охота за сокровищами Akihabara',
+    subtitle: 'Ginza и аниме-маршрут по Akihabara',
     cover: cover.tokyo,
     achievementId: 'tokyo-explorer',
     achievementTitle: 'Tokyo Explorer',
@@ -426,6 +427,8 @@ export const tripDays: TripDay[] = [
       { id: 'jins', time: 'К 10:00', title: 'Выбрать новый взгляд на Tokyo', kind: 'quest', details: ['Оправы, проверка зрения и маленькое ожидание, пока очки станут настоящими.'] },
       { id: 'uniqlo-sushi', time: 'До обеда', title: 'Подняться по двенадцати этажам Ginza', kind: 'place', details: ['А после — наградить себя хорошими sushi.'] },
       { id: 'stamp-akihabara', time: 'По прибытии', title: 'Поймать электрическую печать', kind: 'quest', details: ['Четвёртый stamp прячется около Central Gate станции Akihabara.'] },
+      { id: 'kanda-myojin-anime', time: 'Первый портал', title: 'Попросить удачу у хранителя Akihabara', kind: 'quest', details: ['Поднимись к Kanda Myojin — святилищу рядом с электрическим городом и знакомой точке из Love Live! Найди иллюстрированную ema, но не фотографируй там, где это запрещено.'] },
+      { id: 'steins-gate-line', time: 'Следующая мировая линия', title: 'Передать сообщение в прошлое', kind: 'quest', details: ['Вернись к Radio Kaikan у Electric Town Exit, а затем дойди до Manseibashi Bridge. Две точки Steins;Gate соединены — осталось произнести пароль.'] },
       { id: 'akihabara', time: 'До вечера', title: 'Начать большую охоту за сокровищами', kind: 'quest', details: ['Фигурки, старые игры и редкий merch — сегодня сравнивай, завтра решай.'] },
       { id: 'akiba-night', time: 'Когда устанут ноги', title: 'Выбрать ужин по цвету вывески', kind: 'food', details: ['Ramen, curry или izakaya — правильным будет то, что окажется ближе.'] },
     ],
@@ -566,6 +569,12 @@ export const sideQuests: SideQuest[] = [
     description: 'Услышать станционную мелодию и выбрать любимую за поездку.',
     icon: 'route',
   },
+  {
+    id: 'anime-frame',
+    title: 'Оживший кадр',
+    description: 'Снять свою версию любого аниме-кадра, не перекрывая дорогу прохожим.',
+    icon: 'camera',
+  },
 ]
 
 export const achievements: Achievement[] = [
@@ -583,6 +592,10 @@ export const achievements: Achievement[] = [
   { id: 'lost-in-tokyo', title: 'Lost in Tokyo', description: 'Большая прогулка от Asakusa до Nakano.', type: 'story', unlockDate: '2026-10-11', image: badge('lost-in-tokyo') },
   { id: 'one-more-night', title: 'One More Night', description: 'Последний вечер путешествия сохранён.', type: 'story', unlockDate: '2026-10-12', image: badge('one-more-night') },
   { id: 'japan-complete', title: 'Japan Complete', description: 'Финальный recap завершён.', type: 'story', unlockDate: '2026-10-13', image: badge('japan-complete') },
+  { id: 'weather-child', title: 'Weather Child', description: 'Собран свой кадр между Shiba Park и Tokyo Tower.', type: 'secret', image: badge('weather-child') },
+  { id: 'shibuya-incident', title: 'Shibuya Incident', description: 'Маршрут Meiji-jingumae — Shibuya пройден по следам Jujutsu Kaisen.', type: 'secret', image: badge('shibuya-incident') },
+  { id: 'i-remember-you', title: 'I Remember You', description: 'Ступени Suga Shrine из «Твоего имени» найдены.', type: 'secret', image: badge('i-remember-you') },
+  { id: 'el-psy-kongroo', title: 'El Psy Kongroo', description: 'Kanda Myojin, Radio Kaikan и Manseibashi соединились в одной мировой линии.', type: 'secret', image: badge('el-psy-kongroo') },
   { id: 'ramen-initiation', title: 'Ramen Initiation', description: 'Первый ramen поездки.', type: 'secret', image: badge('ramen-initiation') },
   { id: 'konbini-connoisseur', title: 'Konbini Connoisseur', description: 'Находки из трёх разных konbini.', type: 'secret', image: badge('konbini-connoisseur') },
   { id: 'stamp-hunter', title: 'Stamp Hunter', description: 'Пять японских туристических штампов.', type: 'secret', image: badge('stamp-hunter') },
@@ -592,14 +605,14 @@ export const achievements: Achievement[] = [
   { id: 'memory-keeper', title: 'Memory Keeper', description: 'Сохранено пять Photo of the Day.', type: 'secret', image: badge('memory-keeper') },
   { id: 'no-spoilers', title: 'No Spoilers', description: 'Дойти до Tokyo без Reveal answer.', type: 'secret', image: badge('no-spoilers') },
   { id: 'curious-fox', title: 'Curious Fox', description: 'Пять подсказок и ни одного Reveal answer.', type: 'secret', image: badge('curious-fox') },
-  { id: 'field-researcher', title: 'Field Researcher', description: 'Первая полевая загадка решена без подсматривания.', type: 'secret', seal: '察' },
-  { id: 'keen-eye', title: 'Keen Eye', description: 'Пять настоящих улик замечены по дороге.', type: 'secret', seal: '眼' },
-  { id: 'kitsus-equal', title: "Kitsu's Equal", description: 'Все полевые загадки разгаданы без Reveal answer.', type: 'meta', seal: '狐' },
-  { id: 'side-quest-accepted', title: 'Side Quest Accepted', description: 'Первая случайная миссия выбрана и выполнена.', type: 'secret', seal: '遊' },
-  { id: 'manhole-hunter', title: 'Manhole Hunter', description: 'Найден самый красивый японский люк.', type: 'secret', seal: '蓋' },
-  { id: 'capsule-of-fate', title: 'Capsule of Fate', description: 'Судьба доверена одному gachapon.', type: 'secret', seal: '運' },
-  { id: 'fortune-found', title: 'Fortune Found', description: 'Бумажное предсказание omikuji найдено.', type: 'secret', seal: '占' },
-  { id: 'wandering-legend', title: 'Wandering Legend', description: 'Выполнены все миссии без маршрута.', type: 'meta', seal: '旅' },
+  { id: 'field-researcher', title: 'Field Researcher', description: 'Первая полевая загадка решена без подсматривания.', type: 'secret', image: badge('field-researcher') },
+  { id: 'keen-eye', title: 'Keen Eye', description: 'Пять настоящих улик замечены по дороге.', type: 'secret', image: badge('keen-eye') },
+  { id: 'kitsus-equal', title: "Kitsu's Equal", description: 'Все полевые загадки разгаданы без Reveal answer.', type: 'meta', image: badge('kitsus-equal') },
+  { id: 'side-quest-accepted', title: 'Side Quest Accepted', description: 'Первая случайная миссия выбрана и выполнена.', type: 'secret', image: badge('side-quest-accepted') },
+  { id: 'manhole-hunter', title: 'Manhole Hunter', description: 'Найден самый красивый японский люк.', type: 'secret', image: badge('manhole-hunter') },
+  { id: 'capsule-of-fate', title: 'Capsule of Fate', description: 'Судьба доверена одному gachapon.', type: 'secret', image: badge('capsule-of-fate') },
+  { id: 'fortune-found', title: 'Fortune Found', description: 'Бумажное предсказание omikuji найдено.', type: 'secret', image: badge('fortune-found') },
+  { id: 'wandering-legend', title: 'Wandering Legend', description: 'Выполнены все миссии без маршрута.', type: 'meta', image: badge('wandering-legend') },
   { id: 'japan-collector', title: 'Japan Collector', description: 'Собрано 15 любых достижений.', type: 'meta', image: badge('japan-collector') },
   { id: 'completionist', title: 'Completionist', description: 'Собраны все доступные достижения.', type: 'meta', image: badge('completionist') },
 ]

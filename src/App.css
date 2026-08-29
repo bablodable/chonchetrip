@@ -624,6 +624,10 @@ button {
   background: #f5ded8;
 }
 
+.answer-button:disabled {
+  opacity: 1;
+}
+
 .answer-note,
 .hint-text,
 .try-again {
@@ -670,6 +674,10 @@ button {
 
 .text-button.muted { color: var(--muted); }
 
+.text-button:disabled {
+  opacity: 0.5;
+}
+
 .claim-card {
   display: grid;
   min-height: 218px;
@@ -715,37 +723,6 @@ button {
   opacity: 0.55;
   filter: blur(5px) grayscale(0.78) sepia(0.15) brightness(0.7);
   transform: scale(0.94);
-}
-
-.seal-badge {
-  display: grid;
-  width: 100%;
-  height: 100%;
-  place-items: center;
-  border: 5px solid #f3ddba;
-  border-radius: 50%;
-  color: #fff4dd;
-  background:
-    radial-gradient(circle at 50% 38%, rgba(255, 227, 174, 0.18), transparent 35%),
-    linear-gradient(145deg, #ba4235, #7f2f2b);
-  box-shadow: inset 0 0 0 2px #bd5544, 0 8px 17px rgba(82, 42, 30, 0.18);
-}
-
-.seal-badge span {
-  font-family: 'Yu Mincho', 'Hiragino Mincho ProN', serif;
-  font-size: clamp(28px, 8vw, 48px);
-  text-shadow: 0 2px 0 rgba(75, 23, 21, 0.35);
-}
-
-.seal-badge.is-locked {
-  color: rgba(246, 237, 220, 0.5);
-  background: linear-gradient(145deg, #a89b89, #6f685f);
-  filter: grayscale(1);
-}
-
-.seal-badge.is-locked span {
-  color: rgba(255, 249, 238, 0.72);
-  filter: blur(1px);
 }
 
 .primary-button,
@@ -1024,11 +1001,6 @@ button {
   width: min(27vw, 112px);
   height: min(27vw, 112px);
   place-items: center;
-}
-
-.badge-frame .seal-badge {
-  width: 90%;
-  height: 90%;
 }
 
 .badge-lock {
@@ -1469,50 +1441,8 @@ button {
   margin-top: 10px;
 }
 
-.kitsu-guide {
-  display: grid;
-  gap: 8px;
-}
-
-.kitsu-guide .section-title,
 .phrasebook .section-title {
   margin-bottom: 4px;
-}
-
-.kitsu-step {
-  display: grid;
-  grid-template-columns: 39px 1fr;
-  align-items: center;
-  gap: 11px;
-  padding: 11px 13px;
-  border: 1px solid rgba(107, 79, 57, 0.11);
-  border-radius: 16px;
-  background: rgba(255, 250, 240, 0.66);
-}
-
-.kitsu-step > span {
-  display: grid;
-  width: 39px;
-  height: 39px;
-  place-items: center;
-  border-radius: 50%;
-  color: var(--red-dark);
-  background: #f1ddc9;
-  font-family: var(--display);
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.kitsu-step strong {
-  color: var(--ink);
-  font-size: 12px;
-}
-
-.kitsu-step p {
-  margin: 3px 0 0;
-  color: var(--muted);
-  font-size: 10px;
-  line-height: 1.4;
 }
 
 .kitsu-pact {
@@ -1624,6 +1554,100 @@ button {
   color: var(--red-dark);
   background: rgba(184, 65, 51, 0.09);
   box-shadow: inset 0 0 0 1px rgba(184, 65, 51, 0.08);
+}
+
+.confirmation-dialog {
+  position: fixed;
+  z-index: 110;
+  inset: 0;
+  display: grid;
+  align-items: end;
+  justify-items: center;
+  padding: 18px 14px calc(18px + env(safe-area-inset-bottom));
+  background: rgba(28, 25, 23, 0.54);
+  backdrop-filter: blur(8px);
+  animation: modal-fade 180ms ease-out;
+}
+
+.confirmation-card {
+  display: grid;
+  width: min(100%, 430px);
+  justify-items: center;
+  padding: 22px 18px 17px;
+  border: 1px solid rgba(110, 76, 53, 0.14);
+  border-radius: 27px;
+  color: var(--ink);
+  text-align: center;
+  background: #fff9ee;
+  box-shadow: 0 24px 70px rgba(44, 31, 24, 0.28);
+  animation: modal-rise 240ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.confirmation-icon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  margin-bottom: 10px;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff8ec;
+  background: var(--green);
+  box-shadow: 0 8px 18px rgba(42, 93, 80, 0.2);
+}
+
+.confirmation-icon.is-caution {
+  background: var(--red-dark);
+  box-shadow: 0 8px 18px rgba(138, 48, 41, 0.2);
+}
+
+.confirmation-card h2 {
+  margin: 6px 0 8px;
+  font-family: var(--display);
+  font-size: 27px;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.confirmation-card > p {
+  max-width: 340px;
+  margin: 0;
+  color: var(--muted-dark);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.confirmation-actions {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 8px;
+  margin-top: 19px;
+}
+
+.confirmation-actions button {
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 15px;
+  font-size: 11px;
+  font-weight: 900;
+  touch-action: manipulation;
+}
+
+.confirmation-cancel {
+  color: var(--muted-dark);
+  background: #eee4d6;
+}
+
+.confirmation-accept {
+  color: #fffaf0;
+  background: var(--green);
+  box-shadow: 0 7px 16px rgba(42, 93, 80, 0.18);
+}
+
+.confirmation-accept.is-caution {
+  background: var(--red-dark);
+  box-shadow: 0 7px 16px rgba(138, 48, 41, 0.18);
 }
 
 .achievement-modal {
