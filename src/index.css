@@ -1,0 +1,76 @@
+:root {
+  --paper: #f7eddb;
+  --paper-light: #fff9ee;
+  --ink: #302a25;
+  --ink-soft: #493f36;
+  --muted: #877565;
+  --muted-dark: #68594d;
+  --red: #b84133;
+  --red-dark: #96352c;
+  --gold: #ca914c;
+  --display: Georgia, 'Yu Mincho', 'Hiragino Mincho ProN', serif;
+  --sans: 'Avenir Next', Avenir, 'Hiragino Sans', 'Yu Gothic UI', 'Segoe UI', sans-serif;
+  color: var(--ink-soft);
+  background: #e9dcc6;
+  font-family: var(--sans);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  min-height: 100%;
+  background: #e9dcc6;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100svh;
+  margin: 0;
+  background:
+    radial-gradient(circle at 50% 5%, #f7eddc, transparent 45%),
+    #e9dcc6;
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+button,
+label {
+  touch-action: manipulation;
+}
+
+button:focus-visible,
+summary:focus-visible,
+label:focus-within {
+  outline: 3px solid rgba(184, 65, 51, 0.32);
+  outline-offset: 2px;
+}
+
+button:not(:disabled),
+summary,
+label {
+  cursor: pointer;
+}
+
+img {
+  max-width: 100%;
+}
+
+#root {
+  width: 100%;
+  max-width: 480px;
+  min-height: 100svh;
+  margin: 0 auto;
+}
