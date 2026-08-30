@@ -13,7 +13,7 @@ export const onRequestGet: PagesFunction<CloudflareEnv> = async ({ env }) => {
     "SELECT progress_json, revision, updated_at FROM trip_state WHERE id = 'shared'",
   ).first<StateRow>()
   const photoRows = await env.DB.prepare(
-    'SELECT day_id, updated_at FROM trip_photos ORDER BY day_id',
+    'SELECT day_id, updated_at FROM trip_photo_data ORDER BY day_id',
   ).all<PhotoRow>()
 
   if (!state) return json({ progress: null, revision: 0, updatedAt: null })

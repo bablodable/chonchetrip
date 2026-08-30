@@ -7,10 +7,10 @@ export const createTripStateTableSql = `
   )
 `
 
-export const createTripPhotosTableSql = `
-  CREATE TABLE IF NOT EXISTS trip_photos (
+export const createTripPhotoDataTableSql = `
+  CREATE TABLE IF NOT EXISTS trip_photo_data (
     day_id TEXT PRIMARY KEY,
-    object_key TEXT NOT NULL,
+    image BLOB NOT NULL,
     content_type TEXT NOT NULL,
     updated_at TEXT NOT NULL
   )
@@ -19,6 +19,6 @@ export const createTripPhotosTableSql = `
 export async function ensureSchema(db: D1Database) {
   await db.batch([
     db.prepare(createTripStateTableSql),
-    db.prepare(createTripPhotosTableSql),
+    db.prepare(createTripPhotoDataTableSql),
   ])
 }

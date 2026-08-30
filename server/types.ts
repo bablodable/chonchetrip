@@ -1,6 +1,5 @@
 export type CloudflareEnv = {
   DB: D1Database
-  PHOTOS: R2Bucket
   EDITOR_CODE?: string
   SESSION_SECRET?: string
 }

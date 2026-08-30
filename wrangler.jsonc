@@ -10,11 +10,5 @@
       "database_id": "4fe6c500-0345-407e-984c-9afd8311cff2",
       "migrations_dir": "migrations"
     }
-  ],
-  "r2_buckets": [
-    {
-      "binding": "PHOTOS",
-      "bucket_name": "chonchetrip-photos"
-    }
   ]
 }

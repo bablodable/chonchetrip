@@ -56,6 +56,7 @@ const PREVIEW_MODE = Boolean(PREVIEW_DATE)
 const STORAGE_KEY = PREVIEW_MODE
   ? 'chonchetrip-preview-progress-v1'
   : 'chonchetrip-live-progress-v1'
+const CLOUD_SNAPSHOT_KEY = `${STORAGE_KEY}-cloud-snapshot-v1`
 
 const emptyProgress: Progress = {
   claimed: [],
@@ -107,6 +108,22 @@ function loadProgress(): Progress {
     return normalizeProgress(JSON.parse(stored))
   } catch {
     return emptyProgress
+  }
+}
+
+function loadCloudSnapshot(): string {
+  try {
+    return localStorage.getItem(CLOUD_SNAPSHOT_KEY) ?? ''
+  } catch {
+    return ''
+  }
+}
+
+function saveCloudSnapshot(snapshot: string) {
+  try {
+    localStorage.setItem(CLOUD_SNAPSHOT_KEY, snapshot)
+  } catch {
+    // Progress still remains available in memory when Safari storage is full.
   }
 }
 
@@ -612,7 +629,7 @@ function App() {
   const [confirmation, setConfirmation] = useState<ConfirmationRequest | null>(null)
   const [photoError, setPhotoError] = useState('')
   const progressRef = useRef(progress)
-  const lastCloudSnapshot = useRef('')
+  const lastCloudSnapshot = useRef(loadCloudSnapshot())
   const activePhotoUploads = useRef(new Set<string>())
 
   const canEdit = accessMode === 'editor'
@@ -682,20 +699,45 @@ function App() {
       try {
         const result = await loadSharedProgress()
         if (cancelled) return
+        const rememberCloudSnapshot = (snapshot: string) => {
+          lastCloudSnapshot.current = snapshot
+          saveCloudSnapshot(snapshot)
+        }
         if (result.progress) {
           const remoteProgress = normalizeProgress(result.progress)
-          const snapshot = JSON.stringify(progressForCloud(remoteProgress))
-          if (accessMode === 'viewer' || initial) {
-            lastCloudSnapshot.current = snapshot
+          const remoteSnapshot = JSON.stringify(progressForCloud(remoteProgress))
+          if (accessMode === 'viewer') {
+            rememberCloudSnapshot(remoteSnapshot)
             progressRef.current = remoteProgress
             setProgress(remoteProgress)
+          } else if (initial) {
+            const localProgress = progressRef.current
+            const localSnapshot = JSON.stringify(progressForCloud(localProgress))
+            const hasPendingLocalChanges = lastCloudSnapshot.current !== ''
+              && localSnapshot !== lastCloudSnapshot.current
+            const pendingPhotos = Object.fromEntries(
+              Object.entries(localProgress.photos).filter(([, photo]) => photo.startsWith('data:image/')),
+            )
+            const nextProgress = hasPendingLocalChanges
+              ? { ...localProgress, photos: { ...remoteProgress.photos, ...pendingPhotos } }
+              : { ...remoteProgress, photos: { ...remoteProgress.photos, ...pendingPhotos } }
+
+            if (!hasPendingLocalChanges) rememberCloudSnapshot(remoteSnapshot)
+            progressRef.current = nextProgress
+            setProgress(nextProgress)
           }
         } else if (accessMode === 'editor' && initial) {
           const localProgress = progressRef.current
           const snapshot = JSON.stringify(progressForCloud(localProgress))
           await saveSharedProgress(progressForCloud(localProgress))
           if (cancelled) return
-          lastCloudSnapshot.current = snapshot
+          rememberCloudSnapshot(snapshot)
+        } else if (accessMode === 'viewer') {
+          const remoteProgress = normalizeProgress(null)
+          const snapshot = JSON.stringify(progressForCloud(remoteProgress))
+          rememberCloudSnapshot(snapshot)
+          progressRef.current = remoteProgress
+          setProgress(remoteProgress)
         }
         setCloudStatus('synced')
         setCloudInitialized(true)
@@ -741,6 +783,7 @@ function App() {
           if (snapshot !== lastCloudSnapshot.current) {
             await saveSharedProgress(cloudProgress)
             lastCloudSnapshot.current = snapshot
+            saveCloudSnapshot(snapshot)
           }
           for (const [dayId, photo] of pendingPhotos) {
             if (activePhotoUploads.current.has(dayId)) continue
