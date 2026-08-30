@@ -24,9 +24,9 @@ export type TripDay = {
   title: string
   subtitle: string
   cover: string
-  achievementId: string
-  achievementTitle: string
-  claimLabel: string
+  achievementId?: string
+  achievementTitle?: string
+  claimLabel?: string
   fact: string
   riddle: Riddle
   timeline: TimelineItem[]
@@ -59,13 +59,62 @@ const badge = (name: string) => `/assets/achivments/${name}.webp`
 
 export const tripDays: TripDay[] = [
   {
+    id: 'belgrade-dubai',
+    date: '2026-09-29',
+    dateLabel: '29 сентября',
+    city: 'Belgrade → Dubai',
+    eyebrow: 'Пролог · Дорога на Восток',
+    title: 'Путь к Японии начался',
+    subtitle: 'Belgrade, ночной Dubai и ожидание главного рейса',
+    cover: cover.intro,
+    fact: 'DXB Terminal 3 разделён на несколько concourse, поэтому после Transit сначала важнее проверить gate и только потом планировать прогулку по магазинам.',
+    riddle: {
+      question: 'Из какого терминала DXB отправляется рейс в Osaka?',
+      hint: 'Ответ есть в билете на второй перелёт и на экранах Transit.',
+      options: ['Terminal 1', 'Terminal 2', 'Terminal 3', 'Al Maktoum'],
+      answer: 2,
+      explanation: 'Следующий рейс начинается в DXB Terminal 3 — после Transit первым делом нужно проверить gate.',
+      location: 'Dubai DXB · Terminal 3, экраны Transit',
+    },
+    timeline: [
+      {
+        id: 'beg-departure',
+        time: '13:55',
+        title: 'Поднять первый самолёт истории',
+        kind: 'route',
+        details: ['Belgrade BEG Terminal 2 → Dubai. Документы под рукой, впереди ночная пересадка и ещё один большой перелёт.'],
+      },
+      {
+        id: 'dubai-arrival',
+        time: '21:25',
+        title: 'Приземлиться между двумя мирами',
+        kind: 'route',
+        details: ['Dubai DXB Terminal 3 → пройти Transit и сразу проверить gate рейса в Kansai.'],
+      },
+      {
+        id: 'dubai-concourse-b',
+        time: 'Если по пути',
+        title: 'Заглянуть в Bath & Body Works',
+        kind: 'place',
+        details: ['Если маршрут проходит через Concourse B — спокойно посмотреть свечи, кремы и ароматы.', 'Не делать отдельный большой крюк, если следующий gate находится далеко.'],
+      },
+      {
+        id: 'dubai-reset',
+        time: 'До посадки',
+        title: 'Перевести дыхание перед Японией',
+        kind: 'rest',
+        details: ['Найти воду, зарядку и место рядом с gate. В 03:00 начинается перелёт к Osaka.'],
+      },
+    ],
+  },
+  {
     id: 'arrival-osaka',
     date: '2026-09-30',
     dateLabel: '30 сентября',
     city: 'Osaka',
     eyebrow: 'Глава 01 · Прибытие',
     title: 'Первый фонарь зажжён',
-    subtitle: 'KIX, первый штамп и неон Dotonbori',
+    subtitle: 'DXB, KIX, билет Kuroshio и неон Dotonbori',
     cover: cover.osaka,
     achievementId: 'welcome-to-japan',
     achievementTitle: 'Welcome to Japan',
@@ -81,39 +130,60 @@ export const tripDays: TripDay[] = [
     },
     timeline: [
       {
+        id: 'dubai-kansai-flight',
+        time: '03:00',
+        title: 'Взять курс на Osaka',
+        kind: 'route',
+        details: ['DXB Terminal 3 → Kansai. Главный перелёт начинается ещё до рассвета Dubai.'],
+      },
+      {
         id: 'kix-arrival',
         time: '17:15',
         title: 'Шагнуть в Японию',
         kind: 'route',
-        details: ['Паспорт, QR, чемодан — и за дверями уже начинается Osaka.'],
+        details: ['KIX Terminal 1 → Immigration: паспорт и Visit Japan Web QR.', 'Затем Baggage → Customs → Arrivals.'],
+      },
+      {
+        id: 'kuroshio-ticket',
+        time: 'После Customs',
+        title: 'Купить завтрашний билет к океану',
+        kind: 'quest',
+        details: ['Подняться на 2F и перейти к Kansai-airport Station → JR-WEST Ticket Office / Midori-no-madoguchi.', 'Попросить: “Kuroshio 1, Tennoji to Shirahama, October 1, 7:59 AM. Two adults, reserved seats together.”', 'Купить только туда, два Reserved Seats рядом; оплатить картой.'],
       },
       {
         id: 'stamp-kix',
         time: 'Первая находка',
         title: 'Поставить печать начала пути',
         kind: 'quest',
-        details: ['Отыщи свой первый 駅スタンプ на станции аэропорта.'],
+        details: ['На Kansai Airport Station найти 駅スタンプ / Eki Stamp — это Stamp #1 в Travel Passport.'],
       },
       {
         id: 'to-hotel-osaka',
-        time: 'Вечер',
+        time: 'После билетов',
         title: 'Прокатиться на первом японском поезде',
         kind: 'route',
-        details: ['Rapi:t увезёт к Tengachaya, оттуда — один прыжок до Nagahoribashi.'],
+        details: ['Kansai Airport → Nankai Rapi:t до Tengachaya.', 'На Tengachaya войти в Osaka Metro по Suica → Sakaisuji Line → Nagahoribashi → выход по Suica.', 'Exit 7 → около трёх минут пешком до Grand Hostel LDK Osaka Shinsaibashi.'],
       },
       {
         id: 'osaka-checkin',
-        time: 'Перед неоном',
+        time: '~20:00',
         title: 'Сбросить рюкзаки',
         kind: 'rest',
-        details: ['Короткая передышка в Grand Hostel LDK — дальше город не даст уснуть.'],
+        details: ['Check-in в Grand Hostel LDK Osaka Shinsaibashi и небольшой отдых перед неоном.'],
       },
       {
         id: 'dotonbori',
         time: '~20:30',
         title: 'Пройти неоновое крещение',
         kind: 'place',
-        details: ['Найди бегущего Glico, съешь горячий takoyaki и просто потеряйся в огнях Dotonbori.'],
+        details: ['Dotonbori → Ebisu Bridge → вывеска Glico.', 'Перекус: Takoyaki Wanaka. Если захочется полноценного ужина — Ajinoya Honten и okonomiyaki.'],
+      },
+      {
+        id: 'shinsaibashi-night',
+        time: 'После ужина',
+        title: 'Закрыть первый японский вечер',
+        kind: 'place',
+        details: ['Пройти через Shinsaibashi-suji, заглянуть в konbini по пути и вернуться в отель примерно к 23:00.', 'Проверить погоду и море в Shirahama, приготовить пляжные вещи. Завтра выход в 06:50, билет Kuroshio уже куплен.'],
       },
     ],
   },

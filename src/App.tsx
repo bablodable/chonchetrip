@@ -635,13 +635,17 @@ function App() {
   const canEdit = accessMode === 'editor'
   const selectedDay = dayContentForDate(selectedDate, progress.fujiDate)
   const selectedUnlocked = selectedDate <= today || progress.unlockedDays.includes(selectedDate)
-  const selectedAchievement = achievements.find((item) => item.id === selectedDay.achievementId)
+  const selectedAchievement = selectedDay.achievementId
+    ? achievements.find((item) => item.id === selectedDay.achievementId)
+    : undefined
   const modalAchievement = modal ? achievements.find((item) => item.id === modal.id) : undefined
   const selectedStops = progress.checkedStops[selectedDay.id] ?? []
   const selectedUnlockedStops = progress.unlockedStops[selectedDay.id] ?? []
   const selectedAfternoonUnlocked = selectedDate < today || (selectedDate === today && japanHour >= 13)
   const selectedEveningUnlocked = selectedDate < today || (selectedDate === today && japanHour >= 19)
-  const selectedClaimed = progress.claimed.includes(selectedDay.achievementId)
+  const selectedClaimed = selectedDay.achievementId
+    ? progress.claimed.includes(selectedDay.achievementId)
+    : false
   const solvedRiddles = progress.solvedRiddles ?? []
   const selectedRiddleSolved = solvedRiddles.includes(selectedDay.id)
   const selectedRiddleRevealed = progress.reveals.includes(selectedDay.id)
@@ -1131,7 +1135,7 @@ function App() {
                   const content = dayContentForDate(slot.date, progress.fujiDate)
                   const unlocked = slot.date <= today || progress.unlockedDays.includes(slot.date)
                   const active = slot.date === selectedDate
-                  const claimed = progress.claimed.includes(content.achievementId)
+                  const claimed = content.achievementId ? progress.claimed.includes(content.achievementId) : false
                   return <JourneyDayChip key={slot.date} slot={slot} index={index} city={content.city} active={active} unlocked={unlocked} claimed={claimed} editable={canEdit} onSelect={() => setSelectedDate(slot.date)} onForceUnlock={() => { forceUnlockDay(slot.date); setSelectedDate(slot.date) }} />
                 })}
               </div>
