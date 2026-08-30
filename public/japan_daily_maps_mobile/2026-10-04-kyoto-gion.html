@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>04.10 — Kyoto / Kiyomizu + Gion</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="/japan_daily_maps_mobile/live-map.css"/>
+  <style>
+html, body {
+  margin: 0;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f6f7fb;
+  color: #111;
+}
+a { color: #1858d6; }
+.wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 12px;
+}
+.header-card, .map-card, .list-card, .tip-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.08);
+}
+.header-card {
+  padding: 16px;
+  margin-bottom: 12px;
+}
+h1 {
+  font-size: 22px;
+  margin: 0 0 6px;
+  line-height: 1.2;
+}
+.subtitle {
+  color: #555;
+  font-size: 14px;
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+.top-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  background: #f2f5ff;
+  color: #2045b4;
+  border-radius: 999px;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.map-card {
+  overflow: hidden;
+}
+#map {
+  height: 62vh;
+  min-height: 430px;
+}
+.legend-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 12px 14px 14px;
+  font-size: 13px;
+  color: #555;
+}
+.key {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.line {
+  width: 34px;
+  height: 0;
+  border-top: 4px solid;
+  border-radius: 99px;
+}
+.line.rail {
+  border-top-color: #4865ff;
+  border-top-style: dashed;
+}
+.line.local {
+  border-top-color: #ff6d57;
+}
+.tip-card {
+  padding: 12px 14px;
+  margin-top: 12px;
+  font-size: 13px;
+  color: #555;
+  line-height: 1.45;
+}
+.list-card {
+  margin-top: 12px;
+  padding: 8px;
+}
+.list-title {
+  font-weight: 800;
+  font-size: 16px;
+  padding: 8px 8px 4px;
+}
+.stop {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  gap: 10px;
+  align-items: start;
+  padding: 10px 8px;
+  border-top: 1px solid #eee;
+}
+.stop:first-of-type {
+  border-top: none;
+}
+.stop-emoji {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  border: 2px solid #111;
+  font-size: 18px;
+}
+.stop-main {
+  min-width: 0;
+}
+.stop-name {
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+.stop-desc {
+  color: #555;
+  font-size: 13px;
+  line-height: 1.35;
+}
+.stop-time {
+  color: #666;
+  font-size: 12px;
+  white-space: nowrap;
+  padding-top: 2px;
+}
+.stop-links {
+  margin-top: 6px;
+}
+.small-link {
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.route-marker {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: white;
+  border: 2px solid #111;
+  font-size: 18px;
+  box-shadow: 0 3px 10px rgba(0,0,0,.18);
+}
+.leaflet-popup-content {
+  margin: 12px 14px;
+  line-height: 1.35;
+}
+.popup-title {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.popup-time {
+  color: #666;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+.popup-link {
+  display: inline-block;
+  margin-top: 8px;
+  text-decoration: none;
+  font-weight: 700;
+}
+@media (max-width: 700px) {
+  .wrap { padding: 10px; }
+  h1 { font-size: 19px; }
+  #map {
+    height: 55vh;
+    min-height: 360px;
+  }
+  .stop {
+    grid-template-columns: 36px 1fr;
+  }
+  .stop-time {
+    grid-column: 2;
+    padding-top: 0;
+  }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header-card">
+    <h1>⛩️ 04.10 — Kyoto / Kiyomizu + Gion</h1>
+    <div class="subtitle">Переезд в Kyoto, старые улицы, Gion и красивый ужин.</div>
+    <div class="top-actions">
+      <a class="chip" href="#stops">Список точек</a>
+    </div>
+  </div>
+
+  <div class="map-card">
+    <div id="map"></div>
+    <div class="legend-row">
+      <span class="key"><span class="line rail"></span> поезд / метро / дальний переезд</span>
+      <span class="key"><span class="line local"></span> локальный маршрут</span>
+    </div>
+  </div>
+
+  <div class="tip-card">Маршрут в Kyoto в основном пеший, точки стоят в логическом порядке по району.</div>
+
+  <div class="list-card" id="stops">
+    <div class="list-title">Точки дня</div>
+
+        <div class="stop">
+          <div class="stop-emoji">🚇</div>
+          <div class="stop-main">
+            <div class="stop-name">1. Nagahoribashi</div>
+            <div class="stop-desc">Старт из Osaka</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=34.67486,135.50635" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">утро</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🚆</div>
+          <div class="stop-main">
+            <div class="stop-name">2. Kitahama</div>
+            <div class="stop-desc">Пересадка на Keihan</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=34.69186,135.50713" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">утро</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">📕</div>
+          <div class="stop-main">
+            <div class="stop-name">3. Gion-Shijo Station</div>
+            <div class="stop-desc">Прибытие + stamp</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.0037,135.77354" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">~11:00</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🏠</div>
+          <div class="stop-main">
+            <div class="stop-name">4. Tazuru</div>
+            <div class="stop-desc">Оставить вещи / check-in позже</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.00118,135.77239" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">~11:00</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🏯</div>
+          <div class="stop-main">
+            <div class="stop-name">5. Kiyomizu-dera</div>
+            <div class="stop-desc">Храм на склоне</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=34.99485,135.78498" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">~11:30–12:45</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🏘️</div>
+          <div class="stop-main">
+            <div class="stop-name">6. Sannenzaka</div>
+            <div class="stop-desc">Историческая улица</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=34.99724,135.78174" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">днём</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🏘️</div>
+          <div class="stop-main">
+            <div class="stop-name">7. Ninenzaka</div>
+            <div class="stop-desc">Историческая улица</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=34.99793,135.78079" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">днём</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🗼</div>
+          <div class="stop-main">
+            <div class="stop-name">8. Yasaka Pagoda</div>
+            <div class="stop-desc">Пагода</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=34.99859,135.78016" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">днём</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🐉</div>
+          <div class="stop-main">
+            <div class="stop-name">9. Kennin-ji</div>
+            <div class="stop-desc">Дзен-храм / драконы</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.00066,135.77348" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">~15:40–16:40</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🌙</div>
+          <div class="stop-main">
+            <div class="stop-name">10. Hanamikoji</div>
+            <div class="stop-desc">Старинная улица Gion</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.0034,135.77602" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">вечер</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">⛩️</div>
+          <div class="stop-main">
+            <div class="stop-name">11. Yasaka Shrine</div>
+            <div class="stop-desc">Святилище</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.00366,135.77878" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">вечер</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🌊</div>
+          <div class="stop-main">
+            <div class="stop-name">12. Gion Shirakawa</div>
+            <div class="stop-desc">Канал и старые дома</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.00608,135.77518" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">вечер</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🍽️</div>
+          <div class="stop-main">
+            <div class="stop-name">13. Pontocho / ужин</div>
+            <div class="stop-desc">Kaiseki-ужин</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.007,135.77073" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">~18:30</div>
+        </div>
+
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const points = [{"n": 1, "emoji": "🚇", "name": "Nagahoribashi", "time": "утро", "desc": "Старт из Osaka", "lat": 34.67486, "lng": 135.50635}, {"n": 2, "emoji": "🚆", "name": "Kitahama", "time": "утро", "desc": "Пересадка на Keihan", "lat": 34.69186, "lng": 135.50713}, {"n": 3, "emoji": "📕", "name": "Gion-Shijo Station", "time": "~11:00", "desc": "Прибытие + stamp", "lat": 35.0037, "lng": 135.77354}, {"n": 4, "emoji": "🏠", "name": "Tazuru", "time": "~11:00", "desc": "Оставить вещи / check-in позже", "lat": 35.00118, "lng": 135.77239}, {"n": 5, "emoji": "🏯", "name": "Kiyomizu-dera", "time": "~11:30–12:45", "desc": "Храм на склоне", "lat": 34.99485, "lng": 135.78498}, {"n": 6, "emoji": "🏘️", "name": "Sannenzaka", "time": "днём", "desc": "Историческая улица", "lat": 34.99724, "lng": 135.78174}, {"n": 7, "emoji": "🏘️", "name": "Ninenzaka", "time": "днём", "desc": "Историческая улица", "lat": 34.99793, "lng": 135.78079}, {"n": 8, "emoji": "🗼", "name": "Yasaka Pagoda", "time": "днём", "desc": "Пагода", "lat": 34.99859, "lng": 135.78016}, {"n": 9, "emoji": "🐉", "name": "Kennin-ji", "time": "~15:40–16:40", "desc": "Дзен-храм / драконы", "lat": 35.00066, "lng": 135.77348}, {"n": 10, "emoji": "🌙", "name": "Hanamikoji", "time": "вечер", "desc": "Старинная улица Gion", "lat": 35.0034, "lng": 135.77602}, {"n": 11, "emoji": "⛩️", "name": "Yasaka Shrine", "time": "вечер", "desc": "Святилище", "lat": 35.00366, "lng": 135.77878}, {"n": 12, "emoji": "🌊", "name": "Gion Shirakawa", "time": "вечер", "desc": "Канал и старые дома", "lat": 35.00608, "lng": 135.77518}, {"n": 13, "emoji": "🍽️", "name": "Pontocho / ужин", "time": "~18:30", "desc": "Kaiseki-ужин", "lat": 35.007, "lng": 135.77073}];
+const segments = [{"type": "rail", "path": [1, 2, 3, 4]}, {"type": "local", "path": [4, 5, 6, 7, 8, 9, 10, 11, 12, 13]}];
+
+const map = L.map('map', {
+  zoomControl: true,
+  scrollWheelZoom: true
+});
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+function markerIcon(p) {
+  return L.divIcon({
+    className: '',
+    html: `<div class="route-marker" title="${p.n}. ${p.name}">${p.emoji}</div>`,
+    iconSize: [34, 34],
+    iconAnchor: [17, 17]
+  });
+}
+
+const markerBounds = [];
+const markerMap = {};
+
+points.forEach(p => {
+  const gmaps = `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
+  const popup = `
+    <div class="popup-title">${p.n}. ${p.name}</div>
+    <div class="popup-time">${p.time}</div>
+    <div>${p.desc}</div>
+    <a class="popup-link" href="${gmaps}" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+  `;
+  const marker = L.marker([p.lat, p.lng], { icon: markerIcon(p) })
+    .addTo(map)
+    .bindPopup(popup);
+  markerMap[p.n] = marker;
+  markerBounds.push([p.lat, p.lng]);
+});
+
+segments.forEach(seg => {
+  const path = seg.path.map(num => {
+    const p = points.find(x => x.n === num);
+    return [p.lat, p.lng];
+  });
+  L.polyline(path, {
+    color: seg.type === 'rail' ? '#4865ff' : '#ff6d57',
+    weight: seg.type === 'rail' ? 4 : 5,
+    opacity: 0.88,
+    dashArray: seg.type === 'rail' ? '10 10' : null
+  }).addTo(map);
+});
+
+if (markerBounds.length) {
+  map.fitBounds(markerBounds, { padding: [28, 28] });
+}
+</script>
+<script src="/japan_daily_maps_mobile/live-map.js"></script>
+</body>
+</html>

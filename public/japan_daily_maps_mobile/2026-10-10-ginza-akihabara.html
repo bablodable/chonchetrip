@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>10.10 — Tsukiji + Ginza + Akihabara</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="/japan_daily_maps_mobile/live-map.css"/>
+  <style>
+html, body {
+  margin: 0;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f6f7fb;
+  color: #111;
+}
+a { color: #1858d6; }
+.wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 12px;
+}
+.header-card, .map-card, .list-card, .tip-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.08);
+}
+.header-card {
+  padding: 16px;
+  margin-bottom: 12px;
+}
+h1 {
+  font-size: 22px;
+  margin: 0 0 6px;
+  line-height: 1.2;
+}
+.subtitle {
+  color: #555;
+  font-size: 14px;
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+.top-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  background: #f2f5ff;
+  color: #2045b4;
+  border-radius: 999px;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.map-card {
+  overflow: hidden;
+}
+#map {
+  height: 62vh;
+  min-height: 430px;
+}
+.legend-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 12px 14px 14px;
+  font-size: 13px;
+  color: #555;
+}
+.key {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.line {
+  width: 34px;
+  height: 0;
+  border-top: 4px solid;
+  border-radius: 99px;
+}
+.line.rail {
+  border-top-color: #4865ff;
+  border-top-style: dashed;
+}
+.line.local {
+  border-top-color: #ff6d57;
+}
+.tip-card {
+  padding: 12px 14px;
+  margin-top: 12px;
+  font-size: 13px;
+  color: #555;
+  line-height: 1.45;
+}
+.list-card {
+  margin-top: 12px;
+  padding: 8px;
+}
+.list-title {
+  font-weight: 800;
+  font-size: 16px;
+  padding: 8px 8px 4px;
+}
+.stop {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  gap: 10px;
+  align-items: start;
+  padding: 10px 8px;
+  border-top: 1px solid #eee;
+}
+.stop:first-of-type {
+  border-top: none;
+}
+.stop-emoji {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  border: 2px solid #111;
+  font-size: 18px;
+}
+.stop-main {
+  min-width: 0;
+}
+.stop-name {
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+.stop-desc {
+  color: #555;
+  font-size: 13px;
+  line-height: 1.35;
+}
+.stop-time {
+  color: #666;
+  font-size: 12px;
+  white-space: nowrap;
+  padding-top: 2px;
+}
+.stop-links {
+  margin-top: 6px;
+}
+.small-link {
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.route-marker {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: white;
+  border: 2px solid #111;
+  font-size: 18px;
+  box-shadow: 0 3px 10px rgba(0,0,0,.18);
+}
+.leaflet-popup-content {
+  margin: 12px 14px;
+  line-height: 1.35;
+}
+.popup-title {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.popup-time {
+  color: #666;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+.popup-link {
+  display: inline-block;
+  margin-top: 8px;
+  text-decoration: none;
+  font-weight: 700;
+}
+@media (max-width: 700px) {
+  .wrap { padding: 10px; }
+  h1 { font-size: 19px; }
+  #map {
+    height: 55vh;
+    min-height: 360px;
+  }
+  .stop {
+    grid-template-columns: 36px 1fr;
+  }
+  .stop-time {
+    grid-column: 2;
+    padding-top: 0;
+  }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header-card">
+    <h1>🛍️ 10.10 — Tsukiji + Ginza + Akihabara</h1>
+    <div class="subtitle">Японский завтрак, JINS, Apple Ginza, Kanda Myojin, Akihabara.</div>
+    <div class="top-actions">
+      <a class="chip" href="#stops">Список точек</a>
+    </div>
+  </div>
+
+  <div class="map-card">
+    <div id="map"></div>
+    <div class="legend-row">
+      <span class="key"><span class="line rail"></span> поезд / метро / дальний переезд</span>
+      <span class="key"><span class="line local"></span> локальный маршрут</span>
+    </div>
+  </div>
+
+  <div class="tip-card">Точки anime spot вынесены прямо в маршрут: Kanda Myojin, Radio Kaikan и Manseibashi.</div>
+
+  <div class="list-card" id="stops">
+    <div class="list-title">Точки дня</div>
+
+        <div class="stop">
+          <div class="stop-emoji">🏠</div>
+          <div class="stop-main">
+            <div class="stop-name">1. Airbnb Shiba 2-9-9</div>
+            <div class="stop-desc">Старт</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.655,139.7505" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">07:40</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🍳</div>
+          <div class="stop-main">
+            <div class="stop-name">2. Tsumugi at Tsukiji Honganji</div>
+            <div class="stop-desc">Японский завтрак</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.66736,139.77075" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">~08:00</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">👓</div>
+          <div class="stop-main">
+            <div class="stop-name">3. JINS Ginza</div>
+            <div class="stop-desc">Оправы и проверка зрения; вернуться за готовыми очками после UNIQLO</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.67106,139.76476" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">10:00 + ~12:20</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🍎</div>
+          <div class="stop-main">
+            <div class="stop-name">4. Apple Ginza</div>
+            <div class="stop-desc">Заглянуть в флагман</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.6722,139.76494" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">~10:50–11:20</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">👕</div>
+          <div class="stop-main">
+            <div class="stop-name">5. UNIQLO Ginza</div>
+            <div class="stop-desc">12 этажей</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.67129,139.76464" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">~11:30–12:20</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🍣</div>
+          <div class="stop-main">
+            <div class="stop-name">6. Sushi no Midori Ginza</div>
+            <div class="stop-desc">Обед: sushi</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.6725,139.7656" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">~12:45–13:45</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">📕</div>
+          <div class="stop-main">
+            <div class="stop-name">7. Akihabara Station</div>
+            <div class="stop-desc">Stamp у JR</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.6984,139.77306" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">после обеда</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">⛩️</div>
+          <div class="stop-main">
+            <div class="stop-name">8. Kanda Myojin</div>
+            <div class="stop-desc">Anime spot: Love Live! / Steins;Gate</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.70242,139.7678" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">~14:30–15:00</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">⚠️</div>
+          <div class="stop-main">
+            <div class="stop-name">9. Radio Kaikan</div>
+            <div class="stop-desc">Anime spot: Steins;Gate</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.6976,139.77302" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">после Kanda Myojin</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">⚠️</div>
+          <div class="stop-main">
+            <div class="stop-name">10. Manseibashi Bridge</div>
+            <div class="stop-desc">Anime spot: Steins;Gate</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.69852,139.77018" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">по пути</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🎮</div>
+          <div class="stop-main">
+            <div class="stop-name">11. Mandarake Complex</div>
+            <div class="stop-desc">Used-мерч</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.69962,139.7715" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">день</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🕹️</div>
+          <div class="stop-main">
+            <div class="stop-name">12. Super Potato</div>
+            <div class="stop-desc">Ретро-игры</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.699,139.77177" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">день</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">📚</div>
+          <div class="stop-main">
+            <div class="stop-name">13. animate Akihabara</div>
+            <div class="stop-desc">Аниме-магазин</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.70055,139.77068" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">день</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🎯</div>
+          <div class="stop-main">
+            <div class="stop-name">14. GiGO Akihabara</div>
+            <div class="stop-desc">Аркады</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.6997,139.77113" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">вечер</div>
+        </div>
+
+        <div class="stop">
+          <div class="stop-emoji">🍜</div>
+          <div class="stop-main">
+            <div class="stop-name">15. Ужин в Akihabara</div>
+            <div class="stop-desc">Ramen, curry или izakaya по настроению</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.699,139.772" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">~19:30</div>
+        </div>
+
+        <div class="stop">
+          <div class="stop-emoji">🏠</div>
+          <div class="stop-main">
+            <div class="stop-name">16. Hamamatsucho / Airbnb</div>
+            <div class="stop-desc">Возвращение домой по Yamanote или Keihin-Tohoku Line</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.655,139.7505" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">после 21:00</div>
+        </div>
+
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const points = [{"n": 1, "emoji": "🏠", "name": "Airbnb Shiba 2-9-9", "time": "07:40", "desc": "Старт", "lat": 35.655, "lng": 139.7505}, {"n": 2, "emoji": "🍳", "name": "Tsumugi at Tsukiji Honganji", "time": "~08:00", "desc": "Японский завтрак", "lat": 35.66736, "lng": 139.77075}, {"n": 3, "emoji": "👓", "name": "JINS Ginza", "time": "10:00 + ~12:20", "desc": "Оправы и проверка зрения; вернуться за готовыми очками после UNIQLO", "lat": 35.67106, "lng": 139.76476}, {"n": 4, "emoji": "🍎", "name": "Apple Ginza", "time": "~10:50–11:20", "desc": "Заглянуть в флагман", "lat": 35.6722, "lng": 139.76494}, {"n": 5, "emoji": "👕", "name": "UNIQLO Ginza", "time": "~11:30–12:20", "desc": "12 этажей", "lat": 35.67129, "lng": 139.76464}, {"n": 6, "emoji": "🍣", "name": "Sushi no Midori Ginza", "time": "~12:45–13:45", "desc": "Обед: sushi", "lat": 35.6725, "lng": 139.7656}, {"n": 7, "emoji": "📕", "name": "Akihabara Station", "time": "после обеда", "desc": "Stamp у JR", "lat": 35.6984, "lng": 139.77306}, {"n": 8, "emoji": "⛩️", "name": "Kanda Myojin", "time": "~14:30–15:00", "desc": "Anime spot: Love Live! / Steins;Gate", "lat": 35.70242, "lng": 139.7678}, {"n": 9, "emoji": "⚠️", "name": "Radio Kaikan", "time": "после Kanda Myojin", "desc": "Anime spot: Steins;Gate", "lat": 35.6976, "lng": 139.77302}, {"n": 10, "emoji": "⚠️", "name": "Manseibashi Bridge", "time": "по пути", "desc": "Anime spot: Steins;Gate", "lat": 35.69852, "lng": 139.77018}, {"n": 11, "emoji": "🎮", "name": "Mandarake Complex", "time": "день", "desc": "Used-мерч", "lat": 35.69962, "lng": 139.7715}, {"n": 12, "emoji": "🕹️", "name": "Super Potato", "time": "день", "desc": "Ретро-игры", "lat": 35.699, "lng": 139.77177}, {"n": 13, "emoji": "📚", "name": "animate Akihabara", "time": "день", "desc": "Аниме-магазин", "lat": 35.70055, "lng": 139.77068}, {"n": 14, "emoji": "🎯", "name": "GiGO Akihabara", "time": "вечер", "desc": "Аркады", "lat": 35.6997, "lng": 139.77113}, {"n": 15, "emoji": "🍜", "name": "Ужин в Akihabara", "time": "~19:30", "desc": "Ramen, curry или izakaya по настроению", "lat": 35.699, "lng": 139.772}, {"n": 16, "emoji": "🏠", "name": "Hamamatsucho / Airbnb", "time": "после 21:00", "desc": "Возвращение домой по Yamanote или Keihin-Tohoku Line", "lat": 35.655, "lng": 139.7505}];
+const segments = [{"type": "rail", "path": [1, 2, 3]}, {"type": "local", "path": [3, 4, 5, 3, 6]}, {"type": "rail", "path": [6, 7]}, {"type": "local", "path": [7, 8, 9, 10, 11, 12, 13, 14, 15]}, {"type": "rail", "path": [15, 16]}];
+
+const map = L.map('map', {
+  zoomControl: true,
+  scrollWheelZoom: true
+});
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+function markerIcon(p) {
+  return L.divIcon({
+    className: '',
+    html: `<div class="route-marker" title="${p.n}. ${p.name}">${p.emoji}</div>`,
+    iconSize: [34, 34],
+    iconAnchor: [17, 17]
+  });
+}
+
+const markerBounds = [];
+const markerMap = {};
+
+points.forEach(p => {
+  const gmaps = `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
+  const popup = `
+    <div class="popup-title">${p.n}. ${p.name}</div>
+    <div class="popup-time">${p.time}</div>
+    <div>${p.desc}</div>
+    <a class="popup-link" href="${gmaps}" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+  `;
+  const marker = L.marker([p.lat, p.lng], { icon: markerIcon(p) })
+    .addTo(map)
+    .bindPopup(popup);
+  markerMap[p.n] = marker;
+  markerBounds.push([p.lat, p.lng]);
+});
+
+segments.forEach(seg => {
+  const path = seg.path.map(num => {
+    const p = points.find(x => x.n === num);
+    return [p.lat, p.lng];
+  });
+  L.polyline(path, {
+    color: seg.type === 'rail' ? '#4865ff' : '#ff6d57',
+    weight: seg.type === 'rail' ? 4 : 5,
+    opacity: 0.88,
+    dashArray: seg.type === 'rail' ? '10 10' : null
+  }).addTo(map);
+});
+
+if (markerBounds.length) {
+  map.fitBounds(markerBounds, { padding: [28, 28] });
+}
+</script>
+<script src="/japan_daily_maps_mobile/live-map.js"></script>
+</body>
+</html>

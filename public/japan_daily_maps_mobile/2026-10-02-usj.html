@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>02.10 — Universal Studios Japan</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="/japan_daily_maps_mobile/live-map.css"/>
+  <style>
+html, body {
+  margin: 0;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f6f7fb;
+  color: #111;
+}
+a { color: #1858d6; }
+.wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 12px;
+}
+.header-card, .map-card, .list-card, .tip-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.08);
+}
+.header-card {
+  padding: 16px;
+  margin-bottom: 12px;
+}
+h1 {
+  font-size: 22px;
+  margin: 0 0 6px;
+  line-height: 1.2;
+}
+.subtitle {
+  color: #555;
+  font-size: 14px;
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+.top-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  background: #f2f5ff;
+  color: #2045b4;
+  border-radius: 999px;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.map-card {
+  overflow: hidden;
+}
+#map {
+  height: 62vh;
+  min-height: 430px;
+}
+.legend-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 12px 14px 14px;
+  font-size: 13px;
+  color: #555;
+}
+.key {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.line {
+  width: 34px;
+  height: 0;
+  border-top: 4px solid;
+  border-radius: 99px;
+}
+.line.rail {
+  border-top-color: #4865ff;
+  border-top-style: dashed;
+}
+.line.local {
+  border-top-color: #ff6d57;
+}
+.tip-card {
+  padding: 12px 14px;
+  margin-top: 12px;
+  font-size: 13px;
+  color: #555;
+  line-height: 1.45;
+}
+.list-card {
+  margin-top: 12px;
+  padding: 8px;
+}
+.list-title {
+  font-weight: 800;
+  font-size: 16px;
+  padding: 8px 8px 4px;
+}
+.stop {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  gap: 10px;
+  align-items: start;
+  padding: 10px 8px;
+  border-top: 1px solid #eee;
+}
+.stop:first-of-type {
+  border-top: none;
+}
+.stop-emoji {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  border: 2px solid #111;
+  font-size: 18px;
+}
+.stop-main {
+  min-width: 0;
+}
+.stop-name {
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+.stop-desc {
+  color: #555;
+  font-size: 13px;
+  line-height: 1.35;
+}
+.stop-time {
+  color: #666;
+  font-size: 12px;
+  white-space: nowrap;
+  padding-top: 2px;
+}
+.stop-links {
+  margin-top: 6px;
+}
+.small-link {
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.route-marker {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: white;
+  border: 2px solid #111;
+  font-size: 18px;
+  box-shadow: 0 3px 10px rgba(0,0,0,.18);
+}
+.leaflet-popup-content {
+  margin: 12px 14px;
+  line-height: 1.35;
+}
+.popup-title {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.popup-time {
+  color: #666;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+.popup-link {
+  display: inline-block;
+  margin-top: 8px;
+  text-decoration: none;
+  font-weight: 700;
+}
+@media (max-width: 700px) {
+  .wrap { padding: 10px; }
+  h1 { font-size: 19px; }
+  #map {
+    height: 55vh;
+    min-height: 360px;
+  }
+  .stop {
+    grid-template-columns: 36px 1fr;
+  }
+  .stop-time {
+    grid-column: 2;
+    padding-top: 0;
+  }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header-card">
+    <h1>🎢 02.10 — Universal Studios Japan</h1>
+    <div class="subtitle">USJ + Frieren + Halloween Horror Nights.</div>
+    <div class="top-actions">
+      <a class="chip" href="#stops">Список точек</a>
+    </div>
+  </div>
+
+  <div class="map-card">
+    <div id="map"></div>
+    <div class="legend-row">
+      <span class="key"><span class="line rail"></span> поезд / метро / дальний переезд</span>
+      <span class="key"><span class="line local"></span> локальный маршрут</span>
+    </div>
+  </div>
+
+  <div class="tip-card">Внутри парка маршрут условный: приоритеты даны по логике вашего дня, но по факту можно адаптировать по очередям и слотам.</div>
+
+  <div class="list-card" id="stops">
+    <div class="list-title">Точки дня</div>
+
+        <div class="stop">
+          <div class="stop-emoji">🚇</div>
+          <div class="stop-main">
+            <div class="stop-name">1. Nagahoribashi</div>
+            <div class="stop-desc">Старт / 7-Eleven по пути</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=34.67486,135.50635" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">рано утром</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🚆</div>
+          <div class="stop-main">
+            <div class="stop-name">2. Taisho Station</div>
+            <div class="stop-desc">Пересадка на JR</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=34.6552,135.47228" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">утро</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🎟️</div>
+          <div class="stop-main">
+            <div class="stop-name">3. USJ Entrance</div>
+            <div class="stop-desc">Вход в парк / Studio Pass / Express Pass</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=34.66555,135.43227" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">до открытия</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🪄</div>
+          <div class="stop-main">
+            <div class="stop-name">4. Wizarding World / Forbidden Journey</div>
+            <div class="stop-desc">Harry Potter приоритет</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=34.66508,135.42985" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">утро</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">⚔️</div>
+          <div class="stop-main">
+            <div class="stop-name">5. Frieren Story Walk / Hollywood Dream</div>
+            <div class="stop-desc">Frieren eTicket + ride</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=34.66571,135.43158" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">до обеда</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🍜</div>
+          <div class="stop-main">
+            <div class="stop-name">6. Restaurant of Memories</div>
+            <div class="stop-desc">Обед: Frieren-ресторан</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=34.66636,135.43235" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">~12:30–14:00</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🪚</div>
+          <div class="stop-main">
+            <div class="stop-name">7. Chainsaw Man 4-D</div>
+            <div class="stop-desc">Express Pass</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=34.66598,135.43288" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">после обеда</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🎃</div>
+          <div class="stop-main">
+            <div class="stop-name">8. Halloween Horror Nights</div>
+            <div class="stop-desc">Street Zombies / Halloween зоны</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=34.6655,135.43227" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">с 18:00</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🦖</div>
+          <div class="stop-main">
+            <div class="stop-name">9. Jurassic Park: The Ride in the Dark</div>
+            <div class="stop-desc">Express Pass</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=34.66722,135.42998" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">20:00–20:30</div>
+        </div>
+
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const points = [{"n": 1, "emoji": "🚇", "name": "Nagahoribashi", "time": "рано утром", "desc": "Старт / 7-Eleven по пути", "lat": 34.67486, "lng": 135.50635}, {"n": 2, "emoji": "🚆", "name": "Taisho Station", "time": "утро", "desc": "Пересадка на JR", "lat": 34.6552, "lng": 135.47228}, {"n": 3, "emoji": "🎟️", "name": "USJ Entrance", "time": "до открытия", "desc": "Вход в парк / Studio Pass / Express Pass", "lat": 34.66555, "lng": 135.43227}, {"n": 4, "emoji": "🪄", "name": "Wizarding World / Forbidden Journey", "time": "утро", "desc": "Harry Potter приоритет", "lat": 34.66508, "lng": 135.42985}, {"n": 5, "emoji": "⚔️", "name": "Frieren Story Walk / Hollywood Dream", "time": "до обеда", "desc": "Frieren eTicket + ride", "lat": 34.66571, "lng": 135.43158}, {"n": 6, "emoji": "🍜", "name": "Restaurant of Memories", "time": "~12:30–14:00", "desc": "Обед: Frieren-ресторан", "lat": 34.66636, "lng": 135.43235}, {"n": 7, "emoji": "🪚", "name": "Chainsaw Man 4-D", "time": "после обеда", "desc": "Express Pass", "lat": 34.66598, "lng": 135.43288}, {"n": 8, "emoji": "🎃", "name": "Halloween Horror Nights", "time": "с 18:00", "desc": "Street Zombies / Halloween зоны", "lat": 34.6655, "lng": 135.43227}, {"n": 9, "emoji": "🦖", "name": "Jurassic Park: The Ride in the Dark", "time": "20:00–20:30", "desc": "Express Pass", "lat": 34.66722, "lng": 135.42998}];
+const segments = [{"type": "rail", "path": [1, 2, 3]}, {"type": "local", "path": [3, 4, 5, 6, 7, 8, 9]}];
+
+const map = L.map('map', {
+  zoomControl: true,
+  scrollWheelZoom: true
+});
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+function markerIcon(p) {
+  return L.divIcon({
+    className: '',
+    html: `<div class="route-marker" title="${p.n}. ${p.name}">${p.emoji}</div>`,
+    iconSize: [34, 34],
+    iconAnchor: [17, 17]
+  });
+}
+
+const markerBounds = [];
+const markerMap = {};
+
+points.forEach(p => {
+  const gmaps = `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
+  const popup = `
+    <div class="popup-title">${p.n}. ${p.name}</div>
+    <div class="popup-time">${p.time}</div>
+    <div>${p.desc}</div>
+    <a class="popup-link" href="${gmaps}" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+  `;
+  const marker = L.marker([p.lat, p.lng], { icon: markerIcon(p) })
+    .addTo(map)
+    .bindPopup(popup);
+  markerMap[p.n] = marker;
+  markerBounds.push([p.lat, p.lng]);
+});
+
+segments.forEach(seg => {
+  const path = seg.path.map(num => {
+    const p = points.find(x => x.n === num);
+    return [p.lat, p.lng];
+  });
+  L.polyline(path, {
+    color: seg.type === 'rail' ? '#4865ff' : '#ff6d57',
+    weight: seg.type === 'rail' ? 4 : 5,
+    opacity: 0.88,
+    dashArray: seg.type === 'rail' ? '10 10' : null
+  }).addTo(map);
+});
+
+if (markerBounds.length) {
+  map.fitBounds(markerBounds, { padding: [28, 28] });
+}
+</script>
+<script src="/japan_daily_maps_mobile/live-map.js"></script>
+</body>
+</html>

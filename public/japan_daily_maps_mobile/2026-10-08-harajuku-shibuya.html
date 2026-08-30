@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>08.10 — Harajuku + Shibuya + Your Name + Shinjuku</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="/japan_daily_maps_mobile/live-map.css"/>
+  <style>
+html, body {
+  margin: 0;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f6f7fb;
+  color: #111;
+}
+a { color: #1858d6; }
+.wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 12px;
+}
+.header-card, .map-card, .list-card, .tip-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.08);
+}
+.header-card {
+  padding: 16px;
+  margin-bottom: 12px;
+}
+h1 {
+  font-size: 22px;
+  margin: 0 0 6px;
+  line-height: 1.2;
+}
+.subtitle {
+  color: #555;
+  font-size: 14px;
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+.top-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  background: #f2f5ff;
+  color: #2045b4;
+  border-radius: 999px;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.map-card {
+  overflow: hidden;
+}
+#map {
+  height: 62vh;
+  min-height: 430px;
+}
+.legend-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 12px 14px 14px;
+  font-size: 13px;
+  color: #555;
+}
+.key {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.line {
+  width: 34px;
+  height: 0;
+  border-top: 4px solid;
+  border-radius: 99px;
+}
+.line.rail {
+  border-top-color: #4865ff;
+  border-top-style: dashed;
+}
+.line.local {
+  border-top-color: #ff6d57;
+}
+.tip-card {
+  padding: 12px 14px;
+  margin-top: 12px;
+  font-size: 13px;
+  color: #555;
+  line-height: 1.45;
+}
+.list-card {
+  margin-top: 12px;
+  padding: 8px;
+}
+.list-title {
+  font-weight: 800;
+  font-size: 16px;
+  padding: 8px 8px 4px;
+}
+.stop {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  gap: 10px;
+  align-items: start;
+  padding: 10px 8px;
+  border-top: 1px solid #eee;
+}
+.stop:first-of-type {
+  border-top: none;
+}
+.stop-emoji {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  border: 2px solid #111;
+  font-size: 18px;
+}
+.stop-main {
+  min-width: 0;
+}
+.stop-name {
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+.stop-desc {
+  color: #555;
+  font-size: 13px;
+  line-height: 1.35;
+}
+.stop-time {
+  color: #666;
+  font-size: 12px;
+  white-space: nowrap;
+  padding-top: 2px;
+}
+.stop-links {
+  margin-top: 6px;
+}
+.small-link {
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.route-marker {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: white;
+  border: 2px solid #111;
+  font-size: 18px;
+  box-shadow: 0 3px 10px rgba(0,0,0,.18);
+}
+.leaflet-popup-content {
+  margin: 12px 14px;
+  line-height: 1.35;
+}
+.popup-title {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.popup-time {
+  color: #666;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+.popup-link {
+  display: inline-block;
+  margin-top: 8px;
+  text-decoration: none;
+  font-weight: 700;
+}
+@media (max-width: 700px) {
+  .wrap { padding: 10px; }
+  h1 { font-size: 19px; }
+  #map {
+    height: 55vh;
+    min-height: 360px;
+  }
+  .stop {
+    grid-template-columns: 36px 1fr;
+  }
+  .stop-time {
+    grid-column: 2;
+    padding-top: 0;
+  }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header-card">
+    <h1>🗼 08.10 — Harajuku + Shibuya + Your Name + Shinjuku</h1>
+    <div class="subtitle">Meiji Jingu, JJK-Shibuya, Shibuya Sky, Suga Shrine Steps, Shinjuku.</div>
+    <div class="top-actions">
+      <a class="chip" href="#stops">Список точек</a>
+    </div>
+  </div>
+
+  <div class="map-card">
+    <div id="map"></div>
+    <div class="legend-row">
+      <span class="key"><span class="line rail"></span> поезд / метро / дальний переезд</span>
+      <span class="key"><span class="line local"></span> локальный маршрут</span>
+    </div>
+  </div>
+
+  <div class="tip-card">Это один из самых насыщенных дней. Точки anime spot специально помечены в подписи.</div>
+
+  <div class="list-card" id="stops">
+    <div class="list-title">Точки дня</div>
+
+        <div class="stop">
+          <div class="stop-emoji">🏠</div>
+          <div class="stop-main">
+            <div class="stop-name">1. Airbnb Shiba 2-9-9</div>
+            <div class="stop-desc">Старт / 7-Eleven</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.655,139.7505" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">08:10</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🚆</div>
+          <div class="stop-main">
+            <div class="stop-name">2. Hamamatsucho</div>
+            <div class="stop-desc">JR к Harajuku</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.65565,139.75715" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">утро</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🌳</div>
+          <div class="stop-main">
+            <div class="stop-name">3. Meiji Jingu</div>
+            <div class="stop-desc">Святилище</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.6764,139.6993" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">~09:15–10:40</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">⚠️</div>
+          <div class="stop-main">
+            <div class="stop-name">4. Meiji-jingumae Station</div>
+            <div class="stop-desc">Anime spot: Jujutsu Kaisen</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.66895,139.70384" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">утро</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">👟</div>
+          <div class="stop-main">
+            <div class="stop-name">5. Takeshita-dori</div>
+            <div class="stop-desc">Молодёжная улица</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.67173,139.70334" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">~10:45–11:30</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🏙️</div>
+          <div class="stop-main">
+            <div class="stop-name">6. Omotesando / Cat Street</div>
+            <div class="stop-desc">Прогулка к Shibuya</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.66537,139.71249" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">~11:30–12:30</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">❤️</div>
+          <div class="stop-main">
+            <div class="stop-name">7. Suga Shrine Steps</div>
+            <div class="stop-desc">Anime spot: Your Name</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.68692,139.72184" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">до Shibuya</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🍜</div>
+          <div class="stop-main">
+            <div class="stop-name">8. Gyukatsu Motomura Shibuya</div>
+            <div class="stop-desc">Обед: gyukatsu</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.65852,139.70144" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">после Suga Steps</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🐕</div>
+          <div class="stop-main">
+            <div class="stop-name">9. Hachiko</div>
+            <div class="stop-desc">Shibuya icon / JJK spot</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.6591,139.70056" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">~13:30</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">⚠️</div>
+          <div class="stop-main">
+            <div class="stop-name">10. Shibuya Scramble</div>
+            <div class="stop-desc">Anime spot: Jujutsu Kaisen</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.65952,139.70044" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">день</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">⚠️</div>
+          <div class="stop-main">
+            <div class="stop-name">11. Shibuya 109</div>
+            <div class="stop-desc">Anime spot: Jujutsu Kaisen</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.65957,139.69952" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">день</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🛍️</div>
+          <div class="stop-main">
+            <div class="stop-name">12. Shibuya PARCO</div>
+            <div class="stop-desc">Crocs + TORCH TORCH + магазины</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.66196,139.69826" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">~14:00–15:40</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🌇</div>
+          <div class="stop-main">
+            <div class="stop-name">13. Shibuya Sky</div>
+            <div class="stop-desc">Закат</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.65803,139.70204" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">16:20–18:00</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🍎</div>
+          <div class="stop-main">
+            <div class="stop-name">14. Nike Shinjuku</div>
+            <div class="stop-desc">Флагман</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.6916,139.70233" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">~19:20–20:10</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🥪</div>
+          <div class="stop-main">
+            <div class="stop-name">15. Omoide Yokocho</div>
+            <div class="stop-desc">Перекус: yakitori</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.6933,139.69954" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">~20:15</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🌃</div>
+          <div class="stop-main">
+            <div class="stop-name">16. Kabukicho</div>
+            <div class="stop-desc">Неоновый район</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.69406,139.70301" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">~20:40–21:20</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🍜</div>
+          <div class="stop-main">
+            <div class="stop-name">17. Ramen Nagi Golden Gai</div>
+            <div class="stop-desc">Ужин: niboshi ramen</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.69396,139.70438" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">~21:20</div>
+        </div>
+
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const points = [{"n": 1, "emoji": "🏠", "name": "Airbnb Shiba 2-9-9", "time": "08:10", "desc": "Старт / 7-Eleven", "lat": 35.655, "lng": 139.7505}, {"n": 2, "emoji": "🚆", "name": "Hamamatsucho", "time": "утро", "desc": "JR к Harajuku", "lat": 35.65565, "lng": 139.75715}, {"n": 3, "emoji": "🌳", "name": "Meiji Jingu", "time": "~09:15–10:40", "desc": "Святилище", "lat": 35.6764, "lng": 139.6993}, {"n": 4, "emoji": "⚠️", "name": "Meiji-jingumae Station", "time": "утро", "desc": "Anime spot: Jujutsu Kaisen", "lat": 35.66895, "lng": 139.70384}, {"n": 5, "emoji": "👟", "name": "Takeshita-dori", "time": "~10:45–11:30", "desc": "Молодёжная улица", "lat": 35.67173, "lng": 139.70334}, {"n": 6, "emoji": "🏙️", "name": "Omotesando / Cat Street", "time": "~11:30–12:30", "desc": "Прогулка к Shibuya", "lat": 35.66537, "lng": 139.71249}, {"n": 7, "emoji": "❤️", "name": "Suga Shrine Steps", "time": "до Shibuya", "desc": "Anime spot: Your Name", "lat": 35.68692, "lng": 139.72184}, {"n": 8, "emoji": "🍜", "name": "Gyukatsu Motomura Shibuya", "time": "после Suga Steps", "desc": "Обед: gyukatsu", "lat": 35.65852, "lng": 139.70144}, {"n": 9, "emoji": "🐕", "name": "Hachiko", "time": "после обеда", "desc": "Shibuya icon / JJK spot", "lat": 35.6591, "lng": 139.70056}, {"n": 10, "emoji": "⚠️", "name": "Shibuya Scramble", "time": "день", "desc": "Anime spot: Jujutsu Kaisen", "lat": 35.65952, "lng": 139.70044}, {"n": 11, "emoji": "⚠️", "name": "Shibuya 109", "time": "день", "desc": "Anime spot: Jujutsu Kaisen", "lat": 35.65957, "lng": 139.69952}, {"n": 12, "emoji": "🛍️", "name": "Shibuya PARCO", "time": "~14:00–15:40", "desc": "Crocs + TORCH TORCH + магазины", "lat": 35.66196, "lng": 139.69826}, {"n": 13, "emoji": "🌇", "name": "Shibuya Sky", "time": "16:20–18:00", "desc": "Закат", "lat": 35.65803, "lng": 139.70204}, {"n": 14, "emoji": "🍎", "name": "Nike Shinjuku", "time": "~19:20–20:10", "desc": "Флагман", "lat": 35.6916, "lng": 139.70233}, {"n": 15, "emoji": "🥪", "name": "Omoide Yokocho", "time": "~20:15", "desc": "Перекус: yakitori", "lat": 35.6933, "lng": 139.69954}, {"n": 16, "emoji": "🌃", "name": "Kabukicho", "time": "~20:40–21:20", "desc": "Неоновый район", "lat": 35.69406, "lng": 139.70301}, {"n": 17, "emoji": "🍜", "name": "Ramen Nagi Golden Gai", "time": "~21:20", "desc": "Ужин: niboshi ramen", "lat": 35.69396, "lng": 139.70438}];
+const segments = [{"type": "rail", "path": [1, 2, 3]}, {"type": "local", "path": [3, 4, 5, 6]}, {"type": "rail", "path": [6, 7, 8]}, {"type": "local", "path": [8, 9, 10, 11, 12, 13]}, {"type": "rail", "path": [13, 14]}, {"type": "local", "path": [14, 15, 16, 17]}];
+
+const map = L.map('map', {
+  zoomControl: true,
+  scrollWheelZoom: true
+});
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+function markerIcon(p) {
+  return L.divIcon({
+    className: '',
+    html: `<div class="route-marker" title="${p.n}. ${p.name}">${p.emoji}</div>`,
+    iconSize: [34, 34],
+    iconAnchor: [17, 17]
+  });
+}
+
+const markerBounds = [];
+const markerMap = {};
+
+points.forEach(p => {
+  const gmaps = `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
+  const popup = `
+    <div class="popup-title">${p.n}. ${p.name}</div>
+    <div class="popup-time">${p.time}</div>
+    <div>${p.desc}</div>
+    <a class="popup-link" href="${gmaps}" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+  `;
+  const marker = L.marker([p.lat, p.lng], { icon: markerIcon(p) })
+    .addTo(map)
+    .bindPopup(popup);
+  markerMap[p.n] = marker;
+  markerBounds.push([p.lat, p.lng]);
+});
+
+segments.forEach(seg => {
+  const path = seg.path.map(num => {
+    const p = points.find(x => x.n === num);
+    return [p.lat, p.lng];
+  });
+  L.polyline(path, {
+    color: seg.type === 'rail' ? '#4865ff' : '#ff6d57',
+    weight: seg.type === 'rail' ? 4 : 5,
+    opacity: 0.88,
+    dashArray: seg.type === 'rail' ? '10 10' : null
+  }).addTo(map);
+});
+
+if (markerBounds.length) {
+  map.fitBounds(markerBounds, { padding: [28, 28] });
+}
+</script>
+<script src="/japan_daily_maps_mobile/live-map.js"></script>
+</body>
+</html>

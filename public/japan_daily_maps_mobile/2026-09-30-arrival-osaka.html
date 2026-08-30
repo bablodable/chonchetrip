@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>29–30.09 — Dubai → Osaka / Arrival</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="/japan_daily_maps_mobile/live-map.css"/>
+  <style>
+html, body {
+  margin: 0;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f6f7fb;
+  color: #111;
+}
+a { color: #1858d6; }
+.wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 12px;
+}
+.header-card, .map-card, .list-card, .tip-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.08);
+}
+.header-card {
+  padding: 16px;
+  margin-bottom: 12px;
+}
+h1 {
+  font-size: 22px;
+  margin: 0 0 6px;
+  line-height: 1.2;
+}
+.subtitle {
+  color: #555;
+  font-size: 14px;
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+.top-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  background: #f2f5ff;
+  color: #2045b4;
+  border-radius: 999px;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.map-card {
+  overflow: hidden;
+}
+#map {
+  height: 62vh;
+  min-height: 430px;
+}
+.legend-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 12px 14px 14px;
+  font-size: 13px;
+  color: #555;
+}
+.key {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.line {
+  width: 34px;
+  height: 0;
+  border-top: 4px solid;
+  border-radius: 99px;
+}
+.line.rail {
+  border-top-color: #4865ff;
+  border-top-style: dashed;
+}
+.line.local {
+  border-top-color: #ff6d57;
+}
+.tip-card {
+  padding: 12px 14px;
+  margin-top: 12px;
+  font-size: 13px;
+  color: #555;
+  line-height: 1.45;
+}
+.list-card {
+  margin-top: 12px;
+  padding: 8px;
+}
+.list-title {
+  font-weight: 800;
+  font-size: 16px;
+  padding: 8px 8px 4px;
+}
+.stop {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  gap: 10px;
+  align-items: start;
+  padding: 10px 8px;
+  border-top: 1px solid #eee;
+}
+.stop:first-of-type {
+  border-top: none;
+}
+.stop-emoji {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  border: 2px solid #111;
+  font-size: 18px;
+}
+.stop-main {
+  min-width: 0;
+}
+.stop-name {
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+.stop-desc {
+  color: #555;
+  font-size: 13px;
+  line-height: 1.35;
+}
+.stop-time {
+  color: #666;
+  font-size: 12px;
+  white-space: nowrap;
+  padding-top: 2px;
+}
+.stop-links {
+  margin-top: 6px;
+}
+.small-link {
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.route-marker {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: white;
+  border: 2px solid #111;
+  font-size: 18px;
+  box-shadow: 0 3px 10px rgba(0,0,0,.18);
+}
+.leaflet-popup-content {
+  margin: 12px 14px;
+  line-height: 1.35;
+}
+.popup-title {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.popup-time {
+  color: #666;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+.popup-link {
+  display: inline-block;
+  margin-top: 8px;
+  text-decoration: none;
+  font-weight: 700;
+}
+@media (max-width: 700px) {
+  .wrap { padding: 10px; }
+  h1 { font-size: 19px; }
+  #map {
+    height: 55vh;
+    min-height: 360px;
+  }
+  .stop {
+    grid-template-columns: 36px 1fr;
+  }
+  .stop-time {
+    grid-column: 2;
+    padding-top: 0;
+  }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header-card">
+    <h1>🇯🇵 29–30.09 — Dubai → Osaka / Arrival</h1>
+    <div class="subtitle">Карта дня прилёта: KIX → отель → первый вечер в Osaka.</div>
+    <div class="top-actions">
+      <a class="chip" href="#stops">Список точек</a>
+    </div>
+  </div>
+
+  <div class="map-card">
+    <div id="map"></div>
+    <div class="legend-row">
+      <span class="key"><span class="line rail"></span> поезд / метро / дальний переезд</span>
+      <span class="key"><span class="line local"></span> локальный маршрут</span>
+    </div>
+  </div>
+
+  <div class="tip-card">Примечание: Bath &amp; Body Works в Dubai Airport Concourse B лучше держать как опцию на пересадке, а не как обязательный крюк.</div>
+
+  <div class="list-card" id="stops">
+    <div class="list-title">Точки дня</div>
+
+        <div class="stop">
+          <div class="stop-emoji">✈️</div>
+          <div class="stop-main">
+            <div class="stop-name">1. KIX Terminal 1</div>
+            <div class="stop-desc">Прилёт в Kansai Airport</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=34.4354,135.244" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">17:15</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🎫</div>
+          <div class="stop-main">
+            <div class="stop-name">2. Kansai-airport Station</div>
+            <div class="stop-desc">Купить Kuroshio на 01.10 + stamp</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=34.4364,135.2437" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">после Customs</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🚆</div>
+          <div class="stop-main">
+            <div class="stop-name">3. Tengachaya</div>
+            <div class="stop-desc">Пересадка Nankai → Osaka Metro</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=34.6374,135.4936" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">вечер</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🏠</div>
+          <div class="stop-main">
+            <div class="stop-name">4. Nagahoribashi / hostel</div>
+            <div class="stop-desc">GRAND HOSTEL LDK OSAKA SHINSAIBASHI</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=34.6749,135.5064" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">~20:00</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🌃</div>
+          <div class="stop-main">
+            <div class="stop-name">5. Dotonbori</div>
+            <div class="stop-desc">Неоновый район / вечерняя прогулка</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=34.6687,135.5031" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">~20:30</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🥪</div>
+          <div class="stop-main">
+            <div class="stop-name">6. Takoyaki Wanaka</div>
+            <div class="stop-desc">Перекус: takoyaki</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=34.666,135.5028" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">вечер</div>
+        </div>
+
+
+        <div class="stop">
+          <div class="stop-emoji">🍽️</div>
+          <div class="stop-main">
+            <div class="stop-name">7. Ajinoya Honten</div>
+            <div class="stop-desc">Ужин: okonomiyaki</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=34.6669,135.5035" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">если голодные</div>
+        </div>
+
+        <div class="stop">
+          <div class="stop-emoji">🌙</div>
+          <div class="stop-main">
+            <div class="stop-name">8. Shinsaibashi-suji</div>
+            <div class="stop-desc">Вечерняя торговая улица и дорога обратно в отель</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=34.6716,135.5013" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">после ужина</div>
+        </div>
+
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const points = [{"n": 1, "emoji": "✈️", "name": "KIX Terminal 1", "time": "17:15", "desc": "Прилёт в Kansai Airport", "lat": 34.4354, "lng": 135.244}, {"n": 2, "emoji": "🎫", "name": "Kansai-airport Station", "time": "после Customs", "desc": "Купить Kuroshio на 01.10 + stamp", "lat": 34.4364, "lng": 135.2437}, {"n": 3, "emoji": "🚆", "name": "Tengachaya", "time": "вечер", "desc": "Пересадка Nankai → Osaka Metro", "lat": 34.6374, "lng": 135.4936}, {"n": 4, "emoji": "🏠", "name": "Nagahoribashi / hostel", "time": "~20:00 и поздно вечером", "desc": "GRAND HOSTEL LDK OSAKA SHINSAIBASHI", "lat": 34.6749, "lng": 135.5064}, {"n": 5, "emoji": "🌃", "name": "Dotonbori", "time": "~20:30", "desc": "Неоновый район / вечерняя прогулка", "lat": 34.6687, "lng": 135.5031}, {"n": 6, "emoji": "🥪", "name": "Takoyaki Wanaka", "time": "вечер", "desc": "Перекус: takoyaki", "lat": 34.666, "lng": 135.5028}, {"n": 7, "emoji": "🍽️", "name": "Ajinoya Honten", "time": "если голодные", "desc": "Ужин: okonomiyaki", "lat": 34.6669, "lng": 135.5035}, {"n": 8, "emoji": "🌙", "name": "Shinsaibashi-suji", "time": "после ужина", "desc": "Вечерняя торговая улица и дорога обратно в отель", "lat": 34.6716, "lng": 135.5013}];
+const segments = [{"type": "rail", "path": [1, 2, 3, 4]}, {"type": "local", "path": [4, 5, 6, 7, 8, 4]}];
+
+const map = L.map('map', {
+  zoomControl: true,
+  scrollWheelZoom: true
+});
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+function markerIcon(p) {
+  return L.divIcon({
+    className: '',
+    html: `<div class="route-marker" title="${p.n}. ${p.name}">${p.emoji}</div>`,
+    iconSize: [34, 34],
+    iconAnchor: [17, 17]
+  });
+}
+
+const markerBounds = [];
+const markerMap = {};
+
+points.forEach(p => {
+  const gmaps = `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
+  const popup = `
+    <div class="popup-title">${p.n}. ${p.name}</div>
+    <div class="popup-time">${p.time}</div>
+    <div>${p.desc}</div>
+    <a class="popup-link" href="${gmaps}" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+  `;
+  const marker = L.marker([p.lat, p.lng], { icon: markerIcon(p) })
+    .addTo(map)
+    .bindPopup(popup);
+  markerMap[p.n] = marker;
+  markerBounds.push([p.lat, p.lng]);
+});
+
+segments.forEach(seg => {
+  const path = seg.path.map(num => {
+    const p = points.find(x => x.n === num);
+    return [p.lat, p.lng];
+  });
+  L.polyline(path, {
+    color: seg.type === 'rail' ? '#4865ff' : '#ff6d57',
+    weight: seg.type === 'rail' ? 4 : 5,
+    opacity: 0.88,
+    dashArray: seg.type === 'rail' ? '10 10' : null
+  }).addTo(map);
+});
+
+if (markerBounds.length) {
+  map.fitBounds(markerBounds, { padding: [28, 28] });
+}
+</script>
+<script src="/japan_daily_maps_mobile/live-map.js"></script>
+</body>
+</html>

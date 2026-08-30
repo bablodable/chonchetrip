@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import './App.css'
 import {
   CloudUnavailableError,
@@ -539,6 +539,49 @@ function TimelineCard({ item, complete, locked, editable, timeUnlockHour, onTogg
   )
 }
 
+function DayMapCard({ day, completedStops }: { day: TripDay; completedStops: string[] }) {
+  const [open, setOpen] = useState(false)
+  const frameRef = useRef<HTMLIFrameElement>(null)
+  const mapUrl = day.mapFile ? `/japan_daily_maps_mobile/${day.mapFile}` : ''
+  const minimumProgress = day.mapStartProgress ?? 0
+  const mapDate = encodeURIComponent(day.dateLabel)
+  const completedQuery = encodeURIComponent(JSON.stringify(completedStops))
+  const routeScenesQuery = encodeURIComponent(JSON.stringify(day.mapRouteScenes ?? []))
+
+  const sendMapProgress = useCallback(() => {
+    frameRef.current?.contentWindow?.postMessage({
+      type: 'chonchetrip-map-progress',
+      dayId: day.id,
+      completedSceneIds: completedStops,
+      routeScenes: day.mapRouteScenes ?? [],
+      minimumSteps: minimumProgress,
+    }, window.location.origin)
+  }, [completedStops, day.id, day.mapRouteScenes, minimumProgress])
+
+  useEffect(() => {
+    if (open) sendMapProgress()
+  }, [open, sendMapProgress])
+
+  if (!day.mapFile) return null
+
+  return (
+    <section className={open ? 'day-map-card is-open' : 'day-map-card'}>
+      <button type="button" className="day-map-toggle" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
+        <span className="day-map-icon"><Icon name="route" size={21} /></span>
+        <span><small>Маршрут дня</small><strong>Интерактивная карта</strong><em>{open ? 'Свернуть карту' : 'Маркеры, линии и Google Maps'}</em></span>
+        <Icon name="chevron" size={19} />
+      </button>
+      {open && (
+        <div className="day-map-body">
+          {day.mapNote && <p className="day-map-note"><Icon name="hint" size={16} /> {day.mapNote}</p>}
+          <div className="day-map-frame"><iframe ref={frameRef} src={`${mapUrl}?embed=1&date=${mapDate}`} title={`Интерактивная карта · ${day.dateLabel}`} loading="lazy" allow="geolocation" onLoad={sendMapProgress} /></div>
+          <div className="day-map-footer"><span>Точки закрываются только вместе со связанными сценами. Геолокация остаётся на устройстве.</span><a href={`${mapUrl}?date=${mapDate}&completed=${completedQuery}&routeScenes=${routeScenesQuery}&minimum=${minimumProgress}`} target="_blank" rel="noopener noreferrer">На весь экран →</a></div>
+        </div>
+      )}
+    </section>
+  )
+}
+
 function LockedDayContent({ editable, onForceUnlock }: { editable: boolean; onForceUnlock: () => void }) {
   const holdTimer = useRef<number | undefined>(undefined)
   const holdOrigin = useRef({ x: 0, y: 0 })
@@ -917,6 +960,7 @@ function App() {
     unlock((progress.solvedRiddles ?? []).length >= 1, 'field-researcher')
     unlock((progress.solvedRiddles ?? []).length >= 5, 'keen-eye')
     unlock(tripDays.filter((day) => day.riddle.location).every((day) => (progress.solvedRiddles ?? []).includes(day.id)), 'kitsus-equal')
+    unlock(kitsuMagicDays.every((day) => progress.foxFires.includes(day.dayId)), 'foxfire-constellation')
     unlock((progress.sideQuests ?? []).length >= 1, 'side-quest-accepted')
     unlock((progress.sideQuests ?? []).includes('manhole-hunter'), 'manhole-hunter')
     unlock((progress.sideQuests ?? []).includes('gachapon-oracle'), 'capsule-of-fate')
@@ -1302,6 +1346,12 @@ function App() {
                   </section>
                 )}
 
+                <DayMapCard
+                  key={`${selectedDate}-${selectedDay.id}`}
+                  day={selectedDay}
+                  completedStops={selectedStops}
+                />
+
                 <section className="timeline-list">
                   {selectedDay.timeline.map((item, index) => {
                     const complete = selectedStops.includes(item.id)
@@ -1387,8 +1437,12 @@ function App() {
                     <div className="photo-drop is-readonly"><Icon name="camera" size={22} /><span>Фото дня ещё впереди</span><small>Здесь появится кадр Юльчоны</small></div>
                   )}
                   {photoError && <p className="error-message">{photoError}</p>}
-                  <div className="rating-row"><label htmlFor="day-rating">Как прошёл день?</label><strong>{rating ? `${rating}/10` : '—'}</strong></div>
-                  <input id="day-rating" className="rating-slider" type="range" min="1" max="10" value={rating ?? 5} disabled={!canEdit} onChange={(event) => updateRating(Number(event.target.value))} />
+                  <div className="rating-row"><span>Как прошёл день?</span><strong>{rating ? `${rating}/10` : '—'}</strong></div>
+                  <div id="day-rating" className="rating-options" role="group" aria-label="Оценка дня от 1 до 10">
+                    {Array.from({ length: 10 }, (_, index) => index + 1).map((value) => (
+                      <button key={value} type="button" className={rating === value ? 'rating-option is-selected' : 'rating-option'} aria-pressed={rating === value} disabled={!canEdit} onClick={() => updateRating(value)}>{value}</button>
+                    ))}
+                  </div>
                   <div className="rating-scale"><span>тихо</span><span>легендарно</span></div>
                 </section>
               </div>
@@ -1602,7 +1656,7 @@ function App() {
             </section>
 
             <section className="phrasebook">
-              <div className="section-title"><div><span className="section-kicker">На всякий случай</span><h2>Шесть фраз</h2></div></div>
+              <div className="section-title"><div><span className="section-kicker">На всякий случай</span><h2>Десять фраз</h2></div></div>
               <div className="phrase-grid">
                 {[
                   ['すみません', 'Sumimasen', 'Извините / можно вас?'],
@@ -1611,6 +1665,10 @@ function App() {
                   ['大丈夫です', 'Daijōbu desu', 'Всё хорошо / не нужно'],
                   ['これをください', 'Kore o kudasai', 'Вот это, пожалуйста'],
                   ['駅はどこですか？', 'Eki wa doko desu ka?', 'Где находится станция?'],
+                  ['二人です', 'Futari desu', 'Нас двое'],
+                  ['予約しています', 'Yoyaku shiteimasu', 'У нас есть бронь'],
+                  ['写真を撮ってもいいですか？', 'Shashin o totte mo ii desu ka?', 'Можно сфотографировать?'],
+                  ['この電車は～に行きますか？', 'Kono densha wa ～ ni ikimasu ka?', 'Этот поезд идёт до…?'],
                 ].map(([japanese, reading, meaning]) => (
                   <article key={japanese}><strong>{japanese}</strong><small>{reading}</small><p>{meaning}</p></article>
                 ))}
