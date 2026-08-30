@@ -44,25 +44,21 @@ npm run cloudflare:migrate:local
 npm run cloudflare:dev
 ```
 
-Полная локальная версия с Functions и D1 откроется на `http://localhost:8788`. Обычный `npm run dev` продолжает работать без облака и использует локальную запасную копию.
+Полная локальная версия с Worker API и D1 откроется на `http://localhost:8788`. Обычный `npm run dev` продолжает работать без облака и использует локальную запасную копию.
 
-## Публикация на Cloudflare Pages
+## Публикация на Cloudflare Workers
 
-Перед первым deploy:
+Перед первым deploy проверь, что D1 `chonchetrip` существует. Она уже привязана в `wrangler.jsonc`; таблицы создаются автоматически при первом запросе, а при пересоздании базы достаточно обновить её `database_id`.
 
-1. D1 `chonchetrip` уже привязана в `wrangler.jsonc`; при пересоздании базы обнови её `database_id`.
-2. Примени миграции командой `npm run cloudflare:migrate:remote`.
-3. В Pages добавь два encrypted secret: `EDITOR_CODE` со значением ответа и `SESSION_SECRET` с длинной случайной строкой.
-
-После этого подключи GitHub-репозиторий в **Workers & Pages → Create application → Pages** и укажи:
+В существующем Worker-проекте с подключённым GitHub-репозиторием укажи:
 
 - Framework preset: `Vite`
 - Build command: `npm run build`
-- Build output directory: `dist`
+- Deploy command: `npx wrangler deploy`
 - Root directory: `/`
 - D1 binding: `DB` → база `chonchetrip`
 
-Версия Node зафиксирована файлом `.node-version` на Node 22. После подключения Cloudflare будет собирать новый deploy из каждого push в production-ветку.
+Статические файлы из `dist` и маршруты `/api/*` описаны в `wrangler.jsonc`. Встроенная проверка редактора использует ответ `до` и не требует Cloudflare secrets. Версия Node зафиксирована файлом `.node-version` на Node 22. Cloudflare собирает новый deploy из каждого push в production-ветку.
 
 ## Данные и сохранения
 

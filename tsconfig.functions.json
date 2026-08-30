@@ -10,5 +10,5 @@
     "noEmit": true,
     "verbatimModuleSyntax": true
   },
-  "include": ["functions", "server", "db"]
+  "include": ["functions", "worker", "server", "db"]
 }

@@ -5,4 +5,7 @@ export const json = (value: unknown, init: ResponseInit = {}) => {
   return new Response(JSON.stringify(value), { ...init, headers })
 }
 
-export const errorJson = (message: string, status: number) => json({ error: message }, { status })
+export const errorJson = (message: string, status: number, init: ResponseInit = {}) => json(
+  { error: message },
+  { ...init, status },
+)
