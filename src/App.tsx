@@ -21,6 +21,13 @@ import {
   type TimelineItem,
   type TripDay,
 } from './tripData'
+import {
+  kitsuMagicByDay,
+  kitsuMagicDays,
+  kitsuTalismans,
+  sealedLetters,
+  type KitsuMagicDay,
+} from './kitsuMagic'
 
 type ViewName = 'journey' | 'collection' | 'passport' | 'kitsu'
 type CloudStatus = 'checking' | 'synced' | 'offline' | 'error'
@@ -47,6 +54,10 @@ type Progress = {
   ratings: Record<string, number>
   photos: Record<string, string>
   fujiDate: '2026-10-09' | '2026-10-11'
+  foxFires: string[]
+  kitsuEncounters: string[]
+  openedLetters: string[]
+  finaleOpened: boolean
 }
 
 const PREVIEW_DATE = import.meta.env.DEV
@@ -73,6 +84,10 @@ const emptyProgress: Progress = {
   ratings: {},
   photos: {},
   fujiDate: '2026-10-09',
+  foxFires: [],
+  kitsuEncounters: [],
+  openedLetters: [],
+  finaleOpened: false,
 }
 
 const normalizeProgress = (value: unknown): Progress => {
@@ -89,6 +104,10 @@ const normalizeProgress = (value: unknown): Progress => {
     sideQuests: parsed.sideQuests ?? [],
     ratings: parsed.ratings ?? {},
     photos: parsed.photos ?? {},
+    foxFires: parsed.foxFires ?? [],
+    kitsuEncounters: parsed.kitsuEncounters ?? [],
+    openedLetters: parsed.openedLetters ?? [],
+    finaleOpened: parsed.finaleOpened ?? false,
   }
 }
 
@@ -297,6 +316,33 @@ function AchievementModal({ achievement, isNew, onClose }: { achievement: Achiev
         <p>{achievement.description}</p>
         <button ref={closeRef} className="primary-button" type="button" onClick={onClose}>Продолжить путь</button>
       </div>
+    </div>
+  )
+}
+
+function MagicDiscoveryModal({ magic, onClose }: { magic: KitsuMagicDay; onClose: () => void }) {
+  const closeRef = useRef<HTMLButtonElement>(null)
+  useEffect(() => { closeRef.current?.focus() }, [])
+
+  return (
+    <div className="magic-modal" role="dialog" aria-modal="true" aria-label={magic.flameTitle} onClick={onClose}>
+      <div className="magic-modal-card" onClick={(event) => event.stopPropagation()} style={{ '--flame-color': magic.flameColor } as React.CSSProperties}>
+        <div className="magic-stars" aria-hidden="true"><i /><i /><i /><i /><i /></div>
+        <span className="magic-modal-kicker">Kitsunebi найден</span>
+        <span className="fox-fire is-burning" aria-hidden="true"><i /></span>
+        <h2>{magic.flameTitle}</h2>
+        <p>{magic.discovery}</p>
+        <button ref={closeRef} className="primary-button" type="button" onClick={onClose}>Сохранить огонёк</button>
+      </div>
+    </div>
+  )
+}
+
+function KitsuReactionToast({ message }: { message: string }) {
+  return (
+    <div className="kitsu-reaction" role="status">
+      <img src="/assets/kitsune-guide.png" alt="" />
+      <div><span>Кицу заметил</span><p>{message}</p></div>
     </div>
   )
 }
@@ -626,6 +672,8 @@ function App() {
   const [selectedDate, setSelectedDate] = useState(latestUnlocked?.date ?? tripDays[0].date)
   const [riddleAnswers, setRiddleAnswers] = useState<Record<string, number>>({})
   const [modal, setModal] = useState<{ id: string; isNew: boolean; queue: string[] } | null>(null)
+  const [magicModalDayId, setMagicModalDayId] = useState<string | null>(null)
+  const [kitsuReaction, setKitsuReaction] = useState<{ id: number; message: string } | null>(null)
   const [confirmation, setConfirmation] = useState<ConfirmationRequest | null>(null)
   const [photoError, setPhotoError] = useState('')
   const progressRef = useRef(progress)
@@ -634,6 +682,7 @@ function App() {
 
   const canEdit = accessMode === 'editor'
   const selectedDay = dayContentForDate(selectedDate, progress.fujiDate)
+  const selectedMagic = kitsuMagicByDay[selectedDay.id]
   const selectedUnlocked = selectedDate <= today || progress.unlockedDays.includes(selectedDate)
   const selectedAchievement = selectedDay.achievementId
     ? achievements.find((item) => item.id === selectedDay.achievementId)
@@ -657,10 +706,44 @@ function App() {
   const discoveredCount = progress.claimed.length
   const completedSideQuests = progress.sideQuests ?? []
   const previewMode = PREVIEW_MODE
+  const knownFoxFires = progress.foxFires.filter((id) => Boolean(kitsuMagicByDay[id]))
+  const selectedFoxFireFound = selectedMagic ? knownFoxFires.includes(selectedMagic.dayId) : false
+  const selectedEncounterFound = selectedMagic ? progress.kitsuEncounters.includes(selectedMagic.dayId) : false
+  const selectedNightMagicUnlocked = PREVIEW_MODE || selectedDate < today || (selectedDate === today && japanHour >= 19)
+  const magicModal = magicModalDayId ? kitsuMagicByDay[magicModalDayId] : undefined
+  const kitsuMood = japanHour < 10 ? 'sleepy' : japanHour < 18 ? 'adventurous' : 'cozy'
+  const kitsuMoodLabel = kitsuMood === 'sleepy' ? 'сонная проводница' : kitsuMood === 'adventurous' ? 'охотница за знаками' : 'хранительница вечерних огней'
+  const kitsuStages = [
+    { min: 0, title: 'Спящий дух', subtitle: 'Первый огонь ещё ждёт впереди' },
+    { min: 1, title: 'Искра пути', subtitle: 'Кицу проснулся и идёт рядом' },
+    { min: 3, title: 'Следопыт', subtitle: 'Лисьи следы становятся ярче' },
+    { min: 6, title: 'Хранитель фонарей', subtitle: 'У Кицу появилась собственная маленькая стая огней' },
+    { min: 10, title: 'Дух трёх городов', subtitle: 'Osaka, Kyoto и Tokyo узнают его шаги' },
+    { min: 15, title: 'Хранитель всей истории', subtitle: 'Все огни сложились в одно созвездие' },
+  ]
+  const kitsuStage = [...kitsuStages].reverse().find((stage) => knownFoxFires.length >= stage.min) ?? kitsuStages[0]
+  const visibleTailCount = Math.min(9, Math.max(1, Math.ceil(knownFoxFires.length / 2)))
+  const finaleReady = PREVIEW_MODE || today >= '2026-10-13' || progress.unlockedDays.includes('2026-10-13')
+  const unlockedTalismans = new Set<string>([
+    ...(knownFoxFires.length >= 1 ? ['tabiji'] : []),
+    ...(knownFoxFires.includes('shirahama') || progress.claimed.includes('touch-the-pacific') ? ['umi'] : []),
+    ...(knownFoxFires.includes('fushimi') || progress.claimed.includes('a-thousand-gates') ? ['inari'] : []),
+    ...(knownFoxFires.includes('fuji') || progress.claimed.includes('fuji-found') ? ['fuji'] : []),
+    ...(Object.keys(progress.photos).length >= 5 ? ['kioku'] : []),
+    ...(progress.finaleOpened ? ['okaeri'] : []),
+  ])
+  const bestRatingEntry = Object.entries(progress.ratings).sort(([, a], [, b]) => b - a)[0]
+  const bestRatedDay = bestRatingEntry ? tripDays.find((slot) => dayContentForDate(slot.date, progress.fujiDate).id === bestRatingEntry[0]) : undefined
 
   useEffect(() => {
     progressRef.current = progress
   }, [progress])
+
+  useEffect(() => {
+    if (!kitsuReaction) return
+    const timer = window.setTimeout(() => setKitsuReaction((current) => current?.id === kitsuReaction.id ? null : current), 4_800)
+    return () => window.clearTimeout(timer)
+  }, [kitsuReaction])
 
   useEffect(() => {
     try {
@@ -859,6 +942,54 @@ function App() {
     }
   }, [progress, canEdit])
 
+  const showKitsuReaction = (message: string) => setKitsuReaction((current) => ({ id: (current?.id ?? 0) + 1, message }))
+
+  const isLetterUnlocked = (letter: (typeof sealedLetters)[number]) => {
+    if (PREVIEW_MODE) return true
+    return 'fireCount' in letter.unlock
+      ? knownFoxFires.length >= letter.unlock.fireCount
+      : knownFoxFires.includes(letter.unlock.dayId)
+  }
+
+  const findMagicSlot = (dayId: string) => tripDays.find((slot) => dayContentForDate(slot.date, progress.fujiDate).id === dayId)
+
+  const discoverFoxFire = (magic: KitsuMagicDay) => {
+    if (!canEdit || progress.foxFires.includes(magic.dayId)) return
+    setConfirmation({
+      title: 'Лисий знак найден?',
+      description: magic.clue,
+      confirmLabel: magic.actionLabel,
+      onConfirm: () => {
+        setProgress((current) => current.foxFires.includes(magic.dayId)
+          ? current
+          : { ...current, foxFires: [...current.foxFires, magic.dayId] })
+        setMagicModalDayId(magic.dayId)
+      },
+    })
+  }
+
+  const findNightEncounter = (magic: KitsuMagicDay) => {
+    if (!canEdit || !magic.nightEncounter || progress.kitsuEncounters.includes(magic.dayId)) return
+    setProgress((current) => current.kitsuEncounters.includes(magic.dayId)
+      ? current
+      : { ...current, kitsuEncounters: [...current.kitsuEncounters, magic.dayId] })
+    showKitsuReaction(magic.nightEncounter.message)
+  }
+
+  const openLetter = (letter: (typeof sealedLetters)[number]) => {
+    if (!canEdit || !isLetterUnlocked(letter) || progress.openedLetters.includes(letter.id)) return
+    setProgress((current) => current.openedLetters.includes(letter.id)
+      ? current
+      : { ...current, openedLetters: [...current.openedLetters, letter.id] })
+    showKitsuReaction('Печать стала тёплой и рассыпалась золотой пылью. Письмо теперь останется открытым.')
+  }
+
+  const openFinale = () => {
+    if (!canEdit || !finaleReady || progress.finaleOpened) return
+    setProgress((current) => ({ ...current, finaleOpened: true }))
+    showKitsuReaction('Все найденные огни поднялись над дневником. Финальная страница открыта.')
+  }
+
   const claimAchievement = (id: string) => {
     if (progress.claimed.includes(id)) return
     setProgress((current) => ({ ...current, claimed: [...current.claimed, id] }))
@@ -945,6 +1076,7 @@ function App() {
       const solved = current.solvedRiddles ?? []
       return solved.includes(day.id) ? current : { ...current, solvedRiddles: [...solved, day.id] }
     })
+    showKitsuReaction('Правильная улика! Кицу довольно щурится: ты заметила то, мимо чего легко пройти.')
   }
 
   const handlePhoto = async (file: File | undefined, dayId: string) => {
@@ -953,17 +1085,21 @@ function App() {
     try {
       const photo = await compressPhoto(file)
       setProgress((current) => ({ ...current, photos: { ...current.photos, [dayId]: photo } }))
+      showKitsuReaction('Этот кадр пахнет сегодняшним днём. Кицу спрятал его в плёнку памяти.')
     } catch (error) {
       setPhotoError(error instanceof Error ? error.message : 'Не удалось сохранить фото')
     }
   }
 
   const applyListToggle = (field: 'stamps' | 'sideQuests' | 'konbini', id: string) => {
+    const adding = !(progress[field] ?? []).includes(id)
     setProgress((current) => {
       const values = current[field] ?? []
       const next = values.includes(id) ? values.filter((value) => value !== id) : [...values, id]
       return { ...current, [field]: next }
     })
+    if (adding && field === 'stamps') showKitsuReaction('Новая печать легла в паспорт. Кицу проверил оттиск кончиком хвоста.')
+    if (adding && field === 'sideQuests') showKitsuReaction('Случайная находка стала частью истории. Именно такие повороты Кицу любит больше всего.')
   }
 
   const toggleListValue = (field: 'stamps' | 'sideQuests' | 'konbini', id: string) => {
@@ -1038,7 +1174,10 @@ function App() {
   }
 
   const updateRating = (value: number) => {
-    const save = () => setProgress((current) => ({ ...current, ratings: { ...current.ratings, [selectedDay.id]: value } }))
+    const save = () => {
+      setProgress((current) => ({ ...current, ratings: { ...current.ratings, [selectedDay.id]: value } }))
+      if (value === 10) showKitsuReaction('Легендарный день! Кицу поставил рядом маленькую невидимую звезду.')
+    }
     if (value === 10 && !progress.claimed.includes('perfect-day')) {
       setConfirmation({
         title: 'День правда на 10 из 10?',
@@ -1148,6 +1287,21 @@ function App() {
                   <div className="day-progress"><strong>{selectedStops.length}/{selectedDay.timeline.length}</strong><small>сцен</small></div>
                 </section>
 
+                {selectedMagic && (
+                  <section className={selectedFoxFireFound ? 'paper-card kitsu-whisper-card is-found' : 'paper-card kitsu-whisper-card'} style={{ '--flame-color': selectedMagic.flameColor } as React.CSSProperties}>
+                    <div className="paw-trail" aria-hidden="true"><i /><i /><i /></div>
+                    <div className="kitsu-whisper-heading">
+                      <div><span className="section-kicker">Утренний шёпот</span><h2>Кицу оставил знак</h2></div>
+                      <span className={selectedFoxFireFound ? 'fox-fire is-burning' : 'fox-fire'} aria-hidden="true"><i /></span>
+                    </div>
+                    <blockquote>«{selectedMagic.whisper}»</blockquote>
+                    <div className="magic-clue"><Icon name="sparkles" size={18} /><div><strong>{selectedFoxFireFound ? selectedMagic.flameTitle : 'Маленькая миссия'}</strong><p>{selectedFoxFireFound ? selectedMagic.discovery : selectedMagic.clue}</p></div></div>
+                    <button type="button" className={selectedFoxFireFound ? 'magic-found-button' : 'magic-find-button'} disabled={selectedFoxFireFound || !canEdit} onClick={() => discoverFoxFire(selectedMagic)}>
+                      {selectedFoxFireFound ? <><Icon name="check" size={17} /> Огонёк сохранён</> : canEdit ? selectedMagic.actionLabel : 'Знак ищет Юльчона'}
+                    </button>
+                  </section>
+                )}
+
                 <section className="timeline-list">
                   {selectedDay.timeline.map((item, index) => {
                     const complete = selectedStops.includes(item.id)
@@ -1166,6 +1320,18 @@ function App() {
                   <img src="/assets/kitsune-guide.png" alt="" />
                   <p>{selectedDay.fact}</p>
                 </section>
+
+                {selectedMagic?.nightEncounter && (
+                  selectedNightMagicUnlocked ? (
+                    <button type="button" className={selectedEncounterFound ? 'kitsu-night-encounter is-found' : 'kitsu-night-encounter'} disabled={selectedEncounterFound || !canEdit} onClick={() => findNightEncounter(selectedMagic)}>
+                      <span className="night-peek"><img src="/assets/kitsune-guide.png" alt="" /><i /></span>
+                      <span><small>{selectedEncounterFound ? 'Редкая встреча сохранена' : 'Кто-то прячется рядом…'}</small><strong>{selectedEncounterFound ? selectedMagic.nightEncounter.title : selectedMagic.nightEncounter.actionLabel}</strong><em>{selectedEncounterFound ? selectedMagic.nightEncounter.message : 'Нажми, пока рыжий хвост снова не исчез.'}</em></span>
+                      <Icon name={selectedEncounterFound ? 'check' : 'eye'} size={19} />
+                    </button>
+                  ) : (
+                    <div className="kitsu-night-locked"><Icon name="lock" size={16} /><span>После 19:00 здесь может появиться кто-то ещё</span></div>
+                  )
+                )}
 
                 <section className="paper-card riddle-card">
                   <div className="card-label"><Icon name="quest" size={18} /> Загадка дня</div>
@@ -1336,16 +1502,93 @@ function App() {
 
         {view === 'kitsu' && (
           <div className="screen-content kitsu-screen">
-            <section className="kitsu-hero">
-              <div><span className="section-kicker">Проводник Юльчоны</span><h1>Кицу</h1><p>Маленький лисий дух, который прячет секреты до нужного дня и замечает чудеса по дороге.</p></div>
+            <section className={`kitsu-hero mood-${kitsuMood} stage-${visibleTailCount}`}>
+              <div className="kitsu-hero-copy">
+                <span className="section-kicker">{kitsuMoodLabel}</span>
+                <h1>Кицу</h1>
+                <p>{kitsuStage.title} · {kitsuStage.subtitle}</p>
+                <div className="kitsu-level"><span><i style={{ width: `${(knownFoxFires.length / kitsuMagicDays.length) * 100}%` }} /></span><strong>{knownFoxFires.length}/{kitsuMagicDays.length} огней</strong></div>
+              </div>
+              <div className="tail-lights" aria-hidden="true">{Array.from({ length: 9 }, (_, index) => <i key={index} className={index < visibleTailCount ? 'is-lit' : ''} />)}</div>
               <img src="/assets/kitsune-guide.png" alt="Кицу — лисий проводник путешествия" />
+            </section>
+
+            <section className="kitsu-magic-section">
+              <div className="section-title"><div><span className="section-kicker">Kitsunebi</span><h2>Созвездие лисьих огней</h2></div><strong>{knownFoxFires.length}/{kitsuMagicDays.length}</strong></div>
+              <p className="kitsu-section-note">Каждый огонь появляется после одной настоящей маленькой находки. Ничего не нужно выполнять на 100%.</p>
+              <div className="fox-fire-grid">
+                {kitsuMagicDays.map((magic, index) => {
+                  const found = knownFoxFires.includes(magic.dayId)
+                  const slot = findMagicSlot(magic.dayId)
+                  const available = PREVIEW_MODE || Boolean(slot && (slot.date <= today || progress.unlockedDays.includes(slot.date)))
+                  return (
+                    <button key={magic.dayId} type="button" className={found ? 'fox-fire-tile is-found' : available ? 'fox-fire-tile is-near' : 'fox-fire-tile'} disabled={!available} style={{ '--flame-color': magic.flameColor } as React.CSSProperties} onClick={() => { if (!slot) return; setSelectedDate(slot.date); setView('journey'); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>
+                      <span className={found ? 'fox-fire is-burning' : 'fox-fire'}><i /></span>
+                      <small>{slot?.dateLabel ?? `Огонь ${index + 1}`}</small>
+                      <strong>{found ? magic.flameTitle : available ? 'Огонёк рядом' : '???'}</strong>
+                    </button>
+                  )
+                })}
+              </div>
+              <div className="encounter-counter"><Icon name="fox" size={18} /><span>Редкие встречи после заката</span><strong>{progress.kitsuEncounters.length}/{kitsuMagicDays.filter((day) => day.nightEncounter).length}</strong></div>
+            </section>
+
+            <section className="kitsu-magic-section">
+              <div className="section-title"><div><span className="section-kicker">Omamori</span><h2>Талисманы пути</h2></div><strong>{unlockedTalismans.size}/{kitsuTalismans.length}</strong></div>
+              <div className="talisman-grid">
+                {kitsuTalismans.map((talisman) => {
+                  const unlocked = unlockedTalismans.has(talisman.id)
+                  return <article key={talisman.id} className={unlocked ? 'talisman is-unlocked' : 'talisman'}><span>{unlocked ? talisman.symbol : '封'}</span><div><strong>{unlocked ? talisman.title : 'Запечатано'}</strong><p>{unlocked ? talisman.description : 'Талисман откроется в подходящий момент пути.'}</p></div></article>
+                })}
+              </div>
+            </section>
+
+            <section className="kitsu-magic-section letter-section">
+              <div className="section-title"><div><span className="section-kicker">Запечатанные слова</span><h2>Пять писем по дороге</h2></div><strong>{progress.openedLetters.length}/{sealedLetters.length}</strong></div>
+              <div className="letter-stack">
+                {sealedLetters.map((letter) => {
+                  const unlocked = isLetterUnlocked(letter)
+                  const opened = progress.openedLetters.includes(letter.id)
+                  return (
+                    <article key={letter.id} className={opened ? 'sealed-letter is-open' : unlocked ? 'sealed-letter is-ready' : 'sealed-letter'}>
+                      <span className="letter-seal">{opened ? '心' : letter.seal}</span>
+                      <div><small>{opened ? 'Письмо открыто' : unlocked ? 'Печать стала тёплой' : 'Пока запечатано'}</small><h3>{opened || unlocked ? letter.title : 'Слова из будущей главы'}</h3><p>{opened ? letter.text : letter.preview}</p></div>
+                      {!opened && <button type="button" disabled={!unlocked || !canEdit} onClick={() => openLetter(letter)}>{unlocked ? canEdit ? 'Открыть' : 'Ждёт Юльчону' : <Icon name="lock" size={15} />}</button>}
+                    </article>
+                  )
+                })}
+              </div>
+            </section>
+
+            <section className={progress.finaleOpened ? 'kitsu-finale is-open' : 'kitsu-finale'}>
+              <div className="finale-stars" aria-hidden="true"><i /><i /><i /><i /><i /><i /></div>
+              <span className="section-kicker">Финал созвездия</span>
+              {!finaleReady ? (
+                <><Icon name="lock" size={28} /><h2>Последняя страница спит</h2><p>Кицу откроет её 13 октября, когда дорога домой станет частью истории.</p></>
+              ) : !progress.finaleOpened ? (
+                <><Icon name="sparkles" size={30} /><h2>Огни готовы собраться вместе</h2><p>Финал не требует идеального результата. Кицу сложит историю из того, что действительно случилось.</p><button type="button" className="finale-open-button" disabled={!canEdit} onClick={openFinale}>{canEdit ? 'Открыть коробку воспоминаний' : 'Финал откроет Юльчона'}</button></>
+              ) : (
+                <>
+                  <span className="finale-kanji">おかえり</span>
+                  <h2>С возвращением из вашей Японии</h2>
+                  <p>Кицу собрал не идеальный отчёт, а живую историю — ровно такую, какой она случилась.</p>
+                  <div className="finale-stats">
+                    <span><strong>{knownFoxFires.length}</strong><small>лисьих огней</small></span>
+                    <span><strong>{Object.keys(progress.photos).length}</strong><small>кадров памяти</small></span>
+                    <span><strong>{progress.stamps.length}</strong><small>печатей</small></span>
+                    <span><strong>{progress.kitsuEncounters.length}</strong><small>встреч с Кицу</small></span>
+                  </div>
+                  {bestRatingEntry && <p className="finale-favorite">Самая высокая оценка — <strong>{bestRatedDay?.dateLabel ?? 'один особенный день'} · {bestRatingEntry[1]}/10</strong></p>}
+                  <blockquote>«Спасибо за эту Японию — с усталыми ногами, случайными находками и моментами, которых не было ни в одном плане. У этой истории будет продолжение.»</blockquote>
+                </>
+              )}
             </section>
 
             <section className="paper-card kitsu-story">
               <div className="card-label"><Icon name="fox" size={18} /> Кто такой Кицу</div>
               <h2>Хранитель этой истории</h2>
               <p>Кицу появился специально для Chonchetrip. Он не гид и не контролёр: не проверяет геолокацию, не считает опоздания и всегда верит честному слову.</p>
-              <p>Его работа — открывать новую главу в полночь по Японии, подбрасывать маленькие загадки и беречь найденные воспоминания.</p>
+              <p>Утром он оставляет шёпот, днём замечает находки, а после заката иногда сам попадается на глаза. Чем больше настоящих моментов сохранено, тем ярче становится его созвездие.</p>
             </section>
 
             <section className="paper-card kitsu-pact">
@@ -1385,7 +1628,9 @@ function App() {
       </nav>
 
       {modalAchievement && modal && <AchievementModal achievement={modalAchievement} isNew={modal.isNew} onClose={closeAchievementModal} />}
+      {magicModal && <MagicDiscoveryModal magic={magicModal} onClose={() => setMagicModalDayId(null)} />}
       {confirmation && <ConfirmationDialog request={confirmation} onCancel={() => setConfirmation(null)} />}
+      {kitsuReaction && <KitsuReactionToast key={kitsuReaction.id} message={kitsuReaction.message} />}
     </div>
   )
 }
