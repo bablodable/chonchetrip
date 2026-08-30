@@ -1,6 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import {
+  CloudUnavailableError,
+  checkEditorSession,
+  forgetAccessMode,
+  loadAccessMode,
+  loadSharedProgress,
+  rememberAccessMode,
+  saveSharedProgress,
+  startEditorSession,
+  uploadSharedPhoto,
+  type AccessMode,
+} from './cloudSync'
+import {
   achievements,
   passportStamps,
   sideQuests,
@@ -11,18 +23,20 @@ import {
 } from './tripData'
 
 type ViewName = 'journey' | 'collection' | 'passport' | 'kitsu'
+type CloudStatus = 'checking' | 'synced' | 'offline' | 'error'
 
 type ConfirmationRequest = {
   title: string
   description: string
   confirmLabel: string
   onConfirm: () => void
-  caution?: boolean
 }
 
 type Progress = {
   claimed: string[]
   checkedStops: Record<string, string[]>
+  unlockedStops: Record<string, string[]>
+  unlockedDays: string[]
   hints: string[]
   reveals: string[]
   solvedRiddles: string[]
@@ -46,6 +60,8 @@ const STORAGE_KEY = PREVIEW_MODE
 const emptyProgress: Progress = {
   claimed: [],
   checkedStops: {},
+  unlockedStops: {},
+  unlockedDays: [],
   hints: [],
   reveals: [],
   solvedRiddles: [],
@@ -58,6 +74,25 @@ const emptyProgress: Progress = {
   fujiDate: '2026-10-09',
 }
 
+const normalizeProgress = (value: unknown): Progress => {
+  const parsed = value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Partial<Progress>
+    : {}
+  return {
+    ...emptyProgress,
+    ...parsed,
+    checkedStops: parsed.checkedStops ?? {},
+    unlockedStops: parsed.unlockedStops ?? {},
+    unlockedDays: parsed.unlockedDays ?? [],
+    solvedRiddles: parsed.solvedRiddles ?? [],
+    sideQuests: parsed.sideQuests ?? [],
+    ratings: parsed.ratings ?? {},
+    photos: parsed.photos ?? {},
+  }
+}
+
+const progressForCloud = ({ photos: _photos, ...progress }: Progress) => progress
+
 const stopAchievementRules = [
   { dayId: 'hello-tokyo', achievementId: 'weather-child', stops: ['shiba', 'tower'] },
   { dayId: 'shibuya-story', achievementId: 'shibuya-incident', stops: ['jujutsu-route'] },
@@ -69,16 +104,7 @@ function loadProgress(): Progress {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (!stored) return emptyProgress
-    const parsed = JSON.parse(stored) as Partial<Progress>
-    return {
-      ...emptyProgress,
-      ...parsed,
-      checkedStops: parsed.checkedStops ?? {},
-      solvedRiddles: parsed.solvedRiddles ?? [],
-      sideQuests: parsed.sideQuests ?? [],
-      ratings: parsed.ratings ?? {},
-      photos: parsed.photos ?? {},
-    }
+    return normalizeProgress(JSON.parse(stored))
   } catch {
     return emptyProgress
   }
@@ -131,6 +157,34 @@ function useJapanToday(): string {
   }, [])
 
   return today
+}
+
+function getJapanHour(): number {
+  const hour = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Tokyo',
+    hour: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(new Date()).find((part) => part.type === 'hour')?.value
+
+  return Number(hour ?? 0)
+}
+
+function useJapanHour(): number {
+  const [hour, setHour] = useState(getJapanHour)
+
+  useEffect(() => {
+    const syncHour = () => setHour(getJapanHour())
+    const timer = window.setInterval(syncHour, 60_000)
+    document.addEventListener('visibilitychange', syncHour)
+    window.addEventListener('pageshow', syncHour)
+    return () => {
+      window.clearInterval(timer)
+      document.removeEventListener('visibilitychange', syncHour)
+      window.removeEventListener('pageshow', syncHour)
+    }
+  }, [])
+
+  return hour
 }
 
 function dayContentForDate(date: string, fujiDate: Progress['fujiDate']): TripDay {
@@ -251,24 +305,168 @@ function ConfirmationDialog({ request, onCancel }: { request: ConfirmationReques
   return (
     <div className="confirmation-dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirmation-title" aria-describedby="confirmation-description" onClick={onCancel}>
       <div className="confirmation-card" onClick={(event) => event.stopPropagation()}>
-        <span className={request.caution ? 'confirmation-icon is-caution' : 'confirmation-icon'}><Icon name={request.caution ? 'eye' : 'quest'} size={22} /></span>
+        <span className="confirmation-icon"><Icon name="quest" size={22} /></span>
         <span className="section-kicker">Проверка от Кицу</span>
         <h2 id="confirmation-title">{request.title}</h2>
         <p id="confirmation-description">{request.description}</p>
         <div className="confirmation-actions">
           <button ref={cancelRef} type="button" className="confirmation-cancel" onClick={onCancel}>Не сейчас</button>
-          <button type="button" className={request.caution ? 'confirmation-accept is-caution' : 'confirmation-accept'} onClick={confirm}>{request.confirmLabel}</button>
+          <button type="button" className="confirmation-accept" onClick={confirm}>{request.confirmLabel}</button>
         </div>
       </div>
     </div>
   )
 }
 
-function TimelineCard({ item, complete, onToggle }: { item: TimelineItem; complete: boolean; onToggle: () => void }) {
+function useFiveSecondHold<T extends HTMLElement>(enabled: boolean, onUnlock: () => void) {
+  const holdTimer = useRef<number | undefined>(undefined)
+  const holdOrigin = useRef({ x: 0, y: 0 })
+  const unlockAction = useRef(onUnlock)
+  const [holding, setHolding] = useState(false)
+
+  useEffect(() => {
+    unlockAction.current = onUnlock
+  }, [onUnlock])
+
+  const cancel = () => {
+    if (holdTimer.current !== undefined) window.clearTimeout(holdTimer.current)
+    holdTimer.current = undefined
+    setHolding(false)
+  }
+
+  const begin = () => {
+    if (!enabled || holdTimer.current !== undefined) return
+    setHolding(true)
+    holdTimer.current = window.setTimeout(() => {
+      holdTimer.current = undefined
+      setHolding(false)
+      unlockAction.current()
+    }, 5_000)
+  }
+
+  useEffect(() => () => {
+    if (holdTimer.current !== undefined) window.clearTimeout(holdTimer.current)
+  }, [])
+
+  return {
+    holding,
+    holdProps: {
+      onPointerDown: (event: React.PointerEvent<T>) => {
+        if (!event.isPrimary || event.button !== 0) return
+        holdOrigin.current = { x: event.clientX, y: event.clientY }
+        begin()
+      },
+      onPointerMove: (event: React.PointerEvent<T>) => {
+        if (Math.hypot(event.clientX - holdOrigin.current.x, event.clientY - holdOrigin.current.y) > 14) cancel()
+      },
+      onPointerUp: cancel,
+      onPointerCancel: cancel,
+      onPointerLeave: cancel,
+      onContextMenu: (event: React.MouseEvent<T>) => event.preventDefault(),
+      onBlur: cancel,
+      onKeyDown: (event: React.KeyboardEvent<T>) => {
+        if ((event.key === ' ' || event.key === 'Enter') && !event.repeat) {
+          event.preventDefault()
+          begin()
+        }
+      },
+      onKeyUp: (event: React.KeyboardEvent<T>) => {
+        if (event.key === ' ' || event.key === 'Enter') cancel()
+      },
+    },
+  }
+}
+
+function JourneyDayChip({ slot, index, city, active, unlocked, claimed, editable, onSelect, onForceUnlock }: { slot: TripDay; index: number; city: string; active: boolean; unlocked: boolean; claimed: boolean; editable: boolean; onSelect: () => void; onForceUnlock: () => void }) {
+  const hold = useFiveSecondHold<HTMLButtonElement>(editable && !unlocked, onForceUnlock)
+
+  return (
+    <button
+      type="button"
+      className={`day-chip${active ? ' is-active' : ''}${unlocked ? '' : ' is-locked'}${claimed ? ' is-claimed' : ''}${hold.holding ? ' is-holding' : ''}`}
+      onClick={onSelect}
+      aria-label={`${slot.dateLabel}. ${unlocked ? city : editable ? 'Глава закрыта. Для аварийного открытия удерживай пять секунд.' : 'Глава закрыта.'}`}
+      {...hold.holdProps}
+    >
+      <small>{index + 1}</small>
+      <strong>{slot.dateLabel.replace(' октября', '').replace(' сентября', ' сен')}</strong>
+      {unlocked ? <span>{claimed ? <Icon name="check" size={12} /> : city}</span> : <Icon name="lock" size={12} />}
+    </button>
+  )
+}
+
+function TimelineCard({ item, complete, locked, editable, timeUnlockHour, onToggle, onForceUnlock }: { item: TimelineItem; complete: boolean; locked: boolean; editable: boolean; timeUnlockHour: 13 | 19; onToggle: () => void; onForceUnlock: () => void }) {
+  const holdTimer = useRef<number | undefined>(undefined)
+  const holdOrigin = useRef({ x: 0, y: 0 })
+  const [holding, setHolding] = useState(false)
+
+  const cancelUnlockHold = () => {
+    if (holdTimer.current !== undefined) window.clearTimeout(holdTimer.current)
+    holdTimer.current = undefined
+    setHolding(false)
+  }
+
+  const beginUnlockHold = () => {
+    if (!editable || !locked || holdTimer.current !== undefined) return
+    setHolding(true)
+    holdTimer.current = window.setTimeout(() => {
+      holdTimer.current = undefined
+      setHolding(false)
+      onForceUnlock()
+    }, 5_000)
+  }
+
+  useEffect(() => () => {
+    if (holdTimer.current !== undefined) window.clearTimeout(holdTimer.current)
+  }, [])
+
+  if (locked) {
+    return (
+      <div
+        className={`timeline-card is-locked${holding ? ' is-holding' : ''}`}
+        role={editable ? 'button' : undefined}
+        tabIndex={editable ? 0 : undefined}
+        aria-label={`${item.time}. ${item.title}. Откроется после предыдущей сцены или в ${timeUnlockHour}:00 по времени Tokyo.${editable ? ' Для аварийного открытия удерживай пять секунд.' : ''}`}
+        onPointerDown={(event) => {
+          if (!event.isPrimary || event.button !== 0) return
+          holdOrigin.current = { x: event.clientX, y: event.clientY }
+          beginUnlockHold()
+        }}
+        onPointerMove={(event) => {
+          if (Math.hypot(event.clientX - holdOrigin.current.x, event.clientY - holdOrigin.current.y) > 14) cancelUnlockHold()
+        }}
+        onPointerUp={cancelUnlockHold}
+        onPointerCancel={cancelUnlockHold}
+        onPointerLeave={cancelUnlockHold}
+        onContextMenu={(event) => event.preventDefault()}
+        onKeyDown={(event) => {
+          if ((event.key === ' ' || event.key === 'Enter') && !event.repeat) {
+            event.preventDefault()
+            beginUnlockHold()
+          }
+        }}
+        onKeyUp={(event) => {
+          if (event.key === ' ' || event.key === 'Enter') cancelUnlockHold()
+        }}
+      >
+        <div className="timeline-locked-row">
+          <span className="stop-check"><Icon name="lock" size={14} /></span>
+          <span className={`kind-icon kind-${item.kind}`}><Icon name={item.kind} size={18} /></span>
+          <span className="timeline-title">
+            <small>{item.time}</small>
+            <strong>{item.title}</strong>
+            <span className="timeline-lock-note">{holding ? 'Не отпускай · Кицу снимает печать…' : `После предыдущей сцены · автооткрытие в ${timeUnlockHour}:00`}</span>
+          </span>
+          <span className="details-chevron"><Icon name="lock" size={15} /></span>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <details className={complete ? 'timeline-card is-complete' : 'timeline-card'}>
       <summary>
-        <button className="stop-check" type="button" aria-label={complete ? 'Отметить как невыполненное' : 'Отметить как выполненное'} onClick={(event) => { event.preventDefault(); onToggle() }}>{complete && <Icon name="check" size={17} />}</button>
+        <button className="stop-check" type="button" disabled={!editable} aria-label={complete ? 'Отметить как невыполненное' : 'Отметить как выполненное'} onClick={(event) => { event.preventDefault(); onToggle() }}>{complete && <Icon name="check" size={17} />}</button>
         <span className={`kind-icon kind-${item.kind}`}><Icon name={item.kind} size={18} /></span>
         <span className="timeline-title"><small>{item.time}</small><strong>{item.title}</strong></span>
         <span className="details-chevron"><Icon name="chevron" size={18} /></span>
@@ -278,9 +476,134 @@ function TimelineCard({ item, complete, onToggle }: { item: TimelineItem; comple
   )
 }
 
+function LockedDayContent({ editable, onForceUnlock }: { editable: boolean; onForceUnlock: () => void }) {
+  const holdTimer = useRef<number | undefined>(undefined)
+  const holdOrigin = useRef({ x: 0, y: 0 })
+  const [holding, setHolding] = useState(false)
+
+  const cancelUnlockHold = () => {
+    if (holdTimer.current !== undefined) window.clearTimeout(holdTimer.current)
+    holdTimer.current = undefined
+    setHolding(false)
+  }
+
+  const beginUnlockHold = () => {
+    if (!editable || holdTimer.current !== undefined) return
+    setHolding(true)
+    holdTimer.current = window.setTimeout(() => {
+      holdTimer.current = undefined
+      setHolding(false)
+      onForceUnlock()
+    }, 5_000)
+  }
+
+  useEffect(() => () => {
+    if (holdTimer.current !== undefined) window.clearTimeout(holdTimer.current)
+  }, [])
+
+  return (
+    <div
+      className={`screen-content locked-content emergency-day-unlock${holding ? ' is-holding' : ''}`}
+      role={editable ? 'button' : undefined}
+      tabIndex={editable ? 0 : undefined}
+      aria-label={editable ? 'Закрытая глава. Для аварийного открытия удерживай пять секунд.' : 'Закрытая глава.'}
+      onPointerDown={(event) => {
+        if (!event.isPrimary || event.button !== 0) return
+        holdOrigin.current = { x: event.clientX, y: event.clientY }
+        beginUnlockHold()
+      }}
+      onPointerMove={(event) => {
+        if (Math.hypot(event.clientX - holdOrigin.current.x, event.clientY - holdOrigin.current.y) > 14) cancelUnlockHold()
+      }}
+      onPointerUp={cancelUnlockHold}
+      onPointerCancel={cancelUnlockHold}
+      onPointerLeave={cancelUnlockHold}
+      onContextMenu={(event) => event.preventDefault()}
+      onKeyDown={(event) => {
+        if ((event.key === ' ' || event.key === 'Enter') && !event.repeat) {
+          event.preventDefault()
+          beginUnlockHold()
+        }
+      }}
+      onKeyUp={(event) => {
+        if (event.key === ' ' || event.key === 'Enter') cancelUnlockHold()
+      }}
+    >
+      <img src="/assets/kitsune-guide.png" alt="Кицу — проводник путешествия" draggable="false" />
+      <span className="section-kicker">Время Tokyo · UTC+9</span>
+      <h2>{holding ? 'Кицу снимает печать…' : 'Кицу хранит секрет'}</h2>
+      <p>{holding ? 'Не отпускай. Аварийный проход откроется через пять секунд.' : 'Каждая глава открывается в полночь по японскому времени. До этого маршрут и награда остаются под печатью.'}</p>
+      <div className="locked-note"><Icon name="sparkles" size={18} /><span>Можно заранее смотреть коллекцию, но будущие бейджи не спойлерят приключение.</span></div>
+    </div>
+  )
+}
+
+function AccessGate({ onEnter }: { onEnter: (mode: AccessMode) => void }) {
+  const [step, setStep] = useState<'choose' | 'editor'>('choose')
+  const [answer, setAnswer] = useState('')
+  const [error, setError] = useState('')
+  const [checking, setChecking] = useState(false)
+
+  const enterViewer = () => onEnter('viewer')
+  const enterEditor = async (event: React.FormEvent) => {
+    event.preventDefault()
+    setError('')
+    setChecking(true)
+    try {
+      await startEditorSession(answer)
+      onEnter('editor')
+    } catch (caught) {
+      if (caught instanceof CloudUnavailableError && answer.trim().toLocaleLowerCase('ru-RU') === 'до') {
+        onEnter('editor')
+      } else {
+        setError(caught instanceof CloudUnavailableError ? 'Сейчас нет связи с дневником. Попробуй ещё раз.' : 'Кицу не узнал ответ. Попробуй ещё раз.')
+      }
+    } finally {
+      setChecking(false)
+    }
+  }
+
+  return (
+    <main className="access-gate">
+      <div className="access-gate-shade" />
+      <section className="access-gate-card" aria-labelledby="access-title">
+        <img src="/assets/kitsune-guide.png" alt="Кицу" />
+        <span className="section-kicker">Chonchetrip · Japan 2026</span>
+        <h1 id="access-title">Кто заглянул в эту историю?</h1>
+        {step === 'choose' ? (
+          <div className="access-choices">
+            <button type="button" className="viewer-choice" onClick={enterViewer}>
+              <Icon name="eye" size={21} />
+              <span><strong>Я просто посмотреть</strong><small>Невероятное приключение Юльчоны и Эдюши</small></span>
+            </button>
+            <button type="button" className="editor-choice" onClick={() => setStep('editor')}>
+              <Icon name="fox" size={21} />
+              <span><strong>Я Юльчона</strong><small>Открыть мой полевой дневник</small></span>
+            </button>
+          </div>
+        ) : (
+          <form className="access-password" onSubmit={enterEditor}>
+            <label htmlFor="editor-answer">Дил?</label>
+            <input id="editor-answer" type="password" value={answer} onChange={(event) => setAnswer(event.target.value)} autoComplete="current-password" autoFocus />
+            {error && <p role="alert">{error}</p>}
+            <button className="primary-button" type="submit" disabled={checking || answer.trim().length === 0}>{checking ? 'Кицу проверяет…' : 'Войти в приключение'}</button>
+            <button className="text-button" type="button" onClick={() => { setStep('choose'); setError(''); setAnswer('') }}>Назад</button>
+          </form>
+        )}
+      </section>
+    </main>
+  )
+}
+
 function App() {
   const today = useJapanToday()
+  const japanHour = useJapanHour()
   const [progress, setProgress] = useState<Progress>(loadProgress)
+  const [accessMode, setAccessMode] = useState<AccessMode | null>(loadAccessMode)
+  const [accessChecking, setAccessChecking] = useState(() => loadAccessMode() === 'editor')
+  const [cloudStatus, setCloudStatus] = useState<CloudStatus>('checking')
+  const [cloudInitialized, setCloudInitialized] = useState(false)
+  const [cloudRetry, setCloudRetry] = useState(0)
   const [view, setView] = useState<ViewName>('journey')
   const latestUnlocked = [...tripDays].reverse().find((day) => day.date <= today)
   const [selectedDate, setSelectedDate] = useState(latestUnlocked?.date ?? tripDays[0].date)
@@ -288,12 +611,19 @@ function App() {
   const [modal, setModal] = useState<{ id: string; isNew: boolean; queue: string[] } | null>(null)
   const [confirmation, setConfirmation] = useState<ConfirmationRequest | null>(null)
   const [photoError, setPhotoError] = useState('')
+  const progressRef = useRef(progress)
+  const lastCloudSnapshot = useRef('')
+  const activePhotoUploads = useRef(new Set<string>())
 
+  const canEdit = accessMode === 'editor'
   const selectedDay = dayContentForDate(selectedDate, progress.fujiDate)
-  const selectedUnlocked = selectedDate <= today
+  const selectedUnlocked = selectedDate <= today || progress.unlockedDays.includes(selectedDate)
   const selectedAchievement = achievements.find((item) => item.id === selectedDay.achievementId)
   const modalAchievement = modal ? achievements.find((item) => item.id === modal.id) : undefined
   const selectedStops = progress.checkedStops[selectedDay.id] ?? []
+  const selectedUnlockedStops = progress.unlockedStops[selectedDay.id] ?? []
+  const selectedAfternoonUnlocked = selectedDate < today || (selectedDate === today && japanHour >= 13)
+  const selectedEveningUnlocked = selectedDate < today || (selectedDate === today && japanHour >= 19)
   const selectedClaimed = progress.claimed.includes(selectedDay.achievementId)
   const solvedRiddles = progress.solvedRiddles ?? []
   const selectedRiddleSolved = solvedRiddles.includes(selectedDay.id)
@@ -308,6 +638,10 @@ function App() {
   const previewMode = PREVIEW_MODE
 
   useEffect(() => {
+    progressRef.current = progress
+  }, [progress])
+
+  useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(progress))
     } catch {
@@ -316,6 +650,128 @@ function App() {
   }, [progress])
 
   useEffect(() => {
+    if (accessMode !== 'editor') return
+
+    let cancelled = false
+    void checkEditorSession()
+      .then((session) => {
+        if (cancelled || session.editor) return
+        forgetAccessMode()
+        setAccessMode(null)
+      })
+      .catch((error: unknown) => {
+        if (!cancelled && error instanceof CloudUnavailableError) setCloudStatus('offline')
+      })
+      .finally(() => {
+        if (!cancelled) setAccessChecking(false)
+      })
+
+    return () => { cancelled = true }
+  }, [accessMode])
+
+  useEffect(() => {
+    if (!accessMode || accessChecking) return
+    let cancelled = false
+    let interval: number | undefined
+
+    const pullProgress = async (initial: boolean) => {
+      if (initial) {
+        setCloudInitialized(false)
+        setCloudStatus('checking')
+      }
+      try {
+        const result = await loadSharedProgress()
+        if (cancelled) return
+        if (result.progress) {
+          const remoteProgress = normalizeProgress(result.progress)
+          const snapshot = JSON.stringify(progressForCloud(remoteProgress))
+          if (accessMode === 'viewer' || initial) {
+            lastCloudSnapshot.current = snapshot
+            progressRef.current = remoteProgress
+            setProgress(remoteProgress)
+          }
+        } else if (accessMode === 'editor' && initial) {
+          const localProgress = progressRef.current
+          const snapshot = JSON.stringify(progressForCloud(localProgress))
+          await saveSharedProgress(progressForCloud(localProgress))
+          if (cancelled) return
+          lastCloudSnapshot.current = snapshot
+        }
+        setCloudStatus('synced')
+        setCloudInitialized(true)
+      } catch (error) {
+        if (cancelled) return
+        if (error instanceof CloudUnavailableError) {
+          setCloudStatus('offline')
+          setCloudInitialized(true)
+        } else {
+          setCloudStatus('error')
+          setCloudInitialized(false)
+        }
+      }
+    }
+
+    void pullProgress(true)
+    if (accessMode === 'viewer') {
+      interval = window.setInterval(() => void pullProgress(false), 15_000)
+    }
+    const syncWhenVisible = () => {
+      if (document.visibilityState === 'visible' && accessMode === 'viewer') void pullProgress(false)
+    }
+    document.addEventListener('visibilitychange', syncWhenVisible)
+    return () => {
+      cancelled = true
+      if (interval) window.clearInterval(interval)
+      document.removeEventListener('visibilitychange', syncWhenVisible)
+    }
+  }, [accessMode, accessChecking])
+
+  useEffect(() => {
+    if (accessMode !== 'editor' || accessChecking || !cloudInitialized) return
+    const timer = window.setTimeout(() => {
+      const current = progressRef.current
+      const cloudProgress = progressForCloud(current)
+      const snapshot = JSON.stringify(cloudProgress)
+      const pendingPhotos = Object.entries(current.photos).filter(([, photo]) => photo.startsWith('data:image/'))
+      if (snapshot === lastCloudSnapshot.current && pendingPhotos.length === 0) return
+
+      const sync = async () => {
+        setCloudStatus('checking')
+        try {
+          if (snapshot !== lastCloudSnapshot.current) {
+            await saveSharedProgress(cloudProgress)
+            lastCloudSnapshot.current = snapshot
+          }
+          for (const [dayId, photo] of pendingPhotos) {
+            if (activePhotoUploads.current.has(dayId)) continue
+            activePhotoUploads.current.add(dayId)
+            try {
+              const url = await uploadSharedPhoto(dayId, photo)
+              setProgress((latest) => latest.photos[dayId] === photo
+                ? { ...latest, photos: { ...latest.photos, [dayId]: url } }
+                : latest)
+            } finally {
+              activePhotoUploads.current.delete(dayId)
+            }
+          }
+          setCloudStatus('synced')
+        } catch (error) {
+          setCloudStatus(error instanceof CloudUnavailableError ? 'offline' : 'error')
+        }
+      }
+      void sync()
+    }, 900)
+    return () => window.clearTimeout(timer)
+  }, [progress, accessMode, accessChecking, cloudInitialized, cloudRetry])
+
+  useEffect(() => {
+    if (accessMode !== 'editor' || accessChecking) return
+    const interval = window.setInterval(() => setCloudRetry((value) => value + 1), 30_000)
+    return () => window.clearInterval(interval)
+  }, [accessMode, accessChecking])
+
+  useEffect(() => {
+    if (!canEdit) return
     const claimed = new Set(progress.claimed)
     const unlock = (condition: boolean, id: string) => { if (condition && !claimed.has(id)) claimed.add(id) }
     const stopDone = (dayId: string, stopId: string) => (progress.checkedStops[dayId] ?? []).includes(stopId)
@@ -326,8 +782,8 @@ function App() {
     unlock(Object.keys(progress.photos).length >= 5, 'memory-keeper')
     unlock(['another-world', 'kyoto-after-dark', 'hello-tokyo'].every((id) => claimed.has(id)), 'night-owl')
     unlock(['welcome-to-japan', 'the-old-capital', 'hello-tokyo'].every((id) => claimed.has(id)), 'three-cities')
-    unlock(claimed.has('hello-tokyo') && progress.reveals.length === 0, 'no-spoilers')
-    unlock(progress.hints.length >= 5 && progress.reveals.length === 0, 'curious-fox')
+    unlock(claimed.has('hello-tokyo'), 'no-spoilers')
+    unlock(progress.hints.length >= 5, 'curious-fox')
     unlock((progress.solvedRiddles ?? []).length >= 1, 'field-researcher')
     unlock((progress.solvedRiddles ?? []).length >= 5, 'keen-eye')
     unlock(tripDays.filter((day) => day.riddle.location).every((day) => (progress.solvedRiddles ?? []).includes(day.id)), 'kitsus-equal')
@@ -354,7 +810,7 @@ function App() {
       }, 0)
       return () => window.clearTimeout(timer)
     }
-  }, [progress])
+  }, [progress, canEdit])
 
   const claimAchievement = (id: string) => {
     if (progress.claimed.includes(id)) return
@@ -378,8 +834,31 @@ function App() {
     })
   }
 
-  const toggleStop = (dayId: string, stopId: string) => {
+  const forceUnlockStop = (dayId: string, stopId: string) => {
+    setProgress((current) => {
+      const unlocked = current.unlockedStops[dayId] ?? []
+      if (unlocked.includes(stopId)) return current
+      return { ...current, unlockedStops: { ...current.unlockedStops, [dayId]: [...unlocked, stopId] } }
+    })
+  }
+
+  const forceUnlockDay = (date: string) => {
+    setProgress((current) => current.unlockedDays.includes(date)
+      ? current
+      : { ...current, unlockedDays: [...current.unlockedDays, date] })
+  }
+
+  const toggleStop = (dayId: string, stopId: string, timeUnlocked = false) => {
     const stops = progress.checkedStops[dayId] ?? []
+    const day = tripDays.find((item) => item.id === dayId)
+    const stopIndex = day?.timeline.findIndex((item) => item.id === stopId) ?? -1
+    const stopUnlocked = timeUnlocked || (stopIndex >= 0 && (
+      stopIndex < 2
+      || stops.includes(stopId)
+      || stops.includes(day!.timeline[stopIndex - 1].id)
+    ))
+    if (!stopUnlocked) return
+
     if (stops.includes(stopId)) {
       applyStopToggle(dayId, stopId)
       return
@@ -414,7 +893,7 @@ function App() {
 
   const answerRiddle = (day: TripDay, answer: number) => {
     setRiddleAnswers((current) => ({ ...current, [day.id]: answer }))
-    if (answer !== day.riddle.answer || progress.reveals.includes(day.id) || !day.riddle.location) return
+    if (answer !== day.riddle.answer || !day.riddle.location) return
     setProgress((current) => {
       const solved = current.solvedRiddles ?? []
       return solved.includes(day.id) ? current : { ...current, solvedRiddles: [...solved, day.id] }
@@ -479,29 +958,8 @@ function App() {
     applyListToggle(field, id)
   }
 
-  const requestHint = (dayId: string) => {
-    if (progress.hints.includes(dayId) || solvedRiddles.includes(dayId) || progress.reveals.includes(dayId)) return
-    setConfirmation({
-      title: 'Открыть подсказку?',
-      description: 'Использованная подсказка сохранится в дневнике и будет учитываться в секретных ачивках.',
-      confirmLabel: 'Открыть',
-      onConfirm: () => addHint(dayId),
-    })
-  }
-
-  const requestReveal = (day: TripDay) => {
-    if (progress.reveals.includes(day.id) || solvedRiddles.includes(day.id)) return
-    setConfirmation({
-      title: 'Точно показать ответ?',
-      description: 'Это нельзя отменить. Reveal покажет разгадку, но эта глава больше не будет считаться решённой самостоятельно.',
-      confirmLabel: 'Показать ответ',
-      caution: true,
-      onConfirm: () => revealAnswer(day),
-    })
-  }
-
   const requestRiddleAnswer = (day: TripDay, answer: number) => {
-    if (solvedRiddles.includes(day.id) || progress.reveals.includes(day.id)) return
+    if (solvedRiddles.includes(day.id)) return
     setConfirmation({
       title: 'Проверить этот вариант?',
       description: `Выбран ответ «${day.riddle.options[answer]}». Если он верный, решение сохранится и сможет открыть ачивку.`,
@@ -555,7 +1013,7 @@ function App() {
     if (opensAchievement) {
       setConfirmation({
         title: 'Сохранить пятую фотографию?',
-        description: 'Она останется только на этом телефоне и откроет ачивку хранительницы воспоминаний.',
+        description: 'Она появится в общем дневнике и откроет ачивку хранительницы воспоминаний.',
         confirmLabel: 'Сохранить фото',
         onConfirm: () => void handlePhoto(file, dayId),
       })
@@ -564,27 +1022,63 @@ function App() {
     void handlePhoto(file, dayId)
   }
 
+  const enterAccessMode = (mode: AccessMode) => {
+    rememberAccessMode(mode)
+    setAccessChecking(mode === 'editor')
+    setAccessMode(mode)
+  }
+
+  const chooseAnotherMode = () => {
+    forgetAccessMode()
+    setAccessChecking(false)
+    setAccessMode(null)
+    setCloudInitialized(false)
+    setCloudStatus('checking')
+  }
+
+  const lockedHeroHold = useFiveSecondHold<HTMLElement>(canEdit && !selectedUnlocked, () => forceUnlockDay(selectedDate))
+
+  if (!accessMode) return <AccessGate onEnter={enterAccessMode} />
+  if (accessChecking) {
+    return (
+      <main className="access-gate is-loading">
+        <div className="access-gate-shade" />
+        <section className="access-gate-card"><img src="/assets/kitsune-guide.png" alt="Кицу" /><h1>Кицу открывает дневник…</h1></section>
+      </main>
+    )
+  }
+
   return (
-    <div className="app-shell">
+    <div className={`app-shell is-${accessMode}`}>
       <header className="topbar">
         <button type="button" className="brand" onClick={() => { setView('journey'); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>
           <img src="/assets/chonchetrip-icon.png" alt="" />
           <span><strong>Chonchetrip</strong><small>Юльчона · Japan 2026</small></span>
         </button>
-        <button className="progress-token" type="button" onClick={() => setView('collection')} aria-label={`${discoveredCount} из ${achievements.length} достижений`}><Icon name="collection" size={17} /><span>{discoveredCount}/{achievements.length}</span></button>
+        <div className="topbar-actions">
+          <button className={`access-mode-token is-${cloudStatus}`} type="button" onClick={chooseAnotherMode} aria-label={accessMode === 'editor' ? 'Режим Юльчоны. Нажми, чтобы сменить режим.' : 'Режим зрителя. Нажми, чтобы сменить режим.'}><Icon name={accessMode === 'editor' ? 'fox' : 'eye'} size={16} /><span /></button>
+          <button className="progress-token" type="button" onClick={() => setView('collection')} aria-label={`${discoveredCount} из ${achievements.length} достижений`}><Icon name="collection" size={17} /><span>{discoveredCount}/{achievements.length}</span></button>
+        </div>
       </header>
 
       <main>
         {view === 'journey' && (
           <>
-            <section className={selectedUnlocked ? 'chapter-hero' : 'chapter-hero is-locked'} style={{ backgroundImage: `url(${selectedUnlocked ? selectedDay.cover : '/assets/chonchetrip-splash.png'})` }}>
+            <section
+              className={selectedUnlocked ? 'chapter-hero' : `chapter-hero is-locked${lockedHeroHold.holding ? ' is-holding' : ''}`}
+              style={{ backgroundImage: `url(${selectedUnlocked ? selectedDay.cover : '/assets/chonchetrip-splash.png'})` }}
+              role={!selectedUnlocked && canEdit ? 'button' : undefined}
+              tabIndex={!selectedUnlocked && canEdit ? 0 : undefined}
+              aria-label={selectedUnlocked ? undefined : canEdit ? `Глава ${selectedDay.dateLabel} закрыта. Для аварийного открытия удерживай пять секунд.` : `Глава ${selectedDay.dateLabel} закрыта.`}
+              {...(!selectedUnlocked && canEdit ? lockedHeroHold.holdProps : {})}
+            >
               <div className="hero-shade" />
               <div className="hero-content">
                 {previewMode && <span className="preview-pill">Preview · Japan {today}</span>}
                 {!selectedUnlocked && <span className="hero-lock"><Icon name="lock" size={18} /> До открытия главы</span>}
                 <p>{selectedUnlocked ? selectedDay.eyebrow : 'История ещё спит'}</p>
-                <h1>{selectedUnlocked ? selectedDay.title : `${daysUntil(selectedDate)} дн.`}</h1>
-                <span>{selectedUnlocked ? selectedDay.subtitle : `Глава откроется ${selectedDay.dateLabel} по времени Японии`}</span>
+                <h1>{selectedUnlocked ? selectedDay.title : lockedHeroHold.holding ? 'Открываю…' : `${daysUntil(selectedDate)} дн.`}</h1>
+                <span>{selectedUnlocked ? selectedDay.subtitle : lockedHeroHold.holding ? 'Не отпускай · Кицу снимает печать' : `Глава откроется ${selectedDay.dateLabel} по времени Японии`}</span>
               </div>
             </section>
 
@@ -592,16 +1086,10 @@ function App() {
               <div className="day-rail">
                 {tripDays.map((slot, index) => {
                   const content = dayContentForDate(slot.date, progress.fujiDate)
-                  const unlocked = slot.date <= today
+                  const unlocked = slot.date <= today || progress.unlockedDays.includes(slot.date)
                   const active = slot.date === selectedDate
                   const claimed = progress.claimed.includes(content.achievementId)
-                  return (
-                    <button key={slot.date} type="button" className={`day-chip${active ? ' is-active' : ''}${unlocked ? '' : ' is-locked'}${claimed ? ' is-claimed' : ''}`} onClick={() => setSelectedDate(slot.date)}>
-                      <small>{index + 1}</small>
-                      <strong>{slot.dateLabel.replace(' октября', '').replace(' сентября', ' сен')}</strong>
-                      {unlocked ? <span>{claimed ? <Icon name="check" size={12} /> : content.city}</span> : <Icon name="lock" size={12} />}
-                    </button>
-                  )
+                  return <JourneyDayChip key={slot.date} slot={slot} index={index} city={content.city} active={active} unlocked={unlocked} claimed={claimed} editable={canEdit} onSelect={() => setSelectedDate(slot.date)} onForceUnlock={() => { forceUnlockDay(slot.date); setSelectedDate(slot.date) }} />
                 })}
               </div>
             </section>
@@ -614,7 +1102,16 @@ function App() {
                 </section>
 
                 <section className="timeline-list">
-                  {selectedDay.timeline.map((item) => <TimelineCard key={item.id} item={item} complete={selectedStops.includes(item.id)} onToggle={() => toggleStop(selectedDay.id, item.id)} />)}
+                  {selectedDay.timeline.map((item, index) => {
+                    const complete = selectedStops.includes(item.id)
+                    const eveningUnlock = index >= selectedDay.timeline.length - 2
+                    const timeUnlockHour = eveningUnlock ? 19 : 13
+                    const timeUnlocked = eveningUnlock ? selectedEveningUnlocked : selectedAfternoonUnlocked
+                    const previousComplete = index < 2 || selectedStops.includes(selectedDay.timeline[index - 1].id)
+                    const manuallyUnlocked = selectedUnlockedStops.includes(item.id)
+                    const accessible = previousComplete || timeUnlocked || manuallyUnlocked
+                    return <TimelineCard key={item.id} item={item} complete={complete} locked={!complete && !accessible} editable={canEdit} timeUnlockHour={timeUnlockHour} onToggle={() => toggleStop(selectedDay.id, item.id, accessible)} onForceUnlock={() => forceUnlockStop(selectedDay.id, item.id)} />
+                  })}
                 </section>
 
                 <section className="paper-card fact-card">
@@ -636,16 +1133,17 @@ function App() {
                     {selectedDay.riddle.options.map((option, index) => {
                       const chosen = selectedAnswer === index
                       const answerClass = chosen ? (index === selectedDay.riddle.answer ? ' is-correct' : ' is-wrong') : ''
-                      const answerLocked = selectedRiddleSolved || selectedRiddleRevealed
+                      const answerLocked = selectedRiddleSolved || !canEdit
                       return <button key={option} type="button" className={`answer-button${answerClass}`} disabled={answerLocked} onClick={() => requestRiddleAnswer(selectedDay, index)}>{option}</button>
                     })}
                   </div>
+                  {selectedRiddleRevealed && !selectedRiddleSolved && <p className="reveal-note">Кицу подсветил ответ. Нажми на правильный вариант, чтобы засчитать загадку.</p>}
                   {isCorrect && <p className="answer-note"><Icon name="check" size={16} /> {selectedDay.riddle.explanation}</p>}
                   {selectedAnswer !== undefined && !isCorrect && <p className="try-again">Почти. Кицу разрешает попробовать ещё раз.</p>}
                   {selectedHintUsed && <p className="hint-text">Подсказка: {selectedDay.riddle.hint}</p>}
                   <div className="riddle-actions">
-                    <button type="button" className="text-button" disabled={selectedHintUsed || selectedRiddleSolved || selectedRiddleRevealed} onClick={() => requestHint(selectedDay.id)}><Icon name="hint" size={17} /> {selectedHintUsed ? 'Подсказка открыта' : selectedRiddleSolved ? 'Разгадано' : 'Подсказка'}</button>
-                    <button type="button" className="text-button muted" disabled={selectedRiddleRevealed || selectedRiddleSolved} onClick={() => requestReveal(selectedDay)}><Icon name="eye" size={17} /> {selectedRiddleRevealed ? 'Ответ открыт' : selectedRiddleSolved ? 'Решено честно' : 'Reveal answer'}</button>
+                    <button type="button" className="text-button" disabled={!canEdit || selectedHintUsed || selectedRiddleSolved || selectedRiddleRevealed} onClick={() => addHint(selectedDay.id)}><Icon name="hint" size={17} /> {selectedHintUsed ? 'Подсказка открыта' : selectedRiddleSolved ? 'Разгадано' : 'Подсказка'}</button>
+                    <button type="button" className="text-button muted" disabled={!canEdit || selectedRiddleRevealed || selectedRiddleSolved} onClick={() => revealAnswer(selectedDay)}><Icon name="eye" size={17} /> {selectedRiddleRevealed ? 'Ответ открыт' : selectedRiddleSolved ? 'Разгадано' : 'Reveal answer'}</button>
                   </div>
                 </section>
 
@@ -657,8 +1155,8 @@ function App() {
                       <p>{selectedClaimed ? selectedAchievement.description : 'Когда реальная миссия выполнена, забери награду. Никаких проверок — Кицу тебе верит.'}</p>
                     </div>
                     <div className="claim-badge"><AchievementVisual achievement={selectedAchievement} locked={!selectedClaimed} /></div>
-                    <button type="button" className={selectedClaimed ? 'claimed-button' : 'primary-button'} disabled={selectedClaimed} onClick={() => requestChapterClaim(selectedAchievement.id)}>
-                      {selectedClaimed ? <><Icon name="check" size={18} /> Получено</> : selectedDay.claimLabel}
+                    <button type="button" className={selectedClaimed ? 'claimed-button' : 'primary-button'} disabled={selectedClaimed || !canEdit} onClick={() => requestChapterClaim(selectedAchievement.id)}>
+                      {selectedClaimed ? <><Icon name="check" size={18} /> Получено</> : canEdit ? selectedDay.claimLabel : 'Награду заберёт Юльчона'}
                     </button>
                   </section>
                 )}
@@ -668,25 +1166,21 @@ function App() {
                   {progress.photos[selectedDay.id] ? (
                     <div className="photo-preview">
                       <img src={progress.photos[selectedDay.id]} alt={`Фото дня · ${selectedDay.dateLabel}`} />
-                      <label className="photo-change">Заменить<input type="file" accept="image/*" onChange={(event) => { const file = event.currentTarget.files?.[0]; event.currentTarget.value = ''; selectPhoto(file, selectedDay.id) }} /></label>
+                      {canEdit && <label className="photo-change">Заменить<input type="file" accept="image/*" onChange={(event) => { const file = event.currentTarget.files?.[0]; event.currentTarget.value = ''; selectPhoto(file, selectedDay.id) }} /></label>}
                     </div>
+                  ) : canEdit ? (
+                    <label className="photo-drop"><Icon name="camera" size={22} /><span>Добавить Photo of the Day</span><small>Фото уменьшится и появится в общем дневнике</small><input type="file" accept="image/*" onChange={(event) => { const file = event.currentTarget.files?.[0]; event.currentTarget.value = ''; selectPhoto(file, selectedDay.id) }} /></label>
                   ) : (
-                    <label className="photo-drop"><Icon name="camera" size={22} /><span>Добавить Photo of the Day</span><small>Фото уменьшится и останется только на этом телефоне</small><input type="file" accept="image/*" onChange={(event) => { const file = event.currentTarget.files?.[0]; event.currentTarget.value = ''; selectPhoto(file, selectedDay.id) }} /></label>
+                    <div className="photo-drop is-readonly"><Icon name="camera" size={22} /><span>Фото дня ещё впереди</span><small>Здесь появится кадр Юльчоны</small></div>
                   )}
                   {photoError && <p className="error-message">{photoError}</p>}
                   <div className="rating-row"><label htmlFor="day-rating">Как прошёл день?</label><strong>{rating ? `${rating}/10` : '—'}</strong></div>
-                  <input id="day-rating" className="rating-slider" type="range" min="1" max="10" value={rating ?? 5} onChange={(event) => updateRating(Number(event.target.value))} />
+                  <input id="day-rating" className="rating-slider" type="range" min="1" max="10" value={rating ?? 5} disabled={!canEdit} onChange={(event) => updateRating(Number(event.target.value))} />
                   <div className="rating-scale"><span>тихо</span><span>легендарно</span></div>
                 </section>
               </div>
             ) : (
-              <div className="screen-content locked-content">
-                <img src="/assets/kitsune-guide.png" alt="Кицу — проводник путешествия" />
-                <span className="section-kicker">Время Tokyo · UTC+9</span>
-                <h2>Кицу хранит секрет</h2>
-                <p>Каждая глава открывается в полночь по японскому времени. До этого маршрут и награда остаются под печатью.</p>
-                <div className="locked-note"><Icon name="sparkles" size={18} /><span>Можно заранее смотреть коллекцию, но будущие бейджи не спойлерят приключение.</span></div>
-              </div>
+              <LockedDayContent editable={canEdit} onForceUnlock={() => forceUnlockDay(selectedDate)} />
             )}
           </>
         )}
@@ -734,8 +1228,8 @@ function App() {
               <h3>Когда охотимся за горой?</h3>
               <p>Если облачно, контент Fuji и награда переедут вместе.</p>
               <div className="segmented-control">
-                <button type="button" className={progress.fujiDate === '2026-10-09' ? 'is-active' : ''} onClick={() => setProgress((current) => ({ ...current, fujiDate: '2026-10-09' }))}>9 окт</button>
-                <button type="button" className={progress.fujiDate === '2026-10-11' ? 'is-active' : ''} onClick={() => setProgress((current) => ({ ...current, fujiDate: '2026-10-11' }))}>11 окт</button>
+                <button type="button" disabled={!canEdit} className={progress.fujiDate === '2026-10-09' ? 'is-active' : ''} onClick={() => setProgress((current) => ({ ...current, fujiDate: '2026-10-09' }))}>9 окт</button>
+                <button type="button" disabled={!canEdit} className={progress.fujiDate === '2026-10-11' ? 'is-active' : ''} onClick={() => setProgress((current) => ({ ...current, fujiDate: '2026-10-11' }))}>11 окт</button>
               </div>
             </section>
 
@@ -745,7 +1239,7 @@ function App() {
                 {passportStamps.map((stamp, index) => {
                   const found = progress.stamps.includes(stamp.id)
                   return (
-                    <button key={stamp.id} type="button" className={found ? 'stamp-card is-found' : 'stamp-card'} onClick={() => toggleListValue('stamps', stamp.id)}>
+                    <button key={stamp.id} type="button" disabled={!canEdit} className={found ? 'stamp-card is-found' : 'stamp-card'} onClick={() => toggleListValue('stamps', stamp.id)}>
                       <span className="stamp-mark">{found ? <Icon name="check" size={22} /> : index + 1}</span>
                       <span><strong>{stamp.title}</strong><small>{stamp.subtitle}</small></span>
                       <Icon name="stamp" size={23} />
@@ -758,12 +1252,12 @@ function App() {
             <section className="paper-card side-quests">
               <div className="card-label"><Icon name="quest" size={18} /> Side quests</div>
               <h3>Вкусные секреты</h3>
-              <button type="button" className={progress.ramen ? 'quest-toggle is-complete' : 'quest-toggle'} onClick={toggleRamen}>
+              <button type="button" disabled={!canEdit} className={progress.ramen ? 'quest-toggle is-complete' : 'quest-toggle'} onClick={toggleRamen}>
                 <span className="quest-toggle-icon"><Icon name="bowl" size={23} /></span><span><strong>Первый ramen</strong><small>Отметить после первой миски</small></span><span className="mini-check">{progress.ramen && <Icon name="check" size={16} />}</span>
               </button>
               <p className="mini-label">Три разных konbini</p>
               <div className="konbini-grid">
-                {['7-Eleven', 'FamilyMart', 'Lawson'].map((shop) => <button key={shop} type="button" className={progress.konbini.includes(shop) ? 'is-active' : ''} onClick={() => toggleListValue('konbini', shop)}>{progress.konbini.includes(shop) && <Icon name="check" size={14} />}{shop}</button>)}
+                {['7-Eleven', 'FamilyMart', 'Lawson'].map((shop) => <button key={shop} type="button" disabled={!canEdit} className={progress.konbini.includes(shop) ? 'is-active' : ''} onClick={() => toggleListValue('konbini', shop)}>{progress.konbini.includes(shop) && <Icon name="check" size={14} />}{shop}</button>)}
               </div>
               <div className="side-quest-heading">
                 <p className="mini-label">Миссии без маршрута</p>
@@ -774,7 +1268,7 @@ function App() {
                 {sideQuests.map((quest) => {
                   const complete = completedSideQuests.includes(quest.id)
                   return (
-                    <button key={quest.id} type="button" className={complete ? 'quest-toggle is-complete' : 'quest-toggle'} onClick={() => toggleListValue('sideQuests', quest.id)}>
+                    <button key={quest.id} type="button" disabled={!canEdit} className={complete ? 'quest-toggle is-complete' : 'quest-toggle'} onClick={() => toggleListValue('sideQuests', quest.id)}>
                       <span className="quest-toggle-icon"><Icon name={quest.icon} size={21} /></span>
                       <span><strong>{quest.title}</strong><small>{quest.description}</small></span>
                       <span className="mini-check">{complete && <Icon name="check" size={16} />}</span>

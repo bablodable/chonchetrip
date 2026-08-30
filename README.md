@@ -1,6 +1,6 @@
 # Chonchetrip
 
-Персональное mobile-first приключение по Японии для iPhone: главы путешествия, полевые загадки, достижения, travel passport, side quests и локальный дневник воспоминаний.
+Персональное mobile-first приключение по Японии для iPhone: главы путешествия, полевые загадки, достижения, travel passport, side quests и общий дневник воспоминаний.
 
 ## Локальный запуск
 
@@ -25,17 +25,44 @@ http://localhost:5173/?preview=2026-10-05
 npm run check
 ```
 
-Команда запускает линтер, TypeScript и production-сборку Vite.
+Команда запускает линтер, TypeScript для приложения и Cloudflare Functions, а затем production-сборку Vite.
+
+## Режимы доступа
+
+- «Я просто посмотреть» открывает публичный дневник только для чтения.
+- «Я Юльчона» задаёт вопрос «Дил?» и после правильного ответа сохраняет режим редактора на iPhone.
+- Режим можно сменить маленькой кнопкой с глазом или Кицу в правой части верхней панели.
+- При недоступном облаке редактор продолжает работать с локальной копией и синхронизируется после возвращения связи.
+- Аварийное удержание закрытого дня или сцены доступно только Юльчоне.
+
+## Локальная проверка Cloudflare
+
+Скопируй `.dev.vars.example` в `.dev.vars`, замени `SESSION_SECRET` на длинную случайную строку и выполни:
+
+```bash
+npm run cloudflare:migrate:local
+npm run cloudflare:dev
+```
+
+Полная локальная версия с Functions, D1 и R2 откроется на `http://localhost:8788`. Обычный `npm run dev` продолжает работать без облака и использует локальную запасную копию.
 
 ## Публикация на Cloudflare Pages
 
-Подключи GitHub-репозиторий в **Workers & Pages → Create application → Pages** и укажи:
+Перед первым deploy:
+
+1. D1 `chonchetrip` уже привязана в `wrangler.jsonc`; при пересоздании базы обнови её `database_id`.
+2. Создай R2 bucket `chonchetrip-photos`.
+3. Примени миграцию командой `npm run cloudflare:migrate:remote`.
+4. В Pages добавь два encrypted secret: `EDITOR_CODE` со значением ответа и `SESSION_SECRET` с длинной случайной строкой.
+
+После этого подключи GitHub-репозиторий в **Workers & Pages → Create application → Pages** и укажи:
 
 - Framework preset: `Vite`
 - Build command: `npm run build`
 - Build output directory: `dist`
 - Root directory: `/`
-- Environment variables: не требуются
+- D1 binding: `DB` → база `chonchetrip`
+- R2 binding: `PHOTOS` → bucket `chonchetrip-photos`
 
 Версия Node зафиксирована файлом `.node-version` на Node 22. После подключения Cloudflare будет собирать новый deploy из каждого push в production-ветку.
 
@@ -44,10 +71,12 @@ npm run check
 - Маршрут, загадки, side quests и достижения: `src/tripData.ts`
 - Интерфейс и игровая логика: `src/App.tsx`
 - Визуальные стили: `src/App.css` и `src/index.css`
-- Прогресс и фотографии сохраняются только в `localStorage` Safari на этом устройстве
-- При очистке данных Safari или смене телефона локальный прогресс пропадёт
+- Общий прогресс хранится в Cloudflare D1, фотографии — в R2
+- `localStorage` Safari остаётся запасной копией для поездки без связи
+- Зрители получают свежий прогресс при открытии страницы и затем каждые 15 секунд
+- Сервер разрешает менять общий дневник только действующей сессии Юльчоны
 - Fuji можно перенести с 9 на 11 октября в разделе «Паспорт»; маршрут и награда переедут вместе
 
 ## Бейджи
 
-Все достижения используют готовые PNG из `public/assets/achivments`. Пока достижение не получено, изображение и название скрыты в интерфейсе.
+Все достижения используют оптимизированные WebP 640×640 из `public/assets/achivments`. Пока достижение не получено, изображение и название скрыты в интерфейсе.
