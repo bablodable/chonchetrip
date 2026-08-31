@@ -218,7 +218,7 @@ export const tripDays: TripDay[] = [
       { id: 'beach', time: 'До обеда', title: 'Коснуться Тихого океана', kind: 'quest', details: ['Разуться, выйти на белый песок и проверить, действительно ли океан холодный.'] },
       { id: 'seafood', time: 'Когда проголодаешься', title: 'Попробовать Тихий океан на вкус', kind: 'food', details: ['Выбирай то, что выглядит самым свежим: kaisendon, sashimi или рыбу дня.'] },
       { id: 'coast', time: 'После обеда', title: 'Пройти по краю мира', kind: 'place', details: ['Senjojiki и Sandanbeki — ветер, утёсы и океан без конца.'] },
-      { id: 'parco', time: 'Вечером', title: 'Вернуться в мир игр', kind: 'place', details: ['Kojima Productions, TORCH TORCH и заслуженная миска ramen.'] },
+      { id: 'parco', time: 'Вечером', title: 'Вернуться в мир игр перед отдыхом', kind: 'place', details: ['После берега вернуться в Osaka, выбрать один главный магазин — Kojima Productions или TORCH TORCH — и добавить ramen по аппетиту.', 'После этого без новых точек вернуться в отель, зарядить телефоны и приготовить QR-билеты к завтрашнему USJ.'] },
     ],
   },
   {
@@ -231,7 +231,7 @@ export const tripDays: TripDay[] = [
     subtitle: 'USJ, Frieren и Halloween Horror Nights',
     cover: cover.osaka,
     mapFile: '2026-10-02-usj.html',
-    mapRouteScenes: [['to-usj'], ['to-usj'], ['to-usj', 'usj-entry'], ['harry-potter'], ['express-missions'], ['frieren-lunch'], ['express-missions'], ['halloween'], ['jurassic']],
+    mapRouteScenes: [['to-usj'], ['to-usj'], ['to-usj', 'usj-entry'], ['harry-potter'], ['express-missions'], ['frieren-lunch'], ['express-missions'], ['halloween'], ['jurassic'], ['usj-home']],
     achievementId: 'another-world',
     achievementTitle: 'Another World',
     claimLabel: 'Главная миссия USJ выполнена',
@@ -251,7 +251,8 @@ export const tripDays: TripDay[] = [
       { id: 'express-missions', time: 'Весь день', title: 'Собрать четыре мира за один день', kind: 'quest', details: ['Зомби, Frieren, Chainsaw Man и один очень быстрый Hollywood Dream.'] },
       { id: 'frieren-lunch', time: '~12:30–14:00', title: 'Зайти в Restaurant of Memories', kind: 'food', details: ['Сделать паузу в тематическом ресторане Frieren и выбрать коллаборационное блюдо или десерт.', 'Перед заказом свериться со временем следующего слота Express Pass.'] },
       { id: 'halloween', time: 'После 18:00', title: 'Дождаться, пока парк станет страшным', kind: 'place', details: ['Street Zombies и Zombie de Dance начинаются только после темноты.'] },
-      { id: 'jurassic', time: '20:00', title: 'Прокатиться среди динозавров во тьме', kind: 'quest', details: ['Финальный рывок дня — Jurassic Park in the Dark.'] },
+      { id: 'jurassic', time: '20:00', title: 'Прокатиться среди динозавров во тьме', kind: 'quest', details: ['Кульминация паркового дня — Jurassic Park in the Dark. После неё портал уже можно закрывать.'] },
+      { id: 'usj-home', time: 'После 20:30', title: 'Закрыть портал и вернуться домой', kind: 'route', details: ['Universal City → JR Yumesaki Line до Nishikujo → Osaka Loop Line до Taisho.', 'На Taisho пересесть в Osaka Metro Nagahori Tsurumi-ryokuchi Line и доехать до Nagahoribashi. Дальше — Grand Hostel, душ, зарядка телефонов и никаких новых миссий.'] },
     ],
   },
   {
@@ -384,8 +385,8 @@ export const tripDays: TripDay[] = [
       { id: 'tenryuji', time: 'Утром', title: 'Собрать три самых спокойных вида', kind: 'place', details: ['Сад Tenryu-ji, чай Okochi Sanso и река Hozu сверху.'] },
       { id: 'tofu-lunch', time: 'В обед', title: 'Попробовать Kyoto на вкус', kind: 'food', details: ['Горячий yudofu — простой обед, который неожиданно запоминается.'] },
       { id: 'otagi', time: 'После обеда', title: 'Найти каменное лицо с твоим настроением', kind: 'quest', details: ['В Otagi живут 1200 rakan — один из них точно похож на тебя сегодня.'] },
-      { id: 'kimono-forest', time: 'После заката', title: 'Дождаться, когда зажжётся лес кимоно', kind: 'quest', details: ['Световые колонны Kimono Forest — финальная магия Kyoto.'] },
-      { id: 'obanzai', time: 'Вечером', title: 'Собрать ужин из маленьких историй', kind: 'food', details: ['Несколько сезонных obanzai — и никаких спешных решений.'] },
+      { id: 'kimono-forest', time: 'После заката', title: 'Дождаться, когда зажжётся лес кимоно', kind: 'quest', details: ['Световые колонны Kimono Forest — вечерняя магия Arashiyama перед возвращением в центр Kyoto.'] },
+      { id: 'obanzai', time: 'Вечером', title: 'Поужинать и отпустить Kyoto до утра', kind: 'food', details: ['В Kawaramachi выбрать несколько сезонных obanzai и спокойно восстановить силы после Arashiyama.', 'После ужина можно сразу вернуться в Tazuru или сделать один короткий круг вдоль Kamo River. Новых обязательных точек на сегодня нет.'] },
     ],
   },
   {
@@ -418,7 +419,7 @@ export const tripDays: TripDay[] = [
       { id: 'tokyo-checkin', time: 'После прибытия', title: 'Оставить вещи в новом доме', kind: 'rest', details: ['Небольшая пауза в Shiba перед первым вечером Tokyo.'] },
       { id: 'shiba', time: 'Ближе к закату', title: 'Войти в кадр Weathering With You', kind: 'quest', details: ['Пройди через Zojo-ji в Shiba Park и поймай Tokyo Tower между деревьями. Не копируй кадр идеально — найди своё небо над городом.'] },
       { id: 'tower', time: 'Когда зажгутся огни', title: 'Подняться ближе к небу', kind: 'quest', details: ['Поднимись на Main Deck и дождись первых огней. Отметь обе точки — парк и башню — чтобы закрыть аниме-миссию.'] },
-      { id: 'jangara', time: 'После башни', title: 'Закрепить знакомство ramen', kind: 'food', details: ['Tonkotsu ramen и спокойная прогулка домой через Shiba Park.'] },
+      { id: 'jangara', time: 'После башни', title: 'Закрепить знакомство ramen', kind: 'food', details: ['Tonkotsu ramen и спокойная прогулка домой через Shiba Park.', 'После переезда из Kyoto и первого вечера Tokyo этого достаточно: дальше только отдых в новом доме.'] },
     ],
   },
   {
@@ -453,7 +454,7 @@ export const tripDays: TripDay[] = [
       { id: 'shibuya', time: 'После обеда', title: 'Перейти самый знаменитый перекрёсток', kind: 'place', details: ['Поздоровайся с Hachiko, а потом отправляйся собирать мерч в PARCO.'] },
       { id: 'shibuya-sky', time: 'Вход 16:20–16:40', title: 'Поймать Tokyo между днём и ночью', kind: 'quest', details: ['Поднимись на SHIBUYA SKY до заката и останься до первых огней.'] },
       { id: 'shinjuku-night', time: 'После заката', title: 'Пойти туда, где живёт Godzilla', kind: 'place', details: ['Yakitori, Kabukicho и огромная голова над ночным Shinjuku.'] },
-      { id: 'ramen-nagi', time: 'Финал', title: 'Найти ramen в переулках Golden Gai', kind: 'food', details: ['Насыщенный niboshi-бульон — заслуженная точка очень длинного дня.'] },
+      { id: 'ramen-nagi', time: 'Финал', title: 'Найти ramen в переулках Golden Gai', kind: 'food', details: ['Насыщенный niboshi-бульон — заслуженная точка очень длинного дня.', 'После ужина сесть на Oedo Line до Daimon и спокойно идти домой. Если очередь слишком большая, ближайший уютный ramen будет не менее правильным финалом.'] },
     ],
   },
   {
@@ -485,7 +486,7 @@ export const tripDays: TripDay[] = [
       { id: 'houtou', time: 'После подъёма', title: 'Согреться лапшой из котла', kind: 'food', details: ['Толстая hōtō, овощи и miso-бульон возвращают силы мгновенно.'] },
       { id: 'oishi', time: 'После обеда', title: 'Встретиться с Fuji у воды', kind: 'place', details: ['В Oishi Park между тобой и горой остаётся только озеро.'] },
       { id: 'ropeway', time: 'Перед вечером', title: 'Подняться ещё выше', kind: 'place', details: ['Канатная дорога покажет сразу и Fuji, и Lake Kawaguchi.'] },
-      { id: 'fuji-return', time: '17:41', title: 'Увезти гору с собой', kind: 'route', details: ['Сесть у окна Fuji Excursion 48 и пересматривать фотографии до Tokyo.'] },
+      { id: 'fuji-return', time: '17:41', title: 'Увезти гору с собой', kind: 'route', details: ['Сесть у окна Fuji Excursion 48 и пересматривать фотографии до Tokyo.', 'После прибытия в Shinjuku вернуться к Hamamatsucho и домой. Этот вечер специально остаётся без новых обязательных планов.'] },
     ],
   },
   {

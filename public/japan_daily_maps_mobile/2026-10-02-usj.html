@@ -340,13 +340,26 @@ h1 {
           <div class="stop-time">20:00–20:30</div>
         </div>
 
+
+        <div class="stop">
+          <div class="stop-emoji">🏠</div>
+          <div class="stop-main">
+            <div class="stop-name">10. Nagahoribashi / Grand Hostel</div>
+            <div class="stop-desc">Возвращение домой после USJ</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=34.67486,135.50635" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">после 21:00</div>
+        </div>
+
   </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const points = [{"n": 1, "emoji": "🚇", "name": "Nagahoribashi", "time": "рано утром", "desc": "Старт / 7-Eleven по пути", "lat": 34.67486, "lng": 135.50635}, {"n": 2, "emoji": "🚆", "name": "Taisho Station", "time": "утро", "desc": "Пересадка на JR", "lat": 34.6552, "lng": 135.47228}, {"n": 3, "emoji": "🎟️", "name": "USJ Entrance", "time": "до открытия", "desc": "Вход в парк / Studio Pass / Express Pass", "lat": 34.66555, "lng": 135.43227}, {"n": 4, "emoji": "🪄", "name": "Wizarding World / Forbidden Journey", "time": "утро", "desc": "Harry Potter приоритет", "lat": 34.66508, "lng": 135.42985}, {"n": 5, "emoji": "⚔️", "name": "Frieren Story Walk / Hollywood Dream", "time": "до обеда", "desc": "Frieren eTicket + ride", "lat": 34.66571, "lng": 135.43158}, {"n": 6, "emoji": "🍜", "name": "Restaurant of Memories", "time": "~12:30–14:00", "desc": "Обед: Frieren-ресторан", "lat": 34.66636, "lng": 135.43235}, {"n": 7, "emoji": "🪚", "name": "Chainsaw Man 4-D", "time": "после обеда", "desc": "Express Pass", "lat": 34.66598, "lng": 135.43288}, {"n": 8, "emoji": "🎃", "name": "Halloween Horror Nights", "time": "с 18:00", "desc": "Street Zombies / Halloween зоны", "lat": 34.6655, "lng": 135.43227}, {"n": 9, "emoji": "🦖", "name": "Jurassic Park: The Ride in the Dark", "time": "20:00–20:30", "desc": "Express Pass", "lat": 34.66722, "lng": 135.42998}];
-const segments = [{"type": "rail", "path": [1, 2, 3]}, {"type": "local", "path": [3, 4, 5, 6, 7, 8, 9]}];
+const points = [{"n": 1, "emoji": "🚇", "name": "Nagahoribashi", "time": "рано утром", "desc": "Старт / 7-Eleven по пути", "lat": 34.67486, "lng": 135.50635}, {"n": 2, "emoji": "🚆", "name": "Taisho Station", "time": "утро", "desc": "Пересадка на JR", "lat": 34.6552, "lng": 135.47228}, {"n": 3, "emoji": "🎟️", "name": "USJ Entrance", "time": "до открытия", "desc": "Вход в парк / Studio Pass / Express Pass", "lat": 34.66555, "lng": 135.43227}, {"n": 4, "emoji": "🪄", "name": "Wizarding World / Forbidden Journey", "time": "утро", "desc": "Harry Potter приоритет", "lat": 34.66508, "lng": 135.42985}, {"n": 5, "emoji": "⚔️", "name": "Frieren Story Walk / Hollywood Dream", "time": "до обеда", "desc": "Frieren eTicket + ride", "lat": 34.66571, "lng": 135.43158}, {"n": 6, "emoji": "🍜", "name": "Restaurant of Memories", "time": "~12:30–14:00", "desc": "Обед: Frieren-ресторан", "lat": 34.66636, "lng": 135.43235}, {"n": 7, "emoji": "🪚", "name": "Chainsaw Man 4-D", "time": "после обеда", "desc": "Express Pass", "lat": 34.66598, "lng": 135.43288}, {"n": 8, "emoji": "🎃", "name": "Halloween Horror Nights", "time": "с 18:00", "desc": "Street Zombies / Halloween зоны", "lat": 34.6655, "lng": 135.43227}, {"n": 9, "emoji": "🦖", "name": "Jurassic Park: The Ride in the Dark", "time": "20:00–20:30", "desc": "Express Pass", "lat": 34.66722, "lng": 135.42998}, {"n": 10, "emoji": "🏠", "name": "Nagahoribashi / Grand Hostel", "time": "после 21:00", "desc": "Возвращение домой после USJ", "lat": 34.67486, "lng": 135.50635}];
+const segments = [{"type": "rail", "path": [1, 2, 3]}, {"type": "local", "path": [3, 4, 5, 6, 7, 8, 9]}, {"type": "rail", "path": [9, 10]}];
 
 const map = L.map('map', {
   zoomControl: true,
