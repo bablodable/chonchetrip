@@ -29,6 +29,10 @@ export const sceneGuides: Record<string, SceneGuide[]> = {
   dotonbori: [
     { label: 'Если мало сил', text: 'Сделай короткий круг: Glico → мост → takoyaki. Полный ужин можно оставить по аппетиту.' },
   ],
+  'travel-passport': [
+    { label: 'Полезно', text: 'Формат A6/B6, плотная обложка, клетка или dot-grid. Не бери goshuincho: в неё ставят только храмовые печати.' },
+    { label: 'На выбор', text: 'Если хочется блокнот посерьёзнее, на следующий день загляните в Hands Shinsaibashi, 11F stationery: он работает до 20:00.' },
+  ],
   'shinsaibashi-night': [
     { label: 'Зачем', text: 'Konbini здесь ещё и подготовка к раннему старту: вода и завтрак утром уже будут под рукой.' },
   ],

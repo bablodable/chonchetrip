@@ -315,9 +315,21 @@ h1 {
         </div>
 
         <div class="stop">
+          <div class="stop-emoji">📔</div>
+          <div class="stop-main">
+            <div class="stop-name">8. DAISO Shinsaibashi-suji</div>
+            <div class="stop-desc">Найти Travel Passport: блокнот, наклейки и ручку</div>
+            <div class="stop-links">
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=34.67065,135.50145" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+            </div>
+          </div>
+          <div class="stop-time">~21:00 · до 22:00</div>
+        </div>
+
+        <div class="stop">
           <div class="stop-emoji">🌙</div>
           <div class="stop-main">
-            <div class="stop-name">8. Shinsaibashi-suji</div>
+            <div class="stop-name">9. Shinsaibashi-suji</div>
             <div class="stop-desc">Вечерняя торговая улица и дорога обратно в отель</div>
             <div class="stop-links">
               <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=34.6716,135.5013" target="_blank" rel="noopener">Открыть в Google Maps →</a>
@@ -331,8 +343,8 @@ h1 {
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const points = [{"n": 1, "emoji": "✈️", "name": "KIX Terminal 1", "time": "17:15", "desc": "Прилёт в Kansai Airport", "lat": 34.4354, "lng": 135.244}, {"n": 2, "emoji": "🎫", "name": "Kansai-airport Station", "time": "после Customs", "desc": "Купить Kuroshio на 01.10 + stamp", "lat": 34.4364, "lng": 135.2437}, {"n": 3, "emoji": "🚆", "name": "Tengachaya", "time": "вечер", "desc": "Пересадка Nankai → Osaka Metro", "lat": 34.6374, "lng": 135.4936}, {"n": 4, "emoji": "🏠", "name": "Nagahoribashi / hostel", "time": "~20:00 и поздно вечером", "desc": "GRAND HOSTEL LDK OSAKA SHINSAIBASHI", "lat": 34.6749, "lng": 135.5064}, {"n": 5, "emoji": "🌃", "name": "Dotonbori", "time": "~20:30", "desc": "Неоновый район / вечерняя прогулка", "lat": 34.6687, "lng": 135.5031}, {"n": 6, "emoji": "🥪", "name": "Takoyaki Wanaka", "time": "вечер", "desc": "Перекус: takoyaki", "lat": 34.666, "lng": 135.5028}, {"n": 7, "emoji": "🍽️", "name": "Ajinoya Honten", "time": "если голодные", "desc": "Ужин: okonomiyaki", "lat": 34.6669, "lng": 135.5035}, {"n": 8, "emoji": "🌙", "name": "Shinsaibashi-suji", "time": "после ужина", "desc": "Вечерняя торговая улица и дорога обратно в отель", "lat": 34.6716, "lng": 135.5013}];
-const segments = [{"type": "rail", "path": [1, 2, 3, 4]}, {"type": "local", "path": [4, 5, 6, 7, 8, 4]}];
+const points = [{"n": 1, "emoji": "✈️", "name": "KIX Terminal 1", "time": "17:15", "desc": "Прилёт в Kansai Airport", "lat": 34.4354, "lng": 135.244}, {"n": 2, "emoji": "🎫", "name": "Kansai-airport Station", "time": "после Customs", "desc": "Купить Kuroshio на 01.10 + stamp", "lat": 34.4364, "lng": 135.2437}, {"n": 3, "emoji": "🚆", "name": "Tengachaya", "time": "вечер", "desc": "Пересадка Nankai → Osaka Metro", "lat": 34.6374, "lng": 135.4936}, {"n": 4, "emoji": "🏠", "name": "Nagahoribashi / hostel", "time": "~20:00 и поздно вечером", "desc": "GRAND HOSTEL LDK OSAKA SHINSAIBASHI", "lat": 34.6749, "lng": 135.5064}, {"n": 5, "emoji": "🌃", "name": "Dotonbori", "time": "~20:30", "desc": "Неоновый район / вечерняя прогулка", "lat": 34.6687, "lng": 135.5031}, {"n": 6, "emoji": "🥪", "name": "Takoyaki Wanaka", "time": "вечер", "desc": "Перекус: takoyaki", "lat": 34.666, "lng": 135.5028}, {"n": 7, "emoji": "🍽️", "name": "Ajinoya Honten", "time": "если голодные", "desc": "Ужин: okonomiyaki", "lat": 34.6669, "lng": 135.5035}, {"n": 8, "emoji": "📔", "name": "DAISO Shinsaibashi-suji", "time": "~21:00 · до 22:00", "desc": "Travel Passport: блокнот, наклейки и ручка", "lat": 34.67065, "lng": 135.50145}, {"n": 9, "emoji": "🌙", "name": "Shinsaibashi-suji", "time": "после ужина", "desc": "Вечерняя торговая улица и дорога обратно в отель", "lat": 34.6716, "lng": 135.5013}];
+const segments = [{"type": "rail", "path": [1, 2, 3, 4]}, {"type": "local", "path": [4, 5, 6, 7, 8, 9, 4]}];
 
 const map = L.map('map', {
   zoomControl: true,

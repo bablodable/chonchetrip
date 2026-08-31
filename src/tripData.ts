@@ -123,7 +123,7 @@ export const tripDays: TripDay[] = [
     subtitle: 'DXB, KIX, билет Kuroshio и неон Dotonbori',
     cover: cover.osaka,
     mapFile: '2026-09-30-arrival-osaka.html',
-    mapRouteScenes: [['kix-arrival'], ['kuroshio-ticket', 'stamp-kix'], ['to-hotel-osaka'], ['osaka-checkin'], ['dotonbori'], ['dotonbori'], ['dotonbori'], ['shinsaibashi-night']],
+    mapRouteScenes: [['kix-arrival'], ['kuroshio-ticket', 'stamp-kix'], ['to-hotel-osaka'], ['osaka-checkin'], ['dotonbori'], ['dotonbori'], ['dotonbori'], ['travel-passport'], ['shinsaibashi-night']],
     achievementId: 'welcome-to-japan',
     achievementTitle: 'Welcome to Japan',
     claimLabel: 'Я в Японии!',
@@ -156,7 +156,7 @@ export const tripDays: TripDay[] = [
         time: 'Первая находка',
         title: 'Поставить печать начала пути',
         kind: 'quest',
-        details: ['На Kansai Airport Station найти 駅スタンプ / Eki Stamp — это станционная печать #1.', 'Самостоятельно поставить её в туристический блокнот, не в загранпаспорт, а затем отметить находку в Passport приложения. К храмовым goshuin она не относится.'],
+        details: ['На Kansai Airport Station найти 駅スタンプ / Eki Stamp — это станционная печать #1.', 'Красивый Travel Passport купите вечером в Osaka, поэтому сейчас поставьте печать на чистую маленькую карточку. Потом вклеите её на первую страницу — не в загранпаспорт. К храмовым goshuin она не относится.'],
       },
       {
         id: 'to-hotel-osaka',
@@ -178,6 +178,13 @@ export const tripDays: TripDay[] = [
         title: 'Пройти неоновое крещение',
         kind: 'place',
         details: ['Dotonbori → Ebisu Bridge → вывеска Glico.', 'Перекус: Takoyaki Wanaka. Если захочется полноценного ужина — Ajinoya Honten и okonomiyaki.'],
+      },
+      {
+        id: 'travel-passport',
+        time: '~21:00',
+        title: 'Найти первый Travel Passport',
+        kind: 'quest',
+        details: ['От Ebisu Bridge пройти около трёх минут по Shinsaibashi-suji до DAISO Shinsaibashi-suji 2-chome, 3F. Он открыт до 22:00 — это маленькая вечерняя миссия без крюка.', 'Выбрать маленький блокнот A6/B6 с плотной обложкой и клеткой или точками: 方眼ノート (hōgan nōto) / ドット方眼. Добавить одну наклейку シール и любимую ручку — это и будет ваш настоящий Travel Passport.', 'На первой странице написать: “30.09.2026 · Osaka · 旅” и вклеить карточку с первой печатью KIX. Eki stamp собирайте сюда; goshuin для храмов всегда живут в отдельной goshuincho-книжке.'],
       },
       {
         id: 'shinsaibashi-night',
