@@ -28,6 +28,7 @@ import {
   sealedLetters,
   type KitsuMagicDay,
 } from './kitsuMagic'
+import { sceneGuides } from './sceneGuides'
 
 type ViewName = 'journey' | 'collection' | 'passport' | 'kitsu'
 type CloudStatus = 'checking' | 'synced' | 'offline' | 'error'
@@ -58,6 +59,24 @@ type Progress = {
   kitsuEncounters: string[]
   openedLetters: string[]
   finaleOpened: boolean
+}
+
+const timelineLeadLabels: Record<TimelineItem['kind'], string> = {
+  route: 'Маршрут',
+  place: 'Что посмотреть',
+  food: 'Что попробовать',
+  quest: 'Что сделать',
+  rest: 'Пауза',
+}
+
+function getTimelineDetailLabel(item: TimelineItem, detail: string, index: number) {
+  if (index === 0) return timelineLeadLabels[item.kind]
+
+  const normalized = detail.toLocaleLowerCase('ru')
+  if (/если|по настроению|на выбор|можно|(?:^|[\s,.—:])или(?:$|[\s,.—:])/.test(normalized)) return 'На выбор'
+  if (/билет|брон|qr|suica|паспорт|оплат|касс|вход|stamp|график/.test(normalized)) return 'Важно'
+  if (/затем|после|домой|station|line|доехать|перейти|поезд|выход/.test(normalized)) return 'Дальше'
+  return 'Ещё'
 }
 
 const PREVIEW_DATE = import.meta.env.DEV
@@ -304,7 +323,14 @@ function AchievementVisual({ achievement, locked = false }: { achievement: Achie
 
 function AchievementModal({ achievement, isNew, onClose }: { achievement: Achievement; isNew: boolean; onClose: () => void }) {
   const closeRef = useRef<HTMLButtonElement>(null)
-  useEffect(() => { closeRef.current?.focus() }, [])
+  useEffect(() => {
+    closeRef.current?.focus()
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', closeOnEscape)
+    return () => document.removeEventListener('keydown', closeOnEscape)
+  }, [onClose])
 
   return (
     <div className="achievement-modal" role="dialog" aria-modal="true" aria-label={achievement.title} onClick={onClose}>
@@ -322,7 +348,14 @@ function AchievementModal({ achievement, isNew, onClose }: { achievement: Achiev
 
 function MagicDiscoveryModal({ magic, onClose }: { magic: KitsuMagicDay; onClose: () => void }) {
   const closeRef = useRef<HTMLButtonElement>(null)
-  useEffect(() => { closeRef.current?.focus() }, [])
+  useEffect(() => {
+    closeRef.current?.focus()
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', closeOnEscape)
+    return () => document.removeEventListener('keydown', closeOnEscape)
+  }, [onClose])
 
   return (
     <div className="magic-modal" role="dialog" aria-modal="true" aria-label={magic.flameTitle} onClick={onClose}>
@@ -341,7 +374,7 @@ function MagicDiscoveryModal({ magic, onClose }: { magic: KitsuMagicDay; onClose
 function KitsuReactionToast({ message }: { message: string }) {
   return (
     <div className="kitsu-reaction" role="status">
-      <img src="/assets/kitsune-guide.png" alt="" />
+      <img src="/assets/kitsune-guide.webp" alt="" />
       <div><span>Кицу заметил</span><p>{message}</p></div>
     </div>
   )
@@ -440,6 +473,76 @@ function useFiveSecondHold<T extends HTMLElement>(enabled: boolean, onUnlock: ()
   }
 }
 
+function useHorizontalDragScroll(activeKey: string, enabled: boolean) {
+  const railRef = useRef<HTMLDivElement>(null)
+  const dragState = useRef({ active: false, dragging: false, pointerId: -1, startX: 0, scrollLeft: 0 })
+  const suppressClick = useRef(false)
+  const [dragging, setDragging] = useState(false)
+
+  useEffect(() => {
+    if (!enabled) return
+    const rail = railRef.current
+    const active = rail?.querySelector<HTMLElement>('.day-chip.is-active')
+    if (!rail || !active) return
+
+    const targetLeft = active.offsetLeft - (rail.clientWidth - active.offsetWidth) / 2
+    rail.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' })
+  }, [activeKey, enabled])
+
+  const finishDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragState.current.active) return
+    const wasDragging = dragState.current.dragging
+    dragState.current.active = false
+    dragState.current.dragging = false
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId)
+    setDragging(false)
+
+    if (wasDragging) {
+      suppressClick.current = true
+      window.setTimeout(() => { suppressClick.current = false }, 0)
+    }
+  }
+
+  return {
+    railRef,
+    dragging,
+    dragProps: {
+      onPointerDown: (event: React.PointerEvent<HTMLDivElement>) => {
+        if (event.pointerType !== 'mouse' || event.button !== 0) return
+        dragState.current = {
+          active: true,
+          dragging: false,
+          pointerId: event.pointerId,
+          startX: event.clientX,
+          scrollLeft: event.currentTarget.scrollLeft,
+        }
+      },
+      onPointerMove: (event: React.PointerEvent<HTMLDivElement>) => {
+        const state = dragState.current
+        if (!state.active || state.pointerId !== event.pointerId) return
+        const distance = event.clientX - state.startX
+        if (!state.dragging && Math.abs(distance) < 15) return
+        if (!state.dragging) {
+          state.dragging = true
+          event.currentTarget.setPointerCapture(event.pointerId)
+          setDragging(true)
+        }
+        event.preventDefault()
+        event.currentTarget.scrollLeft = state.scrollLeft - distance
+      },
+      onPointerUp: finishDrag,
+      onPointerCancel: finishDrag,
+      onLostPointerCapture: finishDrag,
+      onClickCapture: (event: React.MouseEvent<HTMLDivElement>) => {
+        if (!suppressClick.current) return
+        event.preventDefault()
+        event.stopPropagation()
+        suppressClick.current = false
+      },
+    },
+  }
+}
+
 function JourneyDayChip({ slot, index, city, active, unlocked, claimed, editable, onSelect, onForceUnlock }: { slot: TripDay; index: number; city: string; active: boolean; unlocked: boolean; claimed: boolean; editable: boolean; onSelect: () => void; onForceUnlock: () => void }) {
   const hold = useFiveSecondHold<HTMLButtonElement>(editable && !unlocked, onForceUnlock)
 
@@ -458,10 +561,11 @@ function JourneyDayChip({ slot, index, city, active, unlocked, claimed, editable
   )
 }
 
-function TimelineCard({ item, complete, locked, editable, timeUnlockHour, onToggle, onForceUnlock }: { item: TimelineItem; complete: boolean; locked: boolean; editable: boolean; timeUnlockHour: 13 | 19; onToggle: () => void; onForceUnlock: () => void }) {
+function TimelineCard({ item, complete, locked, editable, onToggle, onForceUnlock }: { item: TimelineItem; complete: boolean; locked: boolean; editable: boolean; onToggle: () => void; onForceUnlock: () => void }) {
   const holdTimer = useRef<number | undefined>(undefined)
   const holdOrigin = useRef({ x: 0, y: 0 })
   const [holding, setHolding] = useState(false)
+  const guides = sceneGuides[item.id] ?? []
 
   const cancelUnlockHold = () => {
     if (holdTimer.current !== undefined) window.clearTimeout(holdTimer.current)
@@ -489,7 +593,7 @@ function TimelineCard({ item, complete, locked, editable, timeUnlockHour, onTogg
         className={`timeline-card is-locked${holding ? ' is-holding' : ''}`}
         role={editable ? 'button' : undefined}
         tabIndex={editable ? 0 : undefined}
-        aria-label={`${item.time}. ${item.title}. Откроется после предыдущей сцены или в ${timeUnlockHour}:00 по времени Tokyo.${editable ? ' Для аварийного открытия удерживай пять секунд.' : ''}`}
+        aria-label={`${item.time}. ${item.title}. Сцена пока закрыта.${editable ? ' Для аварийного открытия удерживай пять секунд.' : ''}`}
         onPointerDown={(event) => {
           if (!event.isPrimary || event.button !== 0) return
           holdOrigin.current = { x: event.clientX, y: event.clientY }
@@ -518,7 +622,7 @@ function TimelineCard({ item, complete, locked, editable, timeUnlockHour, onTogg
           <span className="timeline-title">
             <small>{item.time}</small>
             <strong>{item.title}</strong>
-            <span className="timeline-lock-note">{holding ? 'Не отпускай · Кицу снимает печать…' : `После предыдущей сцены · автооткрытие в ${timeUnlockHour}:00`}</span>
+            <span className="timeline-lock-note">{holding ? 'Не отпускай · Кицу снимает печать…' : 'Сцена пока скрыта'}</span>
           </span>
           <span className="details-chevron"><Icon name="lock" size={15} /></span>
         </div>
@@ -534,7 +638,20 @@ function TimelineCard({ item, complete, locked, editable, timeUnlockHour, onTogg
         <span className="timeline-title"><small>{item.time}</small><strong>{item.title}</strong></span>
         <span className="details-chevron"><Icon name="chevron" size={18} /></span>
       </summary>
-      <div className="timeline-details">{item.details.map((detail) => <p key={detail}>{detail}</p>)}</div>
+      <div className="timeline-details">
+        {item.details.map((detail, index) => (
+          <div className="timeline-detail" key={`${index}-${detail}`}>
+            <span className="timeline-detail-label">{getTimelineDetailLabel(item, detail, index)}</span>
+            <p>{detail}</p>
+          </div>
+        ))}
+        {guides.map((guide) => (
+          <div className="timeline-detail timeline-guide" key={`${guide.label}-${guide.text}`}>
+            <span className="timeline-detail-label">{guide.label}</span>
+            <p>{guide.text}</p>
+          </div>
+        ))}
+      </div>
     </details>
   )
 }
@@ -635,7 +752,7 @@ function LockedDayContent({ editable, onForceUnlock }: { editable: boolean; onFo
         if (event.key === ' ' || event.key === 'Enter') cancelUnlockHold()
       }}
     >
-      <img src="/assets/kitsune-guide.png" alt="Кицу — проводник путешествия" draggable="false" />
+      <img src="/assets/kitsune-guide.webp" alt="Кицу — проводник путешествия" draggable="false" />
       <span className="section-kicker">Время Tokyo · UTC+9</span>
       <h2>{holding ? 'Кицу снимает печать…' : 'Кицу хранит секрет'}</h2>
       <p>{holding ? 'Не отпускай. Аварийный проход откроется через пять секунд.' : 'Каждая глава открывается в полночь по японскому времени. До этого маршрут и награда остаются под печатью.'}</p>
@@ -673,7 +790,7 @@ function AccessGate({ onEnter }: { onEnter: (mode: AccessMode) => void }) {
     <main className="access-gate">
       <div className="access-gate-shade" />
       <section className="access-gate-card" aria-labelledby="access-title">
-        <img src="/assets/kitsune-guide.png" alt="Кицу" />
+        <img src="/assets/kitsune-guide.webp" alt="Кицу" />
         <span className="section-kicker">Chonchetrip · Japan 2026</span>
         <h1 id="access-title">Кто заглянул в эту историю?</h1>
         {step === 'choose' ? (
@@ -724,6 +841,11 @@ function App() {
   const activePhotoUploads = useRef(new Set<string>())
 
   const canEdit = accessMode === 'editor'
+  const {
+    railRef: dayRailRef,
+    dragging: dayRailDragging,
+    dragProps: dayRailDragProps,
+  } = useHorizontalDragScroll(selectedDate, view === 'journey' && Boolean(accessMode) && !accessChecking)
   const selectedDay = dayContentForDate(selectedDate, progress.fujiDate)
   const selectedMagic = kitsuMagicByDay[selectedDay.id]
   const selectedUnlocked = selectedDate <= today || progress.unlockedDays.includes(selectedDate)
@@ -1273,7 +1395,7 @@ function App() {
     return (
       <main className="access-gate is-loading">
         <div className="access-gate-shade" />
-        <section className="access-gate-card"><img src="/assets/kitsune-guide.png" alt="Кицу" /><h1>Кицу открывает дневник…</h1></section>
+        <section className="access-gate-card"><img src="/assets/kitsune-guide.webp" alt="Кицу" /><h1>Кицу открывает дневник…</h1></section>
       </main>
     )
   }
@@ -1296,7 +1418,7 @@ function App() {
           <>
             <section
               className={selectedUnlocked ? 'chapter-hero' : `chapter-hero is-locked${lockedHeroHold.holding ? ' is-holding' : ''}`}
-              style={{ backgroundImage: `url(${selectedUnlocked ? selectedDay.cover : '/assets/chonchetrip-splash.png'})` }}
+              style={{ backgroundImage: `url(${selectedUnlocked ? selectedDay.cover : '/assets/chonchetrip-splash.webp'})` }}
               role={!selectedUnlocked && canEdit ? 'button' : undefined}
               tabIndex={!selectedUnlocked && canEdit ? 0 : undefined}
               aria-label={selectedUnlocked ? undefined : canEdit ? `Глава ${selectedDay.dateLabel} закрыта. Для аварийного открытия удерживай пять секунд.` : `Глава ${selectedDay.dateLabel} закрыта.`}
@@ -1313,7 +1435,7 @@ function App() {
             </section>
 
             <section className="day-rail-section" aria-label="Дни путешествия">
-              <div className="day-rail">
+              <div ref={dayRailRef} className={dayRailDragging ? 'day-rail is-dragging' : 'day-rail'} aria-label="Лента дней" {...dayRailDragProps}>
                 {tripDays.map((slot, index) => {
                   const content = dayContentForDate(slot.date, progress.fujiDate)
                   const unlocked = slot.date <= today || progress.unlockedDays.includes(slot.date)
@@ -1356,25 +1478,24 @@ function App() {
                   {selectedDay.timeline.map((item, index) => {
                     const complete = selectedStops.includes(item.id)
                     const eveningUnlock = index >= selectedDay.timeline.length - 2
-                    const timeUnlockHour = eveningUnlock ? 19 : 13
                     const timeUnlocked = eveningUnlock ? selectedEveningUnlocked : selectedAfternoonUnlocked
                     const previousComplete = index < 2 || selectedStops.includes(selectedDay.timeline[index - 1].id)
                     const manuallyUnlocked = selectedUnlockedStops.includes(item.id)
                     const accessible = previousComplete || timeUnlocked || manuallyUnlocked
-                    return <TimelineCard key={item.id} item={item} complete={complete} locked={!complete && !accessible} editable={canEdit} timeUnlockHour={timeUnlockHour} onToggle={() => toggleStop(selectedDay.id, item.id, accessible)} onForceUnlock={() => forceUnlockStop(selectedDay.id, item.id)} />
+                    return <TimelineCard key={item.id} item={item} complete={complete} locked={!complete && !accessible} editable={canEdit} onToggle={() => toggleStop(selectedDay.id, item.id, accessible)} onForceUnlock={() => forceUnlockStop(selectedDay.id, item.id)} />
                   })}
                 </section>
 
                 <section className="paper-card fact-card">
                   <div className="card-label"><Icon name="fox" size={18} /> Шёпот Кицу</div>
-                  <img src="/assets/kitsune-guide.png" alt="" />
+                  <img src="/assets/kitsune-guide.webp" alt="" />
                   <p>{selectedDay.fact}</p>
                 </section>
 
                 {selectedMagic?.nightEncounter && (
                   selectedNightMagicUnlocked ? (
                     <button type="button" className={selectedEncounterFound ? 'kitsu-night-encounter is-found' : 'kitsu-night-encounter'} disabled={selectedEncounterFound || !canEdit} onClick={() => findNightEncounter(selectedMagic)}>
-                      <span className="night-peek"><img src="/assets/kitsune-guide.png" alt="" /><i /></span>
+                      <span className="night-peek"><img src="/assets/kitsune-guide.webp" alt="" /><i /></span>
                       <span><small>{selectedEncounterFound ? 'Редкая встреча сохранена' : 'Кто-то прячется рядом…'}</small><strong>{selectedEncounterFound ? selectedMagic.nightEncounter.title : selectedMagic.nightEncounter.actionLabel}</strong><em>{selectedEncounterFound ? selectedMagic.nightEncounter.message : 'Нажми, пока рыжий хвост снова не исчез.'}</em></span>
                       <Icon name={selectedEncounterFound ? 'check' : 'eye'} size={19} />
                     </button>
@@ -1487,7 +1608,7 @@ function App() {
           <div className="screen-content passport-screen">
             <section className="page-intro passport-intro">
               <div><span className="section-kicker">Travel Passport</span><h1>Полевой дневник</h1><p>Маленькие отметки, которые превращают маршрут в историю.</p></div>
-              <img src="/assets/kitsune-guide.png" alt="" />
+              <img src="/assets/kitsune-guide.webp" alt="" />
             </section>
 
             <section className="paper-card fuji-switcher">
@@ -1502,6 +1623,16 @@ function App() {
 
             <section className="passport-section">
               <div className="section-title"><div><span className="section-kicker">Eki stamp</span><h2>Пять печатей</h2></div><strong>{progress.stamps.length}/5</strong></div>
+              <div className="stamp-system-guide">
+                <div>
+                  <strong>Eki stamp</strong>
+                  <p>Ставишь сама в туристический блокнот — не в загранпаспорт. Ниже отмечаешь находку в приложении.</p>
+                </div>
+                <div>
+                  <strong>Goshuin</strong>
+                  <p>Служитель оформляет в отдельной goshuincho. В эти пять станционных печатей он не входит.</p>
+                </div>
+              </div>
               <div className="stamp-list">
                 {passportStamps.map((stamp, index) => {
                   const found = progress.stamps.includes(stamp.id)
@@ -1564,7 +1695,7 @@ function App() {
                 <div className="kitsu-level"><span><i style={{ width: `${(knownFoxFires.length / kitsuMagicDays.length) * 100}%` }} /></span><strong>{knownFoxFires.length}/{kitsuMagicDays.length} огней</strong></div>
               </div>
               <div className="tail-lights" aria-hidden="true">{Array.from({ length: 9 }, (_, index) => <i key={index} className={index < visibleTailCount ? 'is-lit' : ''} />)}</div>
-              <img src="/assets/kitsune-guide.png" alt="Кицу — лисий проводник путешествия" />
+              <img src="/assets/kitsune-guide.webp" alt="Кицу — лисий проводник путешествия" />
             </section>
 
             <section className="kitsu-magic-section">

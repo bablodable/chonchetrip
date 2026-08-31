@@ -6,7 +6,7 @@
   align-items: end;
   overflow: hidden;
   padding: calc(26px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));
-  background: #243134 url('/assets/chonchetrip-splash.png') center 38% / cover no-repeat;
+  background: #243134 url('/assets/chonchetrip-splash.webp') center 38% / cover no-repeat;
 }
 
 .access-gate-shade {
@@ -408,8 +408,20 @@ button {
   gap: 8px;
   overflow-x: auto;
   padding: 0 18px 3px;
+  cursor: grab;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   scroll-snap-type: x proximity;
+}
+
+.day-rail.is-dragging {
+  cursor: grabbing;
+  scroll-snap-type: none;
+}
+
+.day-rail.is-dragging .day-chip {
+  pointer-events: none;
 }
 
 .day-rail::-webkit-scrollbar,
@@ -462,7 +474,7 @@ button {
   top: 5px;
   left: 7px;
   color: rgba(95, 72, 55, 0.5);
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 800;
 }
 
@@ -476,7 +488,7 @@ button {
 .day-chip > svg {
   height: 14px;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -761,26 +773,54 @@ button {
 }
 
 .timeline-details {
-  padding: 0 17px 15px 86px;
+  display: grid;
+  gap: 9px;
+  padding: 0 14px 15px 54px;
 }
 
-.timeline-details p {
-  position: relative;
-  margin: 0 0 7px;
+.timeline-detail {
+  padding: 1px 0 2px 11px;
+  border-left: 2px solid rgba(202, 145, 76, 0.38);
+}
+
+.timeline-detail-label {
+  display: inline-flex;
+  min-height: 18px;
+  align-items: center;
+  margin-bottom: 4px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  color: #8e5f30;
+  background: rgba(230, 197, 146, 0.28);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.025em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.timeline-detail p {
+  margin: 0;
   color: var(--muted-dark);
-  font-size: 12px;
-  line-height: 1.45;
+  font-size: 12.5px;
+  line-height: 1.52;
 }
 
-.timeline-details p::before {
-  position: absolute;
-  top: 0.62em;
-  left: -12px;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--gold);
-  content: '';
+.timeline-guide {
+  padding: 9px 10px;
+  border: 1px solid rgba(74, 108, 106, 0.13);
+  border-left: 3px solid rgba(74, 108, 106, 0.42);
+  border-radius: 11px;
+  background: rgba(224, 235, 230, 0.5);
+}
+
+.timeline-guide .timeline-detail-label {
+  color: #496b68;
+  background: rgba(104, 145, 139, 0.13);
+}
+
+.timeline-guide p {
+  color: #50615c;
 }
 
 .day-map-card {
@@ -929,7 +969,7 @@ button {
   border-radius: 24px;
   background:
     linear-gradient(rgba(255, 251, 242, 0.91), rgba(255, 248, 236, 0.91)),
-    url('/assets/chonchetrip-splash.png') center / cover;
+    url('/assets/chonchetrip-splash.webp') center / cover;
   box-shadow: 0 10px 26px rgba(66, 44, 29, 0.065);
 }
 
@@ -1594,6 +1634,38 @@ button {
 .passport-section {
   display: grid;
   gap: 12px;
+}
+
+.stamp-system-guide {
+  display: grid;
+  gap: 7px;
+  padding: 10px;
+  border: 1px solid rgba(90, 104, 89, 0.14);
+  border-radius: 16px;
+  background: rgba(239, 239, 220, 0.58);
+}
+
+.stamp-system-guide > div {
+  display: grid;
+  grid-template-columns: 68px 1fr;
+  gap: 8px;
+  align-items: start;
+  padding: 7px 8px;
+  border-radius: 11px;
+  background: rgba(255, 251, 241, 0.68);
+}
+
+.stamp-system-guide strong {
+  color: var(--red-dark);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.stamp-system-guide p {
+  margin: 0;
+  color: var(--muted-dark);
+  font-size: 10px;
+  line-height: 1.45;
 }
 
 .section-title > strong {
