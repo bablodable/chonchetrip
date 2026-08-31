@@ -535,9 +535,166 @@ button {
 }
 
 .day-content {
+  --day-accent: #9a5740;
+  --day-accent-deep: #7d4634;
+  --day-accent-wash: rgba(201, 120, 78, 0.13);
   display: grid;
   gap: 20px;
 }
+
+.day-content.vibe-gentle {
+  --day-accent: #52786d;
+  --day-accent-deep: #3b6258;
+  --day-accent-wash: rgba(94, 139, 126, 0.14);
+}
+
+.day-content.vibe-steady {
+  --day-accent: #a87032;
+  --day-accent-deep: #855728;
+  --day-accent-wash: rgba(196, 139, 67, 0.15);
+}
+
+.day-content.vibe-adventure {
+  --day-accent: #5c6e9b;
+  --day-accent-deep: #46567f;
+  --day-accent-wash: rgba(102, 121, 169, 0.15);
+}
+
+.day-content.vibe-full {
+  --day-accent: #a04d4a;
+  --day-accent-deep: #813b3b;
+  --day-accent-wash: rgba(184, 83, 76, 0.14);
+}
+
+.day-content .chapter-heading .section-kicker { color: var(--day-accent); }
+
+.day-content .day-progress {
+  border-color: color-mix(in srgb, var(--day-accent) 30%, transparent);
+  color: var(--day-accent-deep);
+  background: color-mix(in srgb, var(--day-accent) 7%, rgba(255, 249, 238, 0.86));
+}
+
+.day-vibe-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 16px;
+  align-items: start;
+  gap: 9px;
+  overflow: hidden;
+  padding: 11px;
+  border: 1px solid color-mix(in srgb, var(--day-accent) 25%, transparent);
+  border-radius: 17px;
+  background:
+    radial-gradient(circle at 0% 100%, color-mix(in srgb, var(--day-accent) 13%, transparent), transparent 44%),
+    linear-gradient(135deg, color-mix(in srgb, var(--day-accent) 6%, #fffdf8), rgba(255, 251, 243, 0.9));
+  box-shadow: 0 8px 20px rgba(74, 52, 36, 0.035);
+}
+
+.day-vibe-card::after {
+  position: absolute;
+  top: -22px;
+  right: -24px;
+  width: 82px;
+  height: 82px;
+  border: 1px solid color-mix(in srgb, var(--day-accent) 12%, transparent);
+  border-radius: 50%;
+  content: '';
+}
+
+.day-vibe-icon {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--day-accent) 12%, transparent);
+  font-size: 20px;
+}
+
+.day-vibe-copy { position: relative; z-index: 1; min-width: 0; }
+
+.day-vibe-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px 7px;
+  color: var(--day-accent-deep);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.day-vibe-meta strong {
+  padding: 3px 6px;
+  border-radius: 999px;
+  color: var(--day-accent-deep);
+  background: color-mix(in srgb, var(--day-accent) 11%, transparent);
+  font-size: 8px;
+  letter-spacing: 0.035em;
+}
+
+.day-vibe-card h3 {
+  margin: 4px 0 2px;
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 19px;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+}
+
+.day-vibe-card p {
+  margin: 0;
+  color: var(--muted-dark);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  word-spacing: 0;
+  line-height: 1.45;
+}
+
+.day-vibe-rule {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 8px;
+  color: var(--day-accent-deep);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0;
+  word-spacing: 0;
+  line-height: 1.45;
+}
+
+.day-vibe-rule span {
+  min-width: 0;
+  letter-spacing: 0;
+  word-spacing: 0;
+}
+
+.day-vibe-rule svg { flex: 0 0 auto; margin-top: -1px; }
+
+.day-vibe-meter {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 3px;
+  padding-top: 4px;
+}
+
+.day-vibe-meter i {
+  width: 4px;
+  height: 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--day-accent) 15%, transparent);
+}
+
+.day-vibe-meter i.is-on { background: var(--day-accent); }
 
 .chapter-heading,
 .section-title,
@@ -613,7 +770,7 @@ button {
   bottom: 30px;
   left: 43px;
   width: 1px;
-  background: rgba(164, 77, 58, 0.19);
+  background: color-mix(in srgb, var(--day-accent, #a44d3a) 27%, transparent);
   content: '';
 }
 
@@ -627,7 +784,7 @@ button {
 }
 
 .timeline-card[open] {
-  border-color: rgba(159, 57, 43, 0.22);
+  border-color: color-mix(in srgb, var(--day-accent, #9f392b) 34%, transparent);
 }
 
 .timeline-card.is-complete {

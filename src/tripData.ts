@@ -42,6 +42,15 @@ export type Riddle = {
   location?: string
 }
 
+export type DayVibe = {
+  tone: 'gentle' | 'steady' | 'full' | 'adventure'
+  label: string
+  title: string
+  description: string
+  rule: string
+  icon: string
+}
+
 export type TripDay = {
   id: string
   date: string
@@ -50,6 +59,7 @@ export type TripDay = {
   eyebrow: string
   title: string
   subtitle: string
+  vibe: DayVibe
   cover: string
   mapFile?: string
   mapNote?: string
@@ -106,6 +116,15 @@ const freeFood = (meal: string, note: string, area?: string, alternatives?: Food
   alternatives,
 })
 
+const dayVibe = (tone: DayVibe['tone'], label: string, title: string, description: string, rule: string, icon: string): DayVibe => ({
+  tone,
+  label,
+  title,
+  description,
+  rule,
+  icon,
+})
+
 export const tripDays: TripDay[] = [
   {
     id: 'belgrade-dubai',
@@ -115,6 +134,7 @@ export const tripDays: TripDay[] = [
     eyebrow: 'Пролог · Дорога на Восток',
     title: 'Путь к Японии начался',
     subtitle: 'Belgrade, ночной Dubai и ожидание главного рейса',
+    vibe: dayVibe('gentle', 'Переходный', 'Дорога без гонки', 'Сегодня достаточно добраться, поесть, перевести дыхание и беречь силы для Japan.', 'Правило дня: gate важнее любой дополнительной остановки.', '✈️'),
     cover: cover.intro,
     mapFile: '2026-09-30-arrival-osaka.html',
     mapNote: 'Общая карта 29–30 сентября. Локальные точки начинаются после прилёта в KIX.',
@@ -166,6 +186,7 @@ export const tripDays: TripDay[] = [
     eyebrow: 'Глава 01 · Прибытие',
     title: 'Первый фонарь зажжён',
     subtitle: 'DXB, KIX, билет Kuroshio и неон Dotonbori',
+    vibe: dayVibe('steady', 'Мягкий старт', 'Мягкое приземление', 'Первый вечер — не марафон: Япония уже началась, даже если получится только неон и тёплый ужин.', 'Главное: билет, заселение, еда. Бонусы — только по силам.', '🏮'),
     cover: cover.osaka,
     mapFile: '2026-09-30-arrival-osaka.html',
     mapRouteScenes: [['kix-arrival'], ['kuroshio-ticket', 'stamp-kix'], ['to-hotel-osaka'], ['osaka-checkin'], ['dotonbori'], ['dotonbori-snack'], ['osaka-dinner'], ['travel-passport'], ['shinsaibashi-night']],
@@ -222,7 +243,7 @@ export const tripDays: TripDay[] = [
         time: '~20:30',
         title: 'Пройти неоновое крещение',
         kind: 'place',
-        details: ['Dotonbori → Ebisu Bridge → вывеска Glico.'],
+        details: ['Dotonbori → Ebisu Bridge → вывеска Glico.', 'После Glico, если вечер идёт спокойно: заглянуть в Hōzenji и Hōzenji Yokocho — мшистый Mizukake Fudō, каменная улочка и тишина в двух шагах от неона. На всё около 15 минут; если уже хочется есть или нужно успеть за Travel Passport, просто пройти мимо без сожалений.', 'Ebisu Tower у Don Quijote — совсем необязательный бонус на случай избытка сил: овальное колесо, один круг около 15 минут. Проверить, что есть запас по времени и колесо работает, прежде чем вставать в очередь.'],
       },
       {
         id: 'dotonbori-snack',
@@ -264,6 +285,7 @@ export const tripDays: TripDay[] = [
     eyebrow: 'Глава 02 · Океан',
     title: 'К белому берегу',
     subtitle: 'Тихий океан, скалы и игровой вечер в Osaka',
+    vibe: dayVibe('gentle', 'Чиловый', 'День с воздухом', 'Здесь не надо собирать все точки: океан, свободный обед и одна спокойная вечерняя остановка уже делают день полным.', 'Оставь себе длинную паузу у воды.', '🌊'),
     cover: cover.osaka,
     mapFile: '2026-10-01-shirahama.html',
     mapRouteScenes: [['early-breakfast'], ['train-shirahama'], ['train-shirahama', 'stamp-shirahama'], ['beach'], ['seafood'], ['coast'], ['coast'], ['coast'], ['parco'], ['osaka-zagin']],
@@ -298,6 +320,7 @@ export const tripDays: TripDay[] = [
     eyebrow: 'Глава 03 · Другой мир',
     title: 'Портал открыт',
     subtitle: 'USJ, Frieren и Halloween Horror Nights',
+    vibe: dayVibe('full', 'Насыщенный', 'Один большой мир', 'Сегодня весь день живёт внутри USJ — не нужно ничего успевать за пределами парка.', 'Express Pass задаёт ритм; между слотами просто живите в парке.', '🎢'),
     cover: cover.osaka,
     mapFile: '2026-10-02-usj.html',
     mapRouteScenes: [['to-usj'], ['to-usj'], ['to-usj', 'usj-entry'], ['harry-potter'], ['express-missions'], ['frieren-lunch'], ['express-missions'], ['halloween'], ['jurassic'], ['usj-home']],
@@ -332,6 +355,7 @@ export const tripDays: TripDay[] = [
     eyebrow: 'Глава 04 · Посланники леса',
     title: 'Выбрана Нара',
     subtitle: 'Олени, Великий Будда и вечер с Pokémon',
+    vibe: dayVibe('steady', 'Живой', 'Нара, потом Osaka', 'Утро принадлежит храмам и оленям, вечер — Pokémon. Между ними не нужно бороться за идеальный темп.', 'Pokémon Café — единственный жёсткий якорь; Shinsekai можно сократить до еды и огней.', '🦌'),
     cover: cover.osaka,
     mapFile: '2026-10-03-nara.html',
     mapRouteScenes: [['to-nara'], ['to-nara'], ['nara-park'], ['todaiji'], ['kasuga'], ['nara-food'], ['nara-food'], ['nara-food'], ['pokemon-osaka'], ['shinsekai-food'], ['shinsekai-night']],
@@ -350,7 +374,7 @@ export const tripDays: TripDay[] = [
     timeline: [
       { id: 'to-nara', time: 'Рано утром', title: 'Уехать туда, где олени важнее машин', kind: 'route', details: ['Rapid Express довезёт до Kintetsu-Nara примерно к девяти.'] },
       { id: 'nara-park', time: 'Первая встреча', title: 'Заслужить поклон оленя', kind: 'quest', details: ['Купи shika senbei и приготовься мгновенно стать самой популярной в парке.'] },
-      { id: 'todaiji', time: 'Утром', title: 'Поздороваться с Великим Буддой', kind: 'place', details: ['Пройди через огромные ворота Nandaimon к Daibutsuden.'] },
+      { id: 'todaiji', time: 'Утром', title: 'Поздороваться с Великим Буддой', kind: 'place', details: ['Пройди через огромные ворота Nandaimon к Daibutsuden.', 'Сразу за Tōdai-ji подняться к Nigatsudō: деревянная терраса, крыши Nara и около 20–25 минут без билета. Оттуда естественная дорожка ведёт дальше к Kasuga Taisha — это часть прогулки, а не отдельный крюк.'] },
       { id: 'kasuga', time: 'До обеда', title: 'Сосчитать фонари и сбиться', kind: 'place', details: ['Каменные и бронзовые фонари Kasuga Taisha специально не хотят считаться.'] },
       { id: 'nara-food', time: 'После полудня', title: 'Сделать паузу в Нара', kind: 'food', food: primaryFood('Обед', 'Mizuya Chaya', 'Чайный домик для спокойной паузы между храмами и прогулкой.', [{ name: 'Nakatanidou', note: 'Свежий yomogi mochi — сладкий перекус, если будете в Naramachi.' }], 'Можно спокойно выбрать другое место рядом.'), details: [] },
       { id: 'pokemon-osaka', time: '~18:00', title: 'Зайти в мир Pokémon', kind: 'quest', details: ['Прийти по брони в Pokémon Café Osaka на 9F Daimaru Shinsaibashi и спокойно прожить эту тематическую остановку отдельно от остального вечера.', 'Можно взять напиток или десерт по настроению и оставить место для еды в Shinsekai.'] },
@@ -366,6 +390,7 @@ export const tripDays: TripDay[] = [
     eyebrow: 'Глава 05 · Старая столица',
     title: 'По следам дракона',
     subtitle: 'Kiyomizu-dera, Gion и первая запись goshuin',
+    vibe: dayVibe('gentle', 'Чиловый', 'Медленный Kyoto', 'День собран как прогулка, а не как чек-лист: улицы, check-in, вечерние фонари и домашний ужин.', 'После заселения ничего не нужно догонять.', '🍂'),
     cover: cover.kyoto,
     mapFile: '2026-10-04-kyoto-gion.html',
     mapRouteScenes: [['move-kyoto'], ['move-kyoto'], ['move-kyoto', 'stamp-gion'], ['tazuru-bags'], ['kiyomizu'], ['old-streets'], ['old-streets'], ['old-streets'], ['gion'], ['tazuru-checkin'], ['gion-evening'], ['gion-evening'], ['gion-evening'], ['kaiseki']],
@@ -386,7 +411,7 @@ export const tripDays: TripDay[] = [
       { id: 'stamp-gion', time: 'На станции', title: 'Поставить печать Kyoto', kind: 'quest', details: ['На Gion-Shijo Station найти Eki Stamp #3 и самостоятельно поставить его в туристический блокнот.', 'Затем отметить третью находку в Passport приложения. Goshuincho для этого не используется.'] },
       { id: 'tazuru-bags', time: 'Перед прогулкой', title: 'Оставить чемоданы и стать налегке', kind: 'rest', details: ['Tazuru приютит вещи до check-in.'] },
       { id: 'kiyomizu', time: 'До обеда', title: 'Начать отдельную книгу goshuin', kind: 'quest', details: ['У Kiyomizu-dera купить goshuincho — специальную книжку только для записей из храмов и святилищ.', 'Показать её в окне goshuin: служитель сам добавит каллиграфию и красную печать. В туристический блокнот это не ставится и в счётчик Eki stamp не входит.'] },
-      { id: 'old-streets', time: 'После храма', title: 'Потеряться в старых улочках', kind: 'place', details: ['Sannenzaka, Ninenzaka, пагода и столько matcha-сладостей, сколько захочется.'] },
+      { id: 'old-streets', time: 'После храма', title: 'Потеряться в старых улочках', kind: 'place', details: ['Sannenzaka, Ninenzaka, пагода и столько matcha-сладостей, сколько захочется.', 'По пути обратить внимание на Yasaka Kōshin-dō с разноцветными kukurizaru — 5–10 минут на тихий кадр. Затем просто пройти Ishibe-kōji: короткая каменная улочка по дороге к Gion. Никаких отдельных обязательных остановок.'] },
       { id: 'gion', time: '~15:40–16:40', title: 'Найти драконов Gion', kind: 'place', details: ['Зайти в Kennin-ji и посмотреть на пару огромных драконов на потолке Dharma Hall. После храма вернуться к Tazuru — он находится рядом.'] },
       { id: 'tazuru-checkin', time: '~17:00', title: 'По-настоящему заселиться в Kyoto', kind: 'rest', details: ['Вернуться в Tazuru, пройти check-in, забрать оставленные утром чемоданы и отнести вещи в номер.', 'Взять ключ, проверить самое нужное и сделать короткую паузу перед вечерней прогулкой.'] },
       { id: 'gion-evening', time: 'После check-in', title: 'Выйти к вечерним фонарям Gion', kind: 'place', details: ['Пройти через Hanamikoji к Yasaka Shrine, а затем выйти к тихому каналу Gion Shirakawa.', 'Это уже спокойная прогулка без багажа; к ужину перейти в Pontocho.'] },
@@ -401,6 +426,7 @@ export const tripDays: TripDay[] = [
     eyebrow: 'Глава 06 · Тысяча врат',
     title: 'Дорога сквозь тории',
     subtitle: 'Fushimi Inari, Nishiki и замок Nijo',
+    vibe: dayVibe('full', 'Насыщенный', 'Большой Kyoto', 'Много красивых глав за один день, но вечер специально оставлен гибким.', 'Если утро затянулось, первая на пропуск — маленькая находка, а не отдых.', '🦊'),
     cover: cover.kyoto,
     mapFile: '2026-10-05-fushimi-inari.html',
     mapRouteScenes: [['to-fushimi'], ['to-fushimi'], ['to-fushimi', 'fushimi-main'], ['fushimi-main'], ['sanjusangendo'], ['nishiki'], ['nijo'], ['gion-matcha'], ['gion-matcha'], ['kyoto-ramen'], ['kyoto-night-finale']],
@@ -420,7 +446,7 @@ export const tripDays: TripDay[] = [
       { id: 'to-fushimi', time: 'Пока город спит', title: 'Уехать к лисьей горе', kind: 'route', details: ['Ранний Keihan — лучший шанс увидеть Fushimi Inari почти без толпы.'] },
       { id: 'fushimi-main', time: 'Утром', title: 'Пройти сквозь тысячу красных врат', kind: 'quest', details: ['Поднимайся через Senbon Torii до Yotsutsuji, пока Kyoto раскрывается внизу.'] },
       { id: 'sanjusangendo', time: 'После спуска', title: 'Встретить тысячу и одну статую', kind: 'place', details: ['В длинном зале Sanjusangendo попробуй найти две одинаковые.'] },
-      { id: 'nishiki', time: 'В обед', title: 'Собрать обед по кусочкам', kind: 'food', food: freeFood('Обед', 'Один tamagoyaki, кусочек свежей рыбы, что-нибудь жареное и wagashi на счастье.', 'Nishiki Market'), details: [] },
+      { id: 'nishiki', time: 'В обед', title: 'Собрать обед по кусочкам', kind: 'food', food: freeFood('Обед', 'Один tamagoyaki, кусочек свежей рыбы, что-нибудь жареное и wagashi на счастье.', 'Nishiki Market'), details: ['На выходе из Nishiki, если хочется ещё одну маленькую странность Kyoto: зайти на 10 минут в Nishiki Tenmangū. Там есть karakuri omikuji — лев-робот выдаёт предсказание, обычно около ¥200 и есть английский вариант. Это omikuji, не goshuin и не печать в Travel Passport.'] },
       { id: 'nijo', time: 'После рынка', title: 'Проверить, поют ли полы замка', kind: 'place', details: ['Прогулка через Ninomaru Palace и сады Nijo.'] },
       { id: 'gion-matcha', time: 'Под вечер', title: 'Сделать matcha-паузу в Gion', kind: 'food', food: primaryFood('Матча', 'Saryo Tsujiri Gion Honten', 'Matcha-пауза перед вечерней прогулкой.', [{ name: 'Nakamura Tokichi', note: 'Зелёный parfait, если захочется именно десерт.' }], 'Можно спокойно выбрать другое matcha-место рядом.'), details: ['После паузы пройти через Teramachi или Shinkyogoku.'] },
       { id: 'kyoto-ramen', time: 'К ужину', title: 'Закрыть день ramen', kind: 'food', food: primaryFood('Ужин', 'Menya Inoichi', 'Dashi ramen для простого, тёплого финала дня.', [{ name: 'Menya Inoichi Hanare', note: 'Вариант dashi ramen, который уже был в маршруте.' }], 'Можно спокойно выбрать другой ramen рядом.'), details: [] },
@@ -435,6 +461,7 @@ export const tripDays: TripDay[] = [
     eyebrow: 'Глава 07 · После заката',
     title: 'Тихий Arashiyama',
     subtitle: 'Бамбуковая роща, каменные лица и свет кимоно',
+    vibe: dayVibe('adventure', 'Прогулочный', 'Длинная прогулка', 'День для ног и глаз: горы, бамбук, каменные лица, а вечером — мягкий свет станции.', 'Устали — режем одну точку, а не последний спокойный вечер.', '🎋'),
     cover: cover.kyoto,
     mapFile: '2026-10-06-arashiyama.html',
     mapRouteScenes: [['to-arashiyama'], ['to-arashiyama'], ['to-arashiyama', 'bridge-bamboo'], ['bridge-bamboo'], ['tenryuji'], ['tenryuji'], ['tenryuji'], ['tofu-lunch'], ['otagi'], ['otagi'], ['kimono-forest'], ['obanzai']],
@@ -456,7 +483,7 @@ export const tripDays: TripDay[] = [
       { id: 'tenryuji', time: 'Утром', title: 'Собрать три самых спокойных вида', kind: 'place', details: ['Сад Tenryu-ji, чай Okochi Sanso и река Hozu сверху.'] },
       { id: 'tofu-lunch', time: 'В обед', title: 'Сделать soba-паузу в Arashiyama', kind: 'food', food: primaryFood('Обед', 'Arashiyama Yoshimura', 'Soba и вид на Arashiyama.', [{ name: 'Yudofu', note: 'Тёплый tofu-обед, если захочется более спокойной классики Kyoto.' }], 'Можно спокойно выбрать другое место рядом.'), details: [] },
       { id: 'otagi', time: 'После обеда', title: 'Найти каменное лицо с твоим настроением', kind: 'quest', details: ['В Otagi живут 1200 rakan — один из них точно похож на тебя сегодня.'] },
-      { id: 'kimono-forest', time: 'После заката', title: 'Дождаться, когда зажжётся лес кимоно', kind: 'quest', details: ['Световые колонны Kimono Forest — вечерняя магия Arashiyama перед возвращением в центр Kyoto.'] },
+      { id: 'kimono-forest', time: 'Под вечер', title: 'Дождаться, когда зажжётся лес кимоно', kind: 'quest', details: ['Световые колонны Kimono Forest — вечерняя магия Arashiyama перед возвращением в центр Kyoto.', 'Если подойдёте к Randen Arashiyama Station примерно до 17:20: устроить паузу в station footbath на 15–20 минут — полотенце входит, билет берётся в information. Последний приём сейчас указан в 17:30, поэтому без бега: опоздали — просто идём к огням.', 'Там же появилась лимитированная Arashiyama purikura с рамками Kimono Forest. На неё хватит 5–10 минут; если очередь или время поджимает, не пытаемся успеть всё — footbath важнее, а purikura остаётся милым бонусом.'] },
       { id: 'obanzai', time: 'Вечером', title: 'Поужинать и отпустить Kyoto до утра', kind: 'food', food: primaryFood('Ужин', 'Keiraku Yakiniku Yabu', 'Yakiniku после длинного дня в Arashiyama.', [{ name: 'Obanzai в Kawaramachi', note: 'Несколько сезонных блюд, если захочется более спокойного вечера.' }], 'Можно спокойно выбрать другое место рядом.'), details: ['После ужина можно сразу вернуться в Tazuru или сделать один короткий круг вдоль Kamo River. Новых обязательных точек на сегодня нет.'] },
     ],
   },
@@ -468,6 +495,7 @@ export const tripDays: TripDay[] = [
     eyebrow: 'Глава 08 · Новый горизонт',
     title: 'Hello, Tokyo',
     subtitle: 'Shinkansen и первый аниме-кадр Tokyo',
+    vibe: dayVibe('gentle', 'Лёгкий', 'Перезагрузка в Tokyo', 'После Kyoto у этого дня одна задача: мягко переехать, увидеть первый вечер Tokyo и лечь отдыхать.', 'Tokyo Tower и ужин — уже достаточно.', '🗼'),
     cover: cover.tokyo,
     mapFile: '2026-10-07-kyoto-to-tokyo.html',
     mapRouteScenes: [['kyoto-station'], ['kyoto-station'], ['matcha-ekiben'], ['shinkansen'], ['tokyo-checkin'], ['shiba'], ['shiba'], ['tower'], ['jangara']],
@@ -501,6 +529,7 @@ export const tripDays: TripDay[] = [
     eyebrow: 'Глава 09 · Живая сказка',
     title: 'От леса к неону',
     subtitle: 'Meiji, две аниме-миссии и неоновый Shibuya',
+    vibe: dayVibe('full', 'Насыщенный', 'Большой Tokyo', 'День яркий и длинный: лес, улицы, Shibuya Sky и ночной Shinjuku.', 'Shibuya Sky — якорь; если день поплыл, сокращаем аниме-детур или магазины.', '🌃'),
     cover: cover.tokyo,
     mapFile: '2026-10-08-harajuku-shibuya.html',
     mapRouteScenes: [['meiji'], ['meiji'], ['meiji'], ['jujutsu-route'], ['harajuku'], ['harajuku'], ['suga-steps'], ['gyukatsu'], ['shibuya'], ['shibuya'], ['shibuya'], ['shibuya'], ['shibuya-sky'], ['shinjuku-night'], ['shinjuku-night'], ['shinjuku-night'], ['ramen-nagi']],
@@ -536,6 +565,7 @@ export const tripDays: TripDay[] = [
     eyebrow: 'Глава 10 · Гора появляется',
     title: 'Fuji Found!',
     subtitle: 'Chureito, Lake Kawaguchi и вид с канатной дороги',
+    vibe: dayVibe('adventure', 'Приключенческий', 'Охота за Fuji', 'Погода здесь главнее маршрута: когда гора показалась — можно остановиться и просто смотреть.', 'Не видно Fuji или выбились из графика — бонусные точки отпускаем сразу.', '🗻'),
     cover: cover.intro,
     mapFile: '2026-10-09-fuji.html',
     mapRouteScenes: [['fuji-train'], ['fuji-train'], ['fuji-train'], ['fuji-train'], ['chureito'], ['chureito'], ['houtou'], ['houtou'], ['oishi'], ['ropeway'], ['ropeway'], ['fuji-return']],
@@ -553,7 +583,7 @@ export const tripDays: TripDay[] = [
     },
     timeline: [
       { id: 'fuji-train', time: 'Очень рано', title: 'Уехать на охоту за горой', kind: 'route', details: ['Fuji Excursion 3 стартует из Shinjuku в 07:30 — дальше всё решают облака.'] },
-      { id: 'chureito', time: 'Первое испытание', title: 'Подняться к виду с открытки', kind: 'quest', details: ['Ступени к Chureito Pagoda приводят к тому самому кадру с Fuji.'] },
+      { id: 'chureito', time: 'Первое испытание', title: 'Подняться к виду с открытки', kind: 'quest', details: ['Ступени к Chureito Pagoda приводят к тому самому кадру с Fuji.', 'Если Fuji открыта и идёте по графику, на спуске сделать ещё один короткий кадр на Honchō Street у Shimoyoshida: около 15 минут, обычные вывески и гора в конце улицы. Фото — только с тротуара: это жилой район и на проезжую часть выходить нельзя. Если облака или задержались, спокойно пропустить.'] },
       { id: 'houtou', time: 'После подъёма', title: 'Согреться локальным hōtō', kind: 'food', food: primaryFood('Обед', 'Hoto Fudo Kawaguchiko Station', 'Hōtō — местная лапша Yamanashi с овощами и miso-бульоном.', undefined, 'Можно спокойно выбрать другое место рядом со станцией.'), details: [] },
       { id: 'oishi', time: 'После обеда', title: 'Встретиться с Fuji у воды', kind: 'place', details: ['В Oishi Park между тобой и горой остаётся только озеро.'] },
       { id: 'ropeway', time: 'Перед вечером', title: 'Подняться ещё выше', kind: 'place', details: ['Канатная дорога покажет сразу и Fuji, и Lake Kawaguchi.'] },
@@ -569,6 +599,7 @@ export const tripDays: TripDay[] = [
     eyebrow: 'Глава 11 · Электрический город',
     title: 'Tokyo Explorer',
     subtitle: 'Tsukiji, покупки в Ginza и аниме-маршрут по Akihabara',
+    vibe: dayVibe('steady', 'Живой', 'Городской explorer', 'Утро про вкус и покупки, вторая половина — про одну большую охоту в Akihabara.', 'Если JINS или покупки съели время, просто начинаем Akihabara позже и заканчиваем раньше.', '⚡'),
     cover: cover.tokyo,
     mapFile: '2026-10-10-ginza-akihabara.html',
     mapNote: 'Повторный заход в JINS отмечен в карточке точки JINS; расписание сцен выше остаётся главным.',
@@ -611,6 +642,7 @@ export const tripDays: TripDay[] = [
     eyebrow: 'Глава 12 · Между книгой и неоном',
     title: 'Tokyo между строк',
     subtitle: 'Asakusa, сад на воде, Мураками и Nakano',
+    vibe: dayVibe('full', 'Насыщенный', 'Между районами', 'Этот день прыгает по Tokyo, зато финал в Nakano оставлен без сценария и с ужином по настроению.', 'Не успеваем микро-точку — не догоняем её: Murakami и Nakano важнее.', '📚'),
     cover: cover.tokyo,
     mapFile: '2026-10-11-asakusa-ueno-murakami.html',
     mapRouteScenes: [['konbini-asakusa'], ['sensoji'], ['nakamise-bite'], ['sumida'], ['ueno'], ['ameyoko'], ['hamarikyu'], ['hamarikyu'], ['murakami-library'], ['nakano'], ['nakano-dinner']],
@@ -629,7 +661,7 @@ export const tripDays: TripDay[] = [
     timeline: [
       { id: 'konbini-asakusa', time: '07:05', title: 'Собрать завтрак путешественницы', kind: 'food', food: freeFood('Завтрак', 'Egg sando, onigiri и кофе из 7-Eleven — съесть без спешки по дороге к Daimon.', 'По дороге к Daimon'), details: ['Дальше одна линия ведёт прямо в Asakusa.'] },
       { id: 'sensoji', time: '08:00–09:45', title: 'Разбудить старый Tokyo', kind: 'quest', details: ['Пройди под Kaminarimon, загляни на Nakamise и доберись до Senso-ji, пока храм ещё не растворился в толпе.', 'Если хочется продолжить храмовую коллекцию, показать отдельную goshuincho в окне goshuin — служитель добавит новую запись. Это не Eki stamp и не отметка в Passport приложения.', 'Вход на территорию свободный.'] },
-      { id: 'nakamise-bite', time: 'По пути', title: 'Выбрать сладость у старой улицы', kind: 'food', food: freeFood('Перекус', 'Ningyo-yaki или тёплый melon pan — сегодня решение принимает запах.', 'Nakamise'), details: [] },
+      { id: 'nakamise-bite', time: 'По пути', title: 'Выбрать сладость у старой улицы', kind: 'food', food: freeFood('Перекус', 'Ningyo-yaki или тёплый melon pan — сегодня решение принимает запах.', 'Nakamise'), details: ['После Senso-ji, если закончите примерно к 09:45–10:00 и хочется ещё один вид: напротив Kaminarimon подняться на 8F Asakusa Culture Tourist Information Center. Терраса бесплатная, видно Nakamise, Senso-ji и Skytree; заложить 10–15 минут. Она открывается с 09:00, поэтому не пытаемся впихнуть её до Kaminarimon.'] },
       { id: 'sumida', time: '09:45–10:20', title: 'Поймать Skytree в реке', kind: 'place', details: ['Пройдись по набережной Sumida и найди отражение башни между лодками и мостами. Потом короткий переезд по Ginza Line до Ueno.'] },
       { id: 'ueno', time: '10:40–11:30', title: 'Спрятаться у пруда Shinobazu', kind: 'place', details: ['Ueno Park даст тихую передышку: вода, лотосы и один круг без обязательных достопримечательностей.'] },
       { id: 'ameyoko', time: '11:30–12:30', title: 'Сделать паузу на monjayaki', kind: 'food', food: primaryFood('Обед', 'Monja Moheji Ueno', 'Monjayaki перед дорогой к Hama-rikyu.', undefined, 'Можно спокойно выбрать другое место рядом на Ameyoko.'), details: [] },
@@ -647,6 +679,7 @@ export const tripDays: TripDay[] = [
     eyebrow: 'Глава 13 · Последний фонарь',
     title: 'Ещё один вечер',
     subtitle: 'Tokyo Station, Odaiba и дорога к Haneda',
+    vibe: dayVibe('steady', 'Свободный', 'Последний мягкий день', 'Здесь специально много воздуха: один хороший обед, набережная, свободный ужин и дорога домой.', 'Самолёт важнее последнего бонуса — в аэропорт едем спокойно.', '🌙'),
     cover: cover.tokyo,
     mapFile: '2026-10-12-last-day.html',
     mapRouteScenes: [['checkout-locker'], ['checkout-locker'], ['marunouchi'], ['marunouchi'], ['marunouchi'], ['rokurinsha'], ['rokurinsha'], ['odaiba'], ['odaiba'], ['odaiba'], ['odaiba', 'odaiba-dinner'], ['bags-haneda'], ['bags-haneda', 'haneda']],
@@ -664,9 +697,9 @@ export const tripDays: TripDay[] = [
     },
     timeline: [
       { id: 'checkout-locker', time: 'Утром', title: 'Спрятать чемоданы и украсть ещё один день', kind: 'route', details: ['Coin locker на Hamamatsucho освободит руки до самого вечера.'] },
-      { id: 'marunouchi', time: 'До обеда', title: 'Увидеть Tokyo из старой открытки', kind: 'place', details: ['Красный вокзал, Marunouchi и каменный мост Nijubashi.'] },
+      { id: 'marunouchi', time: 'До обеда', title: 'Увидеть Tokyo из старой открытки', kind: 'place', details: ['Красный вокзал, Marunouchi и каменный мост Nijubashi.', 'Если хочется ещё один ракурс без переезда: на 6F KITTE зайти в KITTE Garden. Это бесплатная крыша прямо напротив Tokyo Station; 10 минут на вид сверху вполне достаточно.'] },
       { id: 'rokurinsha', time: 'В обед', title: 'Научиться правильно есть tsukemen', kind: 'food', food: primaryFood('Обед', 'Rokurinsha Tokyo Ramen Street', 'Tsukemen: лапша отдельно, густой бульон отдельно — встречаются они только перед укусом.', undefined, 'Можно спокойно выбрать другое место на Tokyo Ramen Street.'), details: [] },
-      { id: 'odaiba', time: 'Последний длинный вечер', title: 'Уехать на остров будущего', kind: 'place', details: ['Tokyo Bay, Rainbow Bridge, маленькая Liberty и последние спонтанные покупки.'] },
+      { id: 'odaiba', time: 'Последний длинный вечер', title: 'Уехать на остров будущего', kind: 'place', details: ['Tokyo Bay, Rainbow Bridge, маленькая Liberty и последние спонтанные покупки.', 'Если в день поездки официальный календарь подтверждает шоу: посмотреть Tokyo Aqua Symphony у Odaiba Seaside Park. Это бесплатный светомузыкальный фонтан примерно на 10 минут; по текущему обычному расписанию удобны 17:15, 18:00 или 18:45, но именно 12 октября обязательно свериться с расписанием — его меняют из-за событий и обслуживания.'] },
       { id: 'odaiba-dinner', time: 'До отъезда', title: 'Оставить ужин свободным', kind: 'food', food: freeFood('Ужин', 'Здесь специально оставляем свободу перед аэропортом — выбрать то, что хочется и удобно по времени.', 'Odaiba'), details: [] },
       { id: 'bags-haneda', time: 'После 19:00', title: 'Забрать чемоданы и ехать за последним билетом', kind: 'route', details: ['Monorail от Hamamatsucho довезёт прямо к Haneda Terminal 3.'] },
       { id: 'haneda', time: 'Около 20:30', title: 'Зажечь последний фонарь', kind: 'quest', details: ['Всё формальное позади — дальше только gate, тишина и воспоминания.'] },
@@ -680,6 +713,7 @@ export const tripDays: TripDay[] = [
     eyebrow: 'Финал · Путь продолжается',
     title: 'Japan Complete',
     subtitle: 'Последняя страница — и первая память о путешествии',
+    vibe: dayVibe('gentle', 'Тихий', 'После истории', 'Здесь уже нечего успевать: только увезти с собой всё, что стало вашим.', 'Правило финала: ничего не забыть — и никуда не спешить.', '💌'),
     cover: cover.intro,
     mapFile: '2026-10-12-last-day.html',
     mapNote: 'Общая карта 12–13 октября: ночной рейс начинается в точке Haneda Terminal 3.',

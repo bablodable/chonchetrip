@@ -17,6 +17,7 @@ import {
   passportStamps,
   sideQuests,
   tripDays,
+  type DayVibe,
   type FoodOption,
   type Achievement,
   type FoodPlan,
@@ -695,6 +696,23 @@ function JourneyDayChip({ slot, index, city, active, unlocked, claimed, editable
       <strong>{slot.dateLabel.replace(' октября', '').replace(' сентября', ' сен')}</strong>
       {unlocked ? <span>{claimed ? <Icon name="check" size={12} /> : city}</span> : <Icon name="lock" size={12} />}
     </button>
+  )
+}
+
+function DayVibeCard({ vibe }: { vibe: DayVibe }) {
+  const pace = { gentle: 1, steady: 2, adventure: 3, full: 4 }[vibe.tone]
+
+  return (
+    <section className="day-vibe-card" aria-label={`Ритм дня: ${vibe.label}`}>
+      <span className="day-vibe-icon" aria-hidden="true">{vibe.icon}</span>
+      <div className="day-vibe-copy">
+        <div className="day-vibe-meta"><span>Ритм дня · {pace}/4</span><strong>{vibe.label}</strong></div>
+        <h3>{vibe.title}</h3>
+        <p>{vibe.description}</p>
+        <div className="day-vibe-rule"><Icon name="sparkles" size={15} /><span>{vibe.rule}</span></div>
+      </div>
+      <span className="day-vibe-meter" aria-hidden="true">{[1, 2, 3, 4].map((step) => <i key={step} className={step <= pace ? 'is-on' : ''} />)}</span>
+    </section>
   )
 }
 
@@ -1784,11 +1802,13 @@ function App() {
             </section>
 
             {selectedUnlocked ? (
-              <div className="screen-content day-content">
+              <div className={`screen-content day-content vibe-${selectedDay.vibe.tone}`}>
                 <section className="chapter-heading">
                   <div><span className="section-kicker">{selectedDay.dateLabel} · {selectedDay.city}</span><h2>Приключение дня</h2></div>
                   <div className="day-progress"><strong>{selectedStops.length}/{selectedDay.timeline.length}</strong><small>сцен</small></div>
                 </section>
+
+                <DayVibeCard vibe={selectedDay.vibe} />
 
                 {selectedMagic && (
                   <section className={selectedFoxFireFound ? 'paper-card kitsu-whisper-card is-found' : 'paper-card kitsu-whisper-card'} style={{ '--flame-color': selectedMagic.flameColor } as React.CSSProperties}>
