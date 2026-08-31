@@ -17,6 +17,31 @@ const ratings = (value: unknown) => {
   }))
 }
 
+const counterValue = (value: unknown) => {
+  const count = Number(value)
+  return Number.isFinite(count) && count >= 0 ? Math.min(9_999, Math.floor(count)) : 0
+}
+
+const tripCounters = (value: unknown) => {
+  const source = value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {}
+  return {
+    ramen: counterValue(source.ramen),
+    onigiri: counterValue(source.onigiri),
+    gachapon: counterValue(source.gachapon),
+    goshuin: counterValue(source.goshuin),
+    vending: counterValue(source.vending),
+    sweets: counterValue(source.sweets),
+  }
+}
+
+const fromsoftRelic = (value: unknown) => value === 'dark-souls' || value === 'elden-ring' ? value : null
+
+const fromsoftEmberUsedAt = (value: unknown) => typeof value === 'string' && value.length <= 160
+  ? value
+  : null
+
 export const sanitizeProgress = (value: unknown): StoredProgress | null => {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null
   const source = value as Record<string, unknown>
@@ -38,5 +63,8 @@ export const sanitizeProgress = (value: unknown): StoredProgress | null => {
     kitsuEncounters: strings(source.kitsuEncounters),
     openedLetters: strings(source.openedLetters),
     finaleOpened: source.finaleOpened === true,
+    fromsoftRelic: fromsoftRelic(source.fromsoftRelic),
+    fromsoftEmberUsedAt: fromsoftEmberUsedAt(source.fromsoftEmberUsedAt),
+    tripCounters: tripCounters(source.tripCounters),
   }
 }

@@ -22,4 +22,14 @@ export type StoredProgress = {
   kitsuEncounters: string[]
   openedLetters: string[]
   finaleOpened: boolean
+  fromsoftRelic: 'dark-souls' | 'elden-ring' | null
+  fromsoftEmberUsedAt: string | null
+  tripCounters: {
+    ramen: number
+    onigiri: number
+    gachapon: number
+    goshuin: number
+    vending: number
+    sweets: number
+  }
 }
