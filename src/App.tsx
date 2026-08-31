@@ -1729,20 +1729,27 @@ function App() {
             </section>
 
             <section className="kitsu-magic-section letter-section">
-              <div className="section-title"><div><span className="section-kicker">Запечатанные слова</span><h2>Пять писем по дороге</h2></div><strong>{progress.openedLetters.length}/{sealedLetters.length}</strong></div>
-              <div className="letter-stack">
-                {sealedLetters.map((letter) => {
-                  const unlocked = isLetterUnlocked(letter)
-                  const opened = progress.openedLetters.includes(letter.id)
-                  return (
-                    <article key={letter.id} className={opened ? 'sealed-letter is-open' : unlocked ? 'sealed-letter is-ready' : 'sealed-letter'}>
-                      <span className="letter-seal">{opened ? '心' : letter.seal}</span>
-                      <div><small>{opened ? 'Письмо открыто' : unlocked ? 'Печать стала тёплой' : 'Пока запечатано'}</small><h3>{opened || unlocked ? letter.title : 'Слова из будущей главы'}</h3><p>{opened ? letter.text : letter.preview}</p></div>
-                      {!opened && <button type="button" disabled={!unlocked || !canEdit} onClick={() => openLetter(letter)}>{unlocked ? canEdit ? 'Открыть' : 'Ждёт Юльчону' : <Icon name="lock" size={15} />}</button>}
-                    </article>
-                  )
-                })}
-              </div>
+              <div className="section-title"><div><span className="section-kicker">Запечатанные слова</span><h2>Пять писем по дороге</h2></div>{canEdit ? <strong>{progress.openedLetters.length}/{sealedLetters.length}</strong> : <Icon name="lock" size={18} />}</div>
+              {canEdit ? (
+                <div className="letter-stack">
+                  {sealedLetters.map((letter) => {
+                    const unlocked = isLetterUnlocked(letter)
+                    const opened = progress.openedLetters.includes(letter.id)
+                    return (
+                      <article key={letter.id} className={opened ? 'sealed-letter is-open' : unlocked ? 'sealed-letter is-ready' : 'sealed-letter'}>
+                        <span className="letter-seal">{opened ? '心' : letter.seal}</span>
+                        <div><small>{opened ? 'Письмо открыто' : unlocked ? 'Печать стала тёплой' : 'Пока запечатано'}</small><h3>{opened || unlocked ? letter.title : 'Слова из будущей главы'}</h3><p>{opened ? letter.text : letter.preview}</p></div>
+                        {!opened && <button type="button" disabled={!unlocked} onClick={() => openLetter(letter)}>{unlocked ? 'Открыть' : <Icon name="lock" size={15} />}</button>}
+                      </article>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="private-letter-lock">
+                  <span><Icon name="lock" size={23} /></span>
+                  <div><strong>Личные письма Юльчоны</strong><p>Кицу не раскрывает чужие письма. Их сможет прочитать только хозяйка этой истории.</p></div>
+                </div>
+              )}
             </section>
 
             <section className={progress.finaleOpened ? 'kitsu-finale is-open' : 'kitsu-finale'}>

@@ -332,7 +332,7 @@ export const tripDays: TripDay[] = [
     subtitle: 'Fushimi Inari, Nishiki и замок Nijo',
     cover: cover.kyoto,
     mapFile: '2026-10-05-fushimi-inari.html',
-    mapRouteScenes: [['to-fushimi'], ['to-fushimi'], ['to-fushimi', 'fushimi-main'], ['fushimi-main'], ['sanjusangendo'], ['nishiki'], ['nijo'], ['matcha-night'], ['matcha-night'], ['matcha-night']],
+    mapRouteScenes: [['to-fushimi'], ['to-fushimi'], ['to-fushimi', 'fushimi-main'], ['fushimi-main'], ['sanjusangendo'], ['nishiki'], ['nijo'], ['matcha-night'], ['matcha-night'], ['matcha-night'], ['kyoto-night-finale']],
     achievementId: 'a-thousand-gates',
     achievementTitle: 'A Thousand Gates',
     claimLabel: 'Миссия Senbon Torii завершена',
@@ -351,7 +351,8 @@ export const tripDays: TripDay[] = [
       { id: 'sanjusangendo', time: 'После спуска', title: 'Встретить тысячу и одну статую', kind: 'place', details: ['В длинном зале Sanjusangendo попробуй найти две одинаковые.'] },
       { id: 'nishiki', time: 'В обед', title: 'Собрать обед по кусочкам', kind: 'food', details: ['Один tamagoyaki, кусочек свежей рыбы, что-нибудь жареное и wagashi на счастье.'] },
       { id: 'nijo', time: 'После рынка', title: 'Проверить, поют ли полы замка', kind: 'place', details: ['Прогулка через Ninomaru Palace и сады Nijo.'] },
-      { id: 'matcha-night', time: 'Под вечер', title: 'Закончить день зелёным parfait', kind: 'food', details: ['Matcha в Nakamura Tokichi, вечерние улицы и dashi ramen.'] },
+      { id: 'matcha-night', time: 'Под вечер', title: 'Перейти от matcha к вечернему ramen', kind: 'food', details: ['Начните с зелёного parfait в Nakamura Tokichi, затем пройдите через Teramachi или Shinkyogoku.', 'Если появится настоящий голод — добавьте dashi ramen в Menya Inoichi Hanare. Если нет, спокойно переходите к выбору финала вечера.'] },
+      { id: 'kyoto-night-finale', time: 'Когда захочется', title: 'Выбрать, как закончится Kyoto', kind: 'rest', details: ['Если силы закончились — спокойно возвращайтесь в Tazuru: душ, чай и отдых уже будут правильным финалом большого дня.', 'Если хочется ещё немного Kyoto — сделайте короткий круг вдоль Kamo River или по тихим вечерним улицам, не добавляя новых обязательных точек. После этого — домой в Tazuru.'] },
     ],
   },
   {
