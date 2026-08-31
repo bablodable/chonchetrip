@@ -193,10 +193,13 @@ const normalizeProgress = (value: unknown): Progress => {
 const progressForCloud = ({ photos: _photos, ...progress }: Progress) => progress
 
 const stopAchievementRules = [
+  { dayId: 'usj', achievementId: 'beyond-the-journey', stops: ['frieren-lunch'] },
+  { dayId: 'nara', achievementId: 'kitsu-i-choose-you', stops: ['pokemon-osaka'] },
   { dayId: 'hello-tokyo', achievementId: 'weather-child', stops: ['shiba', 'tower'] },
   { dayId: 'shibuya-story', achievementId: 'shibuya-incident', stops: ['jujutsu-route'] },
   { dayId: 'shibuya-story', achievementId: 'i-remember-you', stops: ['suga-steps'] },
   { dayId: 'ginza-akihabara', achievementId: 'el-psy-kongroo', stops: ['kanda-myojin-anime', 'steins-gate-line'] },
+  { dayId: 'asakusa-nakano', achievementId: 'library-between-worlds', stops: ['murakami-library'] },
 ] as const
 
 function loadProgress(): Progress {
@@ -288,14 +291,25 @@ function useJapanHour(): number {
   const [hour, setHour] = useState(getJapanHour)
 
   useEffect(() => {
-    const syncHour = () => setHour(getJapanHour())
-    const timer = window.setInterval(syncHour, 60_000)
-    document.addEventListener('visibilitychange', syncHour)
-    window.addEventListener('pageshow', syncHour)
+    let minuteTimer: number | undefined
+    const syncHour = () => {
+      setHour(getJapanHour())
+      const nextMinute = 60_000 - (Date.now() % 60_000) + 100
+      minuteTimer = window.setTimeout(syncHour, nextMinute)
+    }
+    const syncWhenVisible = () => {
+      if (document.visibilityState !== 'visible') return
+      if (minuteTimer) window.clearTimeout(minuteTimer)
+      syncHour()
+    }
+
+    syncHour()
+    document.addEventListener('visibilitychange', syncWhenVisible)
+    window.addEventListener('pageshow', syncWhenVisible)
     return () => {
-      window.clearInterval(timer)
-      document.removeEventListener('visibilitychange', syncHour)
-      window.removeEventListener('pageshow', syncHour)
+      if (minuteTimer) window.clearTimeout(minuteTimer)
+      document.removeEventListener('visibilitychange', syncWhenVisible)
+      window.removeEventListener('pageshow', syncWhenVisible)
     }
   }, [])
 
@@ -1435,10 +1449,9 @@ function App() {
     unlock(tripCounters.gachapon > 0, 'capsule-of-fate')
     unlock((progress.sideQuests ?? []).includes('paper-fortune'), 'fortune-found')
     unlock((progress.sideQuests ?? []).length >= 5, 'wandering-legend')
-    unlock(stopDone('hello-tokyo', 'shiba') && stopDone('hello-tokyo', 'tower'), 'weather-child')
-    unlock(stopDone('shibuya-story', 'jujutsu-route'), 'shibuya-incident')
-    unlock(stopDone('shibuya-story', 'suga-steps'), 'i-remember-you')
-    unlock(stopDone('ginza-akihabara', 'kanda-myojin-anime') && stopDone('ginza-akihabara', 'steins-gate-line'), 'el-psy-kongroo')
+    for (const rule of stopAchievementRules) {
+      unlock(rule.stops.every((stopId) => stopDone(rule.dayId, stopId)), rule.achievementId)
+    }
     unlock(Boolean(progress.fromsoftRelic), 'kindled-in-japan')
     unlock(totalRecordedSteps >= 100_000, 'side-by-side')
     unlock(claimed.size >= 20, 'japan-collector')
