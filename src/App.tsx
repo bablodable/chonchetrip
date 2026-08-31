@@ -59,6 +59,12 @@ const emptyTripCounters: TripCounters = {
 }
 
 const currentSideQuestIds = new Set(sideQuests.map((quest) => quest.id))
+const currentAchievementIds = new Set(achievements.map((achievement) => achievement.id))
+const achievementGroups: Array<{ type: Achievement['type']; kicker: string; title: string; note: string }> = [
+  { type: 'story', kicker: 'Journey', title: 'Главы путешествия', note: 'По одной тёплой печати за день, который стал вашей историей.' },
+  { type: 'secret', kicker: 'Little wonders', title: 'Особенные находки', note: 'Не задания на оценку — просто моменты, которые приятно было заметить.' },
+  { type: 'meta', kicker: 'Our story', title: 'Большие воспоминания', note: 'Появляются, когда несколько маленьких моментов складываются во что-то большее.' },
+]
 
 type ConfirmationRequest = {
   title: string
@@ -161,6 +167,7 @@ const normalizeProgress = (value: unknown): Progress => {
   return {
     ...emptyProgress,
     ...parsed,
+    claimed: (parsed.claimed ?? []).filter((id) => currentAchievementIds.has(id)),
     checkedStops: parsed.checkedStops ?? {},
     unlockedStops: parsed.unlockedStops ?? {},
     unlockedDays: parsed.unlockedDays ?? [],
@@ -1208,7 +1215,7 @@ function App() {
   const isCorrect = selectedAnswer === selectedDay.riddle.answer
   const rating = progress.ratings[selectedDay.id]
   const selectedDaySteps = progress.dailySteps[selectedDay.id] ?? ''
-  const discoveredCount = progress.claimed.length
+  const discoveredCount = achievements.filter((achievement) => progress.claimed.includes(achievement.id)).length
   const completedSideQuests = progress.sideQuests ?? []
   const previewMode = PREVIEW_MODE
   const knownFoxFires = progress.foxFires.filter((id) => Boolean(kitsuMagicByDay[id]))
@@ -1411,23 +1418,19 @@ function App() {
 
   useEffect(() => {
     if (!canEdit) return
-    const claimed = new Set(progress.claimed)
+    const claimed = new Set(progress.claimed.filter((id) => currentAchievementIds.has(id)))
     const unlock = (condition: boolean, id: string) => { if (condition && !claimed.has(id)) claimed.add(id) }
     const stopDone = (dayId: string, stopId: string) => (progress.checkedStops[dayId] ?? []).includes(stopId)
+    const totalRecordedSteps = Object.values(progress.dailySteps).reduce((sum, value) => sum + value, 0)
     unlock(progress.ramen, 'ramen-initiation')
     unlock(progress.konbini.length >= 3, 'konbini-connoisseur')
     unlock(progress.stamps.length >= 5, 'stamp-hunter')
     unlock(Object.values(progress.ratings).some((value) => value === 10), 'perfect-day')
     unlock(Object.keys(progress.photos).length >= 5, 'memory-keeper')
-    unlock(['another-world', 'kyoto-after-dark', 'hello-tokyo'].every((id) => claimed.has(id)), 'night-owl')
-    unlock(['welcome-to-japan', 'the-old-capital', 'hello-tokyo'].every((id) => claimed.has(id)), 'three-cities')
-    unlock(claimed.has('hello-tokyo'), 'no-spoilers')
     unlock(progress.hints.length >= 5, 'curious-fox')
     unlock((progress.solvedRiddles ?? []).length >= 1, 'field-researcher')
-    unlock((progress.solvedRiddles ?? []).length >= 5, 'keen-eye')
     unlock(tripDays.filter((day) => day.riddle.location).every((day) => (progress.solvedRiddles ?? []).includes(day.id)), 'kitsus-equal')
     unlock(kitsuMagicDays.every((day) => progress.foxFires.includes(day.dayId)), 'foxfire-constellation')
-    unlock((progress.sideQuests ?? []).length >= 1, 'side-quest-accepted')
     unlock((progress.sideQuests ?? []).includes('manhole-hunter'), 'manhole-hunter')
     unlock(tripCounters.gachapon > 0, 'capsule-of-fate')
     unlock((progress.sideQuests ?? []).includes('paper-fortune'), 'fortune-found')
@@ -1437,17 +1440,20 @@ function App() {
     unlock(stopDone('shibuya-story', 'suga-steps'), 'i-remember-you')
     unlock(stopDone('ginza-akihabara', 'kanda-myojin-anime') && stopDone('ginza-akihabara', 'steins-gate-line'), 'el-psy-kongroo')
     unlock(Boolean(progress.fromsoftRelic), 'kindled-in-japan')
-    unlock(claimed.size >= 15, 'japan-collector')
-    unlock(achievements.filter((item) => item.id !== 'completionist').every((item) => claimed.has(item.id)), 'completionist')
+    unlock(totalRecordedSteps >= 100_000, 'side-by-side')
+    unlock(claimed.size >= 20, 'japan-collector')
     const next = [...claimed]
     const newlyUnlocked = next.filter((id) => !progress.claimed.includes(id))
-    if (newlyUnlocked.length > 0) {
+    const claimedChanged = next.length !== progress.claimed.length || next.some((id, index) => id !== progress.claimed[index])
+    if (claimedChanged) {
       const timer = window.setTimeout(() => {
         setProgress((current) => ({ ...current, claimed: next }))
-        setModal((current) => {
-          if (!current) return { id: newlyUnlocked[0], isNew: true, queue: newlyUnlocked.slice(1) }
-          return { ...current, queue: [...current.queue, ...newlyUnlocked] }
-        })
+        if (newlyUnlocked.length > 0) {
+          setModal((current) => {
+            if (!current) return { id: newlyUnlocked[0], isNew: true, queue: newlyUnlocked.slice(1) }
+            return { ...current, queue: [...current.queue, ...newlyUnlocked] }
+          })
+        }
       }, 0)
       return () => window.clearTimeout(timer)
     }
@@ -1667,14 +1673,15 @@ function App() {
       'manhole-hunter': 'manhole-hunter',
       'paper-fortune': 'fortune-found',
     }
+    const specialAchievement = specialSideQuestAchievements[id]
     const opensAchievement = (
       field === 'stamps' && values.length === 4 && !progress.claimed.includes('stamp-hunter')
     ) || (
       field === 'konbini' && values.length === 2 && !progress.claimed.includes('konbini-connoisseur')
     ) || (
       field === 'sideQuests' && (
-        !progress.claimed.includes('side-quest-accepted')
-        || (Boolean(specialSideQuestAchievements[id]) && !progress.claimed.includes(specialSideQuestAchievements[id]))
+        (values.length === 4 && !progress.claimed.includes('wandering-legend'))
+        || (typeof specialAchievement === 'string' && !progress.claimed.includes(specialAchievement))
       )
     )
 
@@ -2004,32 +2011,44 @@ function App() {
 
         {view === 'collection' && (
           <div className="screen-content collection-screen">
-            <section className="page-intro"><span className="section-kicker">Memories</span><h1>Коллекция пути</h1><p>Будущие главы скрыты. Секретные награды покажут себя только после находки.</p></section>
+            <section className="page-intro"><span className="section-kicker">Memories</span><h1>Коллекция пути</h1><p>Это не список обязательств. Здесь остаётся только то хорошее, что действительно случилось с вами по дороге.</p></section>
             <section className="collection-progress">
-              <div><span>Открыто наград</span><strong>{discoveredCount}<small> / {achievements.length}</small></strong></div>
+              <div><span>Собрано воспоминаний</span><strong>{discoveredCount}<small> / {achievements.length}</small></strong></div>
               <div className="progress-line"><span style={{ width: `${(discoveredCount / achievements.length) * 100}%` }} /></div>
             </section>
-            <section className="badge-grid">
-              {achievements.map((achievement) => {
-                const unlocked = progress.claimed.includes(achievement.id)
-                const effectiveUnlockDate = progress.fujiDate === '2026-10-11'
-                  ? achievement.id === 'fuji-found'
-                    ? '2026-10-11'
-                    : achievement.id === 'lost-in-tokyo'
-                      ? '2026-10-09'
-                      : achievement.unlockDate
-                  : achievement.unlockDate
-                const futureStory = achievement.type === 'story' && effectiveUnlockDate && effectiveUnlockDate > today
-                const conceal = !unlocked
+            <div className="achievement-groups">
+              {achievementGroups.map((group) => {
+                const groupAchievements = achievements.filter((achievement) => achievement.type === group.type)
                 return (
-                  <button key={achievement.id} type="button" className={unlocked ? 'badge-tile is-unlocked' : 'badge-tile'} disabled={!unlocked} onClick={() => setModal({ id: achievement.id, isNew: false, queue: [] })}>
-                    <span className="badge-frame"><AchievementVisual achievement={achievement} locked={!unlocked} />{!unlocked && <span className="badge-lock"><Icon name="lock" size={16} /></span>}</span>
-                    <strong>{conceal ? '???' : achievement.title}</strong>
-                    <small>{unlocked ? achievement.description : futureStory ? 'Будущая глава' : 'Пока скрыто'}</small>
-                  </button>
+                  <section key={group.type} className={`achievement-group is-${group.type}`}>
+                    <div className="achievement-group-heading">
+                      <div><span className="section-kicker">{group.kicker}</span><h2>{group.title}</h2></div>
+                      <p>{group.note}</p>
+                    </div>
+                    <div className="badge-grid">
+                      {groupAchievements.map((achievement) => {
+                        const unlocked = progress.claimed.includes(achievement.id)
+                        const effectiveUnlockDate = progress.fujiDate === '2026-10-11'
+                          ? achievement.id === 'fuji-found'
+                            ? '2026-10-11'
+                            : achievement.id === 'lost-in-tokyo'
+                              ? '2026-10-09'
+                              : achievement.unlockDate
+                          : achievement.unlockDate
+                        const futureStory = achievement.type === 'story' && effectiveUnlockDate && effectiveUnlockDate > today
+                        return (
+                          <button key={achievement.id} type="button" className={unlocked ? 'badge-tile is-unlocked' : 'badge-tile'} disabled={!unlocked} onClick={() => setModal({ id: achievement.id, isNew: false, queue: [] })}>
+                            <span className="badge-frame"><AchievementVisual achievement={achievement} locked={!unlocked} />{!unlocked && <span className="badge-lock"><Icon name="lock" size={16} /></span>}</span>
+                            <strong>{unlocked ? achievement.title : '???'}</strong>
+                            <small>{unlocked ? achievement.description : futureStory ? 'Будущая глава' : 'Пока скрыто'}</small>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </section>
                 )
               })}
-            </section>
+            </div>
           </div>
         )}
 

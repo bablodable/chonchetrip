@@ -2139,6 +2139,42 @@ button {
   background: linear-gradient(90deg, #c64837, #e9b866);
 }
 
+.achievement-groups {
+  display: grid;
+  gap: 28px;
+}
+
+.achievement-group {
+  min-width: 0;
+}
+
+.achievement-group + .achievement-group {
+  padding-top: 24px;
+  border-top: 1px solid rgba(132, 88, 57, 0.13);
+}
+
+.achievement-group-heading {
+  display: grid;
+  gap: 5px;
+  margin: 0 2px 16px;
+}
+
+.achievement-group-heading h2 {
+  margin: 1px 0 0;
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 23px;
+  letter-spacing: -0.035em;
+}
+
+.achievement-group-heading p {
+  max-width: 390px;
+  margin: 0;
+  color: var(--muted-dark);
+  font-size: 12px;
+  line-height: 1.48;
+}
+
 .badge-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2197,10 +2233,10 @@ button {
   margin-top: 4px;
   overflow: hidden;
   color: var(--muted);
-  font-size: 8px;
-  line-height: 1.3;
+  font-size: 9px;
+  line-height: 1.35;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
 }
 
 .badge-tile:disabled {
@@ -4180,11 +4216,11 @@ button.night-story > svg { color: var(--muted); transform: rotate(-90deg); trans
 .achievement-modal-card > p:not(.modal-kicker) {
   position: relative;
   z-index: 2;
-  max-width: 270px;
+  max-width: 300px;
   margin: 10px 0 20px;
   color: rgba(255, 245, 224, 0.66);
-  font-size: 12px;
-  line-height: 1.45;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .achievement-modal .primary-button {
