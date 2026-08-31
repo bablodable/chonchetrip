@@ -370,7 +370,7 @@ function AchievementModal({ achievement, isNew, onClose }: { achievement: Achiev
 
   return (
     <div className="achievement-modal" role="dialog" aria-modal="true" aria-label={achievement.title} onClick={onClose}>
-      <div className="achievement-modal-card" onClick={(event) => event.stopPropagation()}>
+      <div className={isNew ? 'achievement-modal-card is-new' : 'achievement-modal-card'} onClick={(event) => event.stopPropagation()}>
         <div className="modal-rays" aria-hidden="true" />
         <p className="modal-kicker">{isNew ? 'Achievement unlocked' : 'Найденная реликвия'}</p>
         <div className="modal-badge"><AchievementVisual achievement={achievement} /></div>
@@ -380,6 +380,39 @@ function AchievementModal({ achievement, isNew, onClose }: { achievement: Achiev
       </div>
     </div>
   )
+}
+
+function FinaleCount({ value, delay = 0 }: { value: number; delay?: number }) {
+  const [displayed, setDisplayed] = useState(0)
+
+  useEffect(() => {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    let frame: number | undefined
+    const timer = window.setTimeout(() => {
+      if (reduceMotion || value === 0) {
+        setDisplayed(value)
+        return
+      }
+
+      setDisplayed(0)
+      let startedAt: number | undefined
+      const tick = (now: number) => {
+        startedAt ??= now
+        const progress = Math.min(1, (now - startedAt) / 820)
+        const eased = 1 - Math.pow(1 - progress, 3)
+        setDisplayed(Math.round(value * eased))
+        if (progress < 1) frame = window.requestAnimationFrame(tick)
+      }
+      frame = window.requestAnimationFrame(tick)
+    }, reduceMotion || value === 0 ? 0 : delay)
+
+    return () => {
+      window.clearTimeout(timer)
+      if (frame !== undefined) window.cancelAnimationFrame(frame)
+    }
+  }, [delay, value])
+
+  return <strong className="finale-count" aria-label={String(value)}>{displayed}</strong>
 }
 
 function MagicDiscoveryModal({ magic, onClose }: { magic: KitsuMagicDay; onClose: () => void }) {
@@ -2105,15 +2138,15 @@ function App() {
                   <h2>С возвращением из вашей Японии</h2>
                   <p>Кицу собрал не идеальный отчёт, а живую историю — ровно такую, какой она случилась.</p>
                   <div className="finale-stats">
-                    <span><strong>{knownFoxFires.length}</strong><small>лисьих огней</small></span>
-                    <span><strong>{Object.keys(progress.photos).length}</strong><small>кадров памяти</small></span>
-                    <span><strong>{progress.stamps.length}</strong><small>печатей</small></span>
-                    <span><strong>{knownKitsuEncounters.length}</strong><small>встреч с Кицу</small></span>
+                    <span><FinaleCount value={knownFoxFires.length} delay={80} /><small>лисьих огней</small></span>
+                    <span><FinaleCount value={Object.keys(progress.photos).length} delay={170} /><small>кадров памяти</small></span>
+                    <span><FinaleCount value={progress.stamps.length} delay={260} /><small>печатей</small></span>
+                    <span><FinaleCount value={knownKitsuEncounters.length} delay={350} /><small>встреч с Кицу</small></span>
                   </div>
                   {tripCounterTotal > 0 && (
                     <div className="finale-trip-counters">
                       <small>Что набралось за поездку</small>
-                      <div>{tripCounterDefinitions.filter((definition) => tripCounters[definition.id] > 0).map((definition) => <span key={definition.id}><i>{definition.icon}</i><strong>{tripCounters[definition.id]}</strong><em>{definition.finaleLabel}</em></span>)}</div>
+                      <div>{tripCounterDefinitions.filter((definition) => tripCounters[definition.id] > 0).map((definition, index) => <span key={definition.id}><i>{definition.icon}</i><FinaleCount value={tripCounters[definition.id]} delay={440 + index * 70} /><em>{definition.finaleLabel}</em></span>)}</div>
                     </div>
                   )}
                   {bestRatingEntry && <p className="finale-favorite">Самая высокая оценка — <strong>{bestRatedDay?.dateLabel ?? 'один особенный день'} · {bestRatingEntry[1]}/10</strong></p>}

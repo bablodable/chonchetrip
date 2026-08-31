@@ -3412,6 +3412,11 @@ button.night-story > svg { color: var(--muted); transform: rotate(-90deg); trans
 .finale-stats span { display: grid; gap: 2px; padding: 9px 4px; border: 1px solid rgba(255, 231, 192, 0.11); border-radius: 12px; background: rgba(255, 255, 255, 0.04); }
 .finale-stats strong { color: #f2c67e; font-family: var(--display); font-size: 20px; }
 .finale-stats small { color: rgba(255, 246, 229, 0.58); font-size: 6px; line-height: 1.2; }
+.finale-count { font-variant-numeric: tabular-nums; }
+.kitsu-finale.is-open .finale-stats span { animation: finale-stat-rise 560ms cubic-bezier(.2, .8, .2, 1) both; }
+.kitsu-finale.is-open .finale-stats span:nth-child(2) { animation-delay: 80ms; }
+.kitsu-finale.is-open .finale-stats span:nth-child(3) { animation-delay: 160ms; }
+.kitsu-finale.is-open .finale-stats span:nth-child(4) { animation-delay: 240ms; }
 
 .finale-trip-counters {
   display: grid;
@@ -3449,6 +3454,12 @@ button.night-story > svg { color: var(--muted); transform: rotate(-90deg); trans
 .finale-trip-counters i { font-size: 14px; font-style: normal; }
 .finale-trip-counters strong { color: #f3c77e; font-family: var(--display); font-size: 14px; }
 .finale-trip-counters em { color: rgba(255, 246, 229, 0.63); font-size: 7px; font-style: normal; }
+.kitsu-finale.is-open .finale-trip-counters span { animation: finale-counter-reveal 440ms cubic-bezier(.2, .8, .2, 1) both; }
+.kitsu-finale.is-open .finale-trip-counters span:nth-child(2) { animation-delay: 70ms; }
+.kitsu-finale.is-open .finale-trip-counters span:nth-child(3) { animation-delay: 140ms; }
+.kitsu-finale.is-open .finale-trip-counters span:nth-child(4) { animation-delay: 210ms; }
+.kitsu-finale.is-open .finale-trip-counters span:nth-child(5) { animation-delay: 280ms; }
+.kitsu-finale.is-open .finale-trip-counters span:nth-child(6) { animation-delay: 350ms; }
 .kitsu-finale .finale-favorite { padding: 8px 11px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); }
 .kitsu-finale .finale-favorite strong { color: #efc17d; }
 .kitsu-finale blockquote { margin: 8px 0 0; color: #fff1d7; font-family: var(--display); font-size: 12px; font-style: italic; line-height: 1.5; }
@@ -3720,6 +3731,27 @@ button.night-story > svg { color: var(--muted); transform: rotate(-90deg); trans
   animation: badge-pop 650ms cubic-bezier(.2, .9, .2, 1.15);
 }
 
+.achievement-modal-card.is-new .modal-badge::after {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: 70px;
+  height: 70px;
+  place-items: center;
+  border: 3px solid rgba(235, 176, 84, 0.78);
+  border-radius: 50%;
+  color: rgba(255, 229, 178, 0.95);
+  content: '旅';
+  font-family: 'Yu Mincho', var(--display);
+  font-size: 35px;
+  line-height: 1;
+  text-shadow: 0 0 15px rgba(242, 187, 100, 0.58);
+  transform: translate(-50%, -50%);
+  animation: achievement-stamp 780ms cubic-bezier(.2, .84, .24, 1) both;
+}
+
 .achievement-modal h2 {
   position: relative;
   z-index: 2;
@@ -3887,6 +3919,13 @@ button.night-story > svg { color: var(--muted); transform: rotate(-90deg); trans
   70% { transform: scale(1.04) rotate(2deg); }
 }
 
+@keyframes achievement-stamp {
+  0% { opacity: 0; transform: translate(-50%, -105%) scale(1.6) rotate(-11deg); filter: blur(2px); }
+  50% { opacity: 0.94; transform: translate(-50%, -50%) scale(0.94) rotate(2deg); filter: blur(0); }
+  68% { opacity: 0.78; transform: translate(-50%, -50%) scale(1.08) rotate(-1deg); }
+  100% { opacity: 0; transform: translate(-50%, -45%) scale(1.22) rotate(0); }
+}
+
 @keyframes rays-spin {
   to { transform: translateX(-50%) rotate(360deg); }
 }
@@ -3915,6 +3954,14 @@ button.night-story > svg { color: var(--muted); transform: rotate(-90deg); trans
 @keyframes magic-twinkle {
   0%, 100% { opacity: 0.24; transform: scale(0.7); }
   50% { opacity: 1; transform: scale(1.25); }
+}
+
+@keyframes finale-stat-rise {
+  from { opacity: 0; transform: translateY(10px) scale(0.94); }
+}
+
+@keyframes finale-counter-reveal {
+  from { opacity: 0; transform: translateX(-7px); }
 }
 
 @keyframes kitsu-reaction-in {
