@@ -2675,9 +2675,9 @@ button {
 
 .kitsu-hero {
   position: relative;
-  min-height: 258px;
+  min-height: 190px;
   overflow: hidden;
-  padding: 27px 43% 24px 22px;
+  padding: 21px 41% 18px 19px;
   border: 1px solid rgba(255, 238, 207, 0.2);
   border-radius: 25px;
   color: #fff4dd;
@@ -2707,10 +2707,10 @@ button {
 
 .kitsu-hero::after {
   position: absolute;
-  right: -24px;
-  bottom: -55px;
-  width: 220px;
-  height: 220px;
+  right: -20px;
+  bottom: -48px;
+  width: 174px;
+  height: 174px;
   border: 1px solid rgba(239, 188, 107, 0.18);
   border-radius: 50%;
   content: '';
@@ -2726,9 +2726,9 @@ button {
 }
 
 .kitsu-hero h1 {
-  margin: 7px 0 11px;
+  margin: 5px 0 8px;
   font-family: var(--display);
-  font-size: 48px;
+  font-size: 41px;
   line-height: 0.95;
   letter-spacing: -0.055em;
 }
@@ -2736,19 +2736,19 @@ button {
 .kitsu-hero p {
   margin: 0;
   color: rgba(255, 247, 229, 0.72);
-  font-size: 12px;
-  line-height: 1.55;
+  font-size: 10px;
+  line-height: 1.45;
 }
 
 .kitsu-level {
   display: grid;
-  gap: 5px;
-  margin-top: 17px;
+  gap: 4px;
+  margin-top: 11px;
 }
 
 .kitsu-level > span {
   display: block;
-  width: 118px;
+  width: 106px;
   height: 5px;
   overflow: hidden;
   border-radius: 99px;
@@ -2774,19 +2774,19 @@ button {
 .tail-lights {
   position: absolute;
   z-index: 0;
-  right: 13px;
-  bottom: 12px;
+  right: 8px;
+  bottom: 7px;
   display: grid;
-  width: 150px;
-  height: 174px;
+  width: 120px;
+  height: 136px;
   place-items: center;
   pointer-events: none;
 }
 
 .tail-lights i {
   position: absolute;
-  width: 48px;
-  height: 96px;
+  width: 38px;
+  height: 76px;
   transform-origin: 50% 100%;
   border: 1px solid rgba(241, 189, 103, 0.1);
   border-radius: 80% 30% 70% 28%;
@@ -2812,9 +2812,9 @@ button {
 .kitsu-hero img {
   position: absolute;
   z-index: 1;
-  right: -8px;
-  bottom: -11px;
-  width: 200px;
+  right: -6px;
+  bottom: -8px;
+  width: 158px;
   filter: drop-shadow(0 12px 17px rgba(0, 0, 0, 0.24));
   animation: kitsu-breathe 4.5s ease-in-out infinite;
 }
