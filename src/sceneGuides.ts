@@ -1,5 +1,5 @@
 export type SceneGuide = {
-  label: 'Зачем' | 'Можно ещё' | 'Если мало сил' | 'Если облачно' | 'На выбор' | 'Полезно'
+  label: 'Зачем' | 'Можно ещё' | 'Если мало сил' | 'Если облачно' | 'На выбор' | 'Полезно' | 'Рядом по пути'
   text: string
 }
 
@@ -48,6 +48,7 @@ export const sceneGuides: Record<string, SceneGuide[]> = {
   ],
   parco: [
     { label: 'Если мало сил', text: 'Оставь один главный магазин и ramen; остальное сегодня уже считается бонусом.' },
+    { label: 'Рядом по пути', text: 'Если успеете до 20:00: Onitsuka Tiger находится на 2F этого же Shinsaibashi PARCO, а ASICS OSAKA SHINSAIBASHI — буквально в соседнем здании. Заглянуть можно на 5–10 минут, это не отдельная цель.' },
   ],
 
   'to-usj': [
@@ -83,6 +84,7 @@ export const sceneGuides: Record<string, SceneGuide[]> = {
   ],
   'pokemon-osaka': [
     { label: 'Зачем', text: 'Pokémon Café — самостоятельная тематическая сцена: после неё начинается уже совсем другой вечер.' },
+    { label: 'Рядом по пути', text: 'ASICS OSAKA SHINSAIBASHI находится рядом с Daimaru. Если не посмотрели раньше и осталось 5–10 минут, можно заглянуть без крюка.' },
   ],
   'shinsekai-night': [
     { label: 'Если мало сил', text: 'Можно сделать один круг у Tsutenkaku или сразу ехать домой — у этой сцены нет обязательного финала.' },
@@ -105,6 +107,7 @@ export const sceneGuides: Record<string, SceneGuide[]> = {
   ],
   'gion-evening': [
     { label: 'Если мало сил', text: 'Выбери Hanamikoji для фонарей или Shirakawa для тишины — проходить обе улицы необязательно.' },
+    { label: 'Рядом по пути', text: 'По дороге к Yasaka Shrine будет BEAMS JAPAN Gion — небольшой магазин японских ремёсел и необычных сувениров. Достаточно просто посмотреть витрину, если хочется.' },
   ],
   kaiseki: [
     { label: 'Можно ещё', text: 'После ужина достаточно короткой прогулки вдоль Kamo River — день уже полностью собран.' },
@@ -122,8 +125,8 @@ export const sceneGuides: Record<string, SceneGuide[]> = {
   nishiki: [
     { label: 'Зачем', text: 'Это не один большой обед, а несколько маленьких проб — оставь место для следующей находки.' },
   ],
-  'matcha-night': [
-    { label: 'На выбор', text: 'Matcha — главная остановка сцены. Вечерний квартал и ramen добавляйте только по настроению и голоду.' },
+  'gion-matcha': [
+    { label: 'На выбор', text: 'Saryo Tsujiri — главная остановка сцены. Teramachi и Shinkyogoku можно пройти коротко или пропустить, если хочется сразу к ужину.' },
   ],
   'kyoto-night-finale': [
     { label: 'На выбор', text: 'Отель и короткая прогулка — два одинаково правильных финала. Отметь сцену, когда решите, что этот день действительно закончен.' },
@@ -172,12 +175,14 @@ export const sceneGuides: Record<string, SceneGuide[]> = {
   ],
   harajuku: [
     { label: 'На выбор', text: 'Takeshita — ярко и шумно, Omotesando — архитектура, Cat Street — спокойнее и свободнее.' },
+    { label: 'Рядом по пути', text: 'После 11:00 прямо на этой прогулке встретятся ASICS у входа на Takeshita, Onitsuka Tiger на Omotesando и graniph на Cat Street. Можно выбрать один по настроению и не ждать открытия, если пришли раньше.' },
   ],
   'suga-steps': [
     { label: 'Полезно', text: 'Это жилой район: один быстрый кадр без штатива и перекрытия лестницы будет самым правильным.' },
   ],
   shibuya: [
     { label: 'Если мало сил', text: 'Оставь три опоры: Hachiko, crossing и один нужный этаж PARCO.' },
+    { label: 'Рядом по пути', text: 'Нужный этаж PARCO — 6F: там рядом Nintendo TOKYO, Pokémon Center, CAPCOM STORE и Godzilla Store. Это одна остановка внутри здания, а не четыре новые точки.' },
   ],
   'shibuya-sky': [
     { label: 'Полезно', text: 'Не задерживайся в магазинах перед входом: у этой сцены есть конкретное время.' },
@@ -210,6 +215,9 @@ export const sceneGuides: Record<string, SceneGuide[]> = {
   ],
   jins: [
     { label: 'Полезно', text: 'Сразу запиши обещанное время готовности очков — от него зависит, возвращаться ли сюда после UNIQLO.' },
+  ],
+  'apple-ginza': [
+    { label: 'Рядом по пути', text: 'После 11:00 между Apple, JINS и UNIQLO удобно мельком посмотреть Onitsuka Tiger Ginza Yellow и MUJI Ginza. Оба ложатся в эту же прогулку — только если действительно хочется.' },
   ],
   'uniqlo-sushi': [
     { label: 'Если мало сил', text: 'Заранее выбери нужные этажи: все двенадцать проходить необязательно.' },
@@ -257,6 +265,7 @@ export const sceneGuides: Record<string, SceneGuide[]> = {
   ],
   marunouchi: [
     { label: 'Если мало сил', text: 'Красный фасад станции и один вид на Nijubashi уже складываются в цельную прогулку.' },
+    { label: 'Рядом по пути', text: 'Если поднимаетесь в KITTE Garden на 6F, Snow Peak LAND STATION TOKYO находится в том же здании на 4F. Можно выйти из лифта на один этаж ради вещей и токийских лимиток — без отдельного маршрута.' },
   ],
   rokurinsha: [
     { label: 'Зачем', text: 'Tsukemen — отдельный ритуал: макай несколько кусочков лапши в бульон, а не выливай его сразу сверху.' },

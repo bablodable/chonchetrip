@@ -58,6 +58,8 @@ const emptyTripCounters: TripCounters = {
   sweets: 0,
 }
 
+const currentSideQuestIds = new Set(sideQuests.map((quest) => quest.id))
+
 type ConfirmationRequest = {
   title: string
   description: string
@@ -78,6 +80,7 @@ type Progress = {
   konbini: string[]
   ramen: boolean
   ratings: Record<string, number>
+  dailySteps: Record<string, number>
   photos: Record<string, string>
   fujiDate: '2026-10-09' | '2026-10-11'
   foxFires: string[]
@@ -129,6 +132,7 @@ const emptyProgress: Progress = {
   konbini: [],
   ramen: false,
   ratings: {},
+  dailySteps: {},
   photos: {},
   fujiDate: '2026-10-09',
   foxFires: [],
@@ -145,6 +149,15 @@ const normalizeProgress = (value: unknown): Progress => {
     ? value as Partial<Progress>
     : {}
   const storedCounters = parsed.tripCounters ?? emptyTripCounters
+  const storedSteps = parsed.dailySteps ?? {}
+  const dailySteps = Object.fromEntries(
+    Object.entries(storedSteps).flatMap(([dayId, rawSteps]) => {
+      const steps = typeof rawSteps === 'number' ? rawSteps : Number(rawSteps)
+      return Number.isFinite(steps) && steps > 0
+        ? [[dayId, Math.min(100_000, Math.round(steps))]]
+        : []
+    }),
+  ) as Record<string, number>
   return {
     ...emptyProgress,
     ...parsed,
@@ -152,8 +165,9 @@ const normalizeProgress = (value: unknown): Progress => {
     unlockedStops: parsed.unlockedStops ?? {},
     unlockedDays: parsed.unlockedDays ?? [],
     solvedRiddles: parsed.solvedRiddles ?? [],
-    sideQuests: parsed.sideQuests ?? [],
+    sideQuests: (parsed.sideQuests ?? []).filter((id) => currentSideQuestIds.has(id)),
     ratings: parsed.ratings ?? {},
+    dailySteps,
     photos: parsed.photos ?? {},
     foxFires: parsed.foxFires ?? [],
     kitsuEncounters: parsed.kitsuEncounters ?? [],
@@ -360,8 +374,20 @@ function AchievementVisual({ achievement, locked = false }: { achievement: Achie
   return <img className={locked ? 'badge-image is-locked' : 'badge-image'} src={achievement.image} alt="" loading="lazy" decoding="async" />
 }
 
+function useBodyScrollLock(active = true) {
+  useEffect(() => {
+    if (!active) return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [active])
+}
+
 function AchievementModal({ achievement, isNew, onClose }: { achievement: Achievement; isNew: boolean; onClose: () => void }) {
   const closeRef = useRef<HTMLButtonElement>(null)
+  useBodyScrollLock()
   useEffect(() => {
     closeRef.current?.focus()
     const closeOnEscape = (event: KeyboardEvent) => {
@@ -420,6 +446,7 @@ function FinaleCount({ value, delay = 0 }: { value: number; delay?: number }) {
 
 function MagicDiscoveryModal({ magic, onClose }: { magic: KitsuMagicDay; onClose: () => void }) {
   const closeRef = useRef<HTMLButtonElement>(null)
+  useBodyScrollLock()
   useEffect(() => {
     closeRef.current?.focus()
     const closeOnEscape = (event: KeyboardEvent) => {
@@ -445,17 +472,15 @@ function MagicDiscoveryModal({ magic, onClose }: { magic: KitsuMagicDay; onClose
 
 function LetterModal({ letter, onClose }: { letter: SealedLetter; onClose: () => void }) {
   const closeRef = useRef<HTMLButtonElement>(null)
+  useBodyScrollLock()
 
   useEffect(() => {
     closeRef.current?.focus()
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose()
     }
     document.addEventListener('keydown', closeOnEscape)
     return () => {
-      document.body.style.overflow = previousOverflow
       document.removeEventListener('keydown', closeOnEscape)
     }
   }, [onClose])
@@ -520,6 +545,7 @@ function TripCounterCard({ definition, editable, onAdd }: { definition: (typeof 
 
 function ConfirmationDialog({ request, onCancel }: { request: ConfirmationRequest; onCancel: () => void }) {
   const cancelRef = useRef<HTMLButtonElement>(null)
+  useBodyScrollLock()
 
   useEffect(() => {
     cancelRef.current?.focus()
@@ -905,18 +931,19 @@ function FoodChoiceBlock({ plan }: { plan: FoodPlan }) {
       <span className="food-choice-status">⭐ Наш выбор</span>
       <strong className="food-choice-name">{plan.primary.name}</strong>
       <p className="food-choice-note">{plan.primary.note}</p>
-      <FoodAlternatives alternatives={plan.alternatives} fallback={plan.fallback} />
+      <FoodAlternatives alternatives={plan.alternatives} fallback={plan.alternatives?.length ? undefined : plan.fallback} />
     </section>
   )
 }
 
 function FoodAlternatives({ alternatives, fallback, label = 'Другие хорошие варианты' }: { alternatives?: FoodOption[]; fallback?: string; label?: string }) {
   if (!alternatives?.length && !fallback) return null
+  const summaryLabel = alternatives?.length ? label : 'Можно выбрать другое'
 
   return (
     <details className="food-alternatives">
       <summary>
-        <span>{label}</span>
+        <span>{summaryLabel}</span>
         <Icon name="chevron" size={15} />
       </summary>
       <div className="food-alternatives-list">
@@ -934,6 +961,7 @@ function FoodAlternatives({ alternatives, fallback, label = 'Другие хор
 
 function AnimeFrameCard({ frame }: { frame: AnimeFrameGuide }) {
   const [enlarged, setEnlarged] = useState(false)
+  useBodyScrollLock(enlarged)
 
   useEffect(() => {
     if (!enlarged) return
@@ -995,7 +1023,7 @@ function DayMapCard({ day, completedStops }: { day: TripDay; completedStops: str
     <section className={open ? 'day-map-card is-open' : 'day-map-card'}>
       <button type="button" className="day-map-toggle" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
         <span className="day-map-icon"><Icon name="route" size={21} /></span>
-        <span><small>Маршрут дня</small><strong>Интерактивная карта</strong><em>{open ? 'Свернуть карту' : 'Маркеры, линии и Google Maps'}</em></span>
+        <span><small>Маршрут дня</small><strong>Интерактивная карта</strong></span>
         <Icon name="chevron" size={19} />
       </button>
       {open && (
@@ -1179,6 +1207,7 @@ function App() {
     ?? (selectedRiddleSolved ? selectedDay.riddle.answer : undefined)
   const isCorrect = selectedAnswer === selectedDay.riddle.answer
   const rating = progress.ratings[selectedDay.id]
+  const selectedDaySteps = progress.dailySteps[selectedDay.id] ?? ''
   const discoveredCount = progress.claimed.length
   const completedSideQuests = progress.sideQuests ?? []
   const previewMode = PREVIEW_MODE
@@ -1207,7 +1236,13 @@ function App() {
   const fromsoftQuestAvailable = PREVIEW_MODE || today >= '2026-10-10' || progress.unlockedDays.includes('2026-10-10')
   const bestRatingEntry = Object.entries(progress.ratings).sort(([, a], [, b]) => b - a)[0]
   const bestRatedDay = bestRatingEntry ? tripDays.find((slot) => dayContentForDate(slot.date, progress.fujiDate).id === bestRatingEntry[0]) : undefined
+  const tripRatingValues = Object.values(progress.ratings).filter((value) => Number.isFinite(value) && value >= 1 && value <= 10)
+  const averageTripRating = tripRatingValues.length > 0
+    ? tripRatingValues.reduce((sum, value) => sum + value, 0) / tripRatingValues.length
+    : null
+  const averageTripRatingLabel = averageTripRating?.toLocaleString('ru-RU', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
   const tripCounterTotal = Object.values(tripCounters).reduce((sum, value) => sum + value, 0)
+  const totalSteps = Object.values(progress.dailySteps).reduce((sum, value) => sum + value, 0)
 
   useEffect(() => {
     progressRef.current = progress
@@ -1394,9 +1429,9 @@ function App() {
     unlock(kitsuMagicDays.every((day) => progress.foxFires.includes(day.dayId)), 'foxfire-constellation')
     unlock((progress.sideQuests ?? []).length >= 1, 'side-quest-accepted')
     unlock((progress.sideQuests ?? []).includes('manhole-hunter'), 'manhole-hunter')
-    unlock((progress.sideQuests ?? []).includes('gachapon-oracle'), 'capsule-of-fate')
+    unlock(tripCounters.gachapon > 0, 'capsule-of-fate')
     unlock((progress.sideQuests ?? []).includes('paper-fortune'), 'fortune-found')
-    unlock(sideQuests.every((quest) => (progress.sideQuests ?? []).includes(quest.id)), 'wandering-legend')
+    unlock((progress.sideQuests ?? []).length >= 5, 'wandering-legend')
     unlock(stopDone('hello-tokyo', 'shiba') && stopDone('hello-tokyo', 'tower'), 'weather-child')
     unlock(stopDone('shibuya-story', 'jujutsu-route'), 'shibuya-incident')
     unlock(stopDone('shibuya-story', 'suga-steps'), 'i-remember-you')
@@ -1416,7 +1451,7 @@ function App() {
       }, 0)
       return () => window.clearTimeout(timer)
     }
-  }, [progress, canEdit])
+  }, [progress, canEdit, tripCounters.gachapon])
 
   const showKitsuReaction = (message: string) => setKitsuReaction((current) => ({ id: (current?.id ?? 0) + 1, message }))
 
@@ -1630,11 +1665,8 @@ function App() {
 
     const specialSideQuestAchievements: Record<string, string> = {
       'manhole-hunter': 'manhole-hunter',
-      'gachapon-oracle': 'capsule-of-fate',
       'paper-fortune': 'fortune-found',
     }
-    const completesAllSideQuests = field === 'sideQuests'
-      && sideQuests.every((quest) => quest.id === id || values.includes(quest.id))
     const opensAchievement = (
       field === 'stamps' && values.length === 4 && !progress.claimed.includes('stamp-hunter')
     ) || (
@@ -1643,7 +1675,6 @@ function App() {
       field === 'sideQuests' && (
         !progress.claimed.includes('side-quest-accepted')
         || (Boolean(specialSideQuestAchievements[id]) && !progress.claimed.includes(specialSideQuestAchievements[id]))
-        || (completesAllSideQuests && !progress.claimed.includes('wandering-legend'))
       )
     )
 
@@ -1684,12 +1715,10 @@ function App() {
     setProgress((current) => {
       const currentCounters = current.tripCounters ?? emptyTripCounters
       const nextValue = (currentCounters[id] ?? 0) + 1
-      const unlocksGachaponQuest = id === 'gachapon' && nextValue > 0 && !current.sideQuests.includes('gachapon-oracle')
       return {
         ...current,
         ramen: current.ramen || (id === 'ramen' && nextValue > 0),
         tripCounters: { ...currentCounters, [id]: nextValue },
-        sideQuests: unlocksGachaponQuest ? [...current.sideQuests, 'gachapon-oracle'] : current.sideQuests,
       }
     })
   }
@@ -1709,6 +1738,18 @@ function App() {
       return
     }
     save()
+  }
+
+  const updateDailySteps = (rawValue: string) => {
+    if (!canEdit) return
+    const digits = rawValue.replace(/\D/g, '').slice(0, 6)
+    const steps = Number(digits)
+    setProgress((current) => {
+      const nextSteps = { ...current.dailySteps }
+      if (!digits || steps <= 0) delete nextSteps[selectedDay.id]
+      else nextSteps[selectedDay.id] = Math.min(100_000, steps)
+      return { ...current, dailySteps: nextSteps }
+    })
   }
 
   const selectPhoto = (file: File | undefined, dayId: string) => {
@@ -1924,9 +1965,9 @@ function App() {
                       {canEdit && <label className="photo-change">Заменить<input type="file" accept="image/*" onChange={(event) => { const file = event.currentTarget.files?.[0]; event.currentTarget.value = ''; selectPhoto(file, selectedDay.id) }} /></label>}
                     </div>
                   ) : canEdit ? (
-                    <label className="photo-drop"><Icon name="camera" size={22} /><span>Добавить Photo of the Day</span><small>Фото уменьшится и появится в общем дневнике</small><input type="file" accept="image/*" onChange={(event) => { const file = event.currentTarget.files?.[0]; event.currentTarget.value = ''; selectPhoto(file, selectedDay.id) }} /></label>
+                    <label className="photo-drop"><Icon name="camera" size={22} /><span>Добавить Photo of the Day</span><input type="file" accept="image/*" onChange={(event) => { const file = event.currentTarget.files?.[0]; event.currentTarget.value = ''; selectPhoto(file, selectedDay.id) }} /></label>
                   ) : (
-                    <div className="photo-drop is-readonly"><Icon name="camera" size={22} /><span>Фото дня ещё впереди</span><small>Здесь появится кадр Юльчоны</small></div>
+                    <div className="photo-drop is-readonly"><Icon name="camera" size={22} /><span>Фото дня ещё впереди</span></div>
                   )}
                   {photoError && <p className="error-message">{photoError}</p>}
                   <div className="rating-row"><span>Как прошёл день?</span><strong>{rating ? `${rating}/10` : '—'}</strong></div>
@@ -1936,6 +1977,23 @@ function App() {
                     ))}
                   </div>
                   <div className="rating-scale"><span>тихо</span><span>легендарно</span></div>
+                  <div className="daily-steps">
+                    <span>👣 Лисьи следы</span>
+                    <label className="daily-steps-input">
+                      <span className="sr-only">Шаги за день</span>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        autoComplete="off"
+                        placeholder="0"
+                        value={selectedDaySteps}
+                        disabled={!canEdit}
+                        onChange={(event) => updateDailySteps(event.target.value)}
+                      />
+                      <em>шагов</em>
+                    </label>
+                  </div>
                 </section>
               </div>
             ) : (
@@ -2066,7 +2124,7 @@ function App() {
               <div className="section-title"><div><span className="section-kicker">Photo of the Day</span><h2>Плёнка памяти</h2></div><strong>{Object.keys(progress.photos).length}</strong></div>
               {Object.keys(progress.photos).length > 0 ? (
                 <div className="photo-strip">{tripDays.map((slot) => dayContentForDate(slot.date, progress.fujiDate)).filter((day) => progress.photos[day.id]).map((day) => <button key={`${day.date}-${day.id}`} type="button" onClick={() => { setSelectedDate(day.date); setView('journey'); window.scrollTo({ top: 0 }) }}><img src={progress.photos[day.id]} alt={day.dateLabel} /><span>{day.dateLabel}</span></button>)}</div>
-              ) : <div className="empty-journal"><Icon name="camera" size={25} /><p>Первое фото появится здесь после дневного recap.</p></div>}
+              ) : <div className="empty-journal"><Icon name="camera" size={25} /></div>}
             </section>
           </div>
         )}
@@ -2135,7 +2193,7 @@ function App() {
                       return (
                         <button key={letter.id} type="button" disabled={!unlocked} className={opened ? 'sealed-letter is-open' : unlocked ? 'sealed-letter is-ready' : 'sealed-letter'} onClick={() => openLetter(letter)}>
                           <span className="letter-seal">{opened ? '心' : letter.seal}</span>
-                          <span className="sealed-letter-copy"><small>{opened ? 'Письмо открыто' : unlocked ? 'Печать стала тёплой' : 'Пока запечатано'}</small><strong>{opened || unlocked ? letter.title : 'Слова из будущей главы'}</strong><p>{opened ? 'Нажми, чтобы перечитать письмо.' : unlocked ? 'Нажми, чтобы снять печать и развернуть бумагу.' : letter.preview}</p></span>
+                          <span className="sealed-letter-copy"><small>{opened ? 'Письмо открыто' : unlocked ? 'Печать стала тёплой' : 'Пока запечатано'}</small><strong>{opened || unlocked ? letter.title : 'Слова из будущей главы'}</strong>{!opened && !unlocked && <p>{letter.preview}</p>}</span>
                           <span className="letter-card-action"><Icon name={opened ? 'eye' : unlocked ? 'chevron' : 'lock'} size={16} /></span>
                         </button>
                       )
@@ -2231,6 +2289,18 @@ function App() {
                     <span><FinaleCount value={progress.stamps.length} delay={260} /><small>печатей</small></span>
                     <span><FinaleCount value={knownKitsuEncounters.length} delay={350} /><small>встреч с Кицу</small></span>
                   </div>
+                  {averageTripRatingLabel && (
+                    <div className="finale-overall-rating">
+                      <span aria-hidden="true">⭐</span>
+                      <div><strong>{averageTripRatingLabel}/10</strong><small>средняя оценка поездки · дней с оценкой: {tripRatingValues.length}</small></div>
+                    </div>
+                  )}
+                  {totalSteps > 0 && (
+                    <div className="finale-steps">
+                      <span>👣</span>
+                      <div><FinaleCount value={totalSteps} delay={430} /><small>шагов всего</small></div>
+                    </div>
+                  )}
                   {tripCounterTotal > 0 && (
                     <div className="finale-trip-counters">
                       <small>Что набралось за поездку</small>

@@ -292,10 +292,10 @@ h1 {
         <div class="stop">
           <div class="stop-emoji">🍜</div>
           <div class="stop-main">
-            <div class="stop-name">6. Ameyoko</div>
-            <div class="stop-desc">Обед по месту</div>
+            <div class="stop-name">6. Monja Moheji Ueno</div>
+            <div class="stop-desc">Наш выбор: monjayaki рядом с Ameyoko</div>
             <div class="stop-links">
-              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.70924,139.77473" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=Monja+Moheji+Ueno" target="_blank" rel="noopener">Открыть в Google Maps →</a>
             </div>
           </div>
           <div class="stop-time">~11:30–12:30</div>
@@ -371,7 +371,7 @@ h1 {
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const points = [{"n": 1, "emoji": "🏠", "name": "Airbnb Shiba 2-9-9", "time": "07:05", "desc": "Старт / 7-Eleven", "lat": 35.655, "lng": 139.7505}, {"n": 2, "emoji": "⛩️", "name": "Senso-ji", "time": "~08:00–09:45", "desc": "Храм", "lat": 35.71477, "lng": 139.79666}, {"n": 3, "emoji": "🥪", "name": "Nakamise-dori", "time": "после храма", "desc": "Перекус: ningyo-yaki / melon pan", "lat": 35.71177, "lng": 139.79654}, {"n": 4, "emoji": "🌊", "name": "Sumida River", "time": "~09:45–10:20", "desc": "Набережная", "lat": 35.7106, "lng": 139.79825}, {"n": 5, "emoji": "🌳", "name": "Ueno Park", "time": "~10:40–11:30", "desc": "Большой парк", "lat": 35.7156, "lng": 139.77306}, {"n": 6, "emoji": "🍜", "name": "Ameyoko", "time": "~11:30–12:30", "desc": "Обед по месту", "lat": 35.70924, "lng": 139.77473}, {"n": 7, "emoji": "🌿", "name": "Hama-rikyu", "time": "~13:15–14:40", "desc": "Японский сад", "lat": 35.65954, "lng": 139.76373}, {"n": 8, "emoji": "🍵", "name": "Nakajima-no-ochaya", "time": "внутри сада", "desc": "Matcha + wagashi", "lat": 35.65976, "lng": 139.76472}, {"n": 9, "emoji": "📚", "name": "Haruki Murakami Library", "time": "~15:25–16:40", "desc": "Waseda / Peter Cat piano", "lat": 35.70903, "lng": 139.71957}, {"n": 10, "emoji": "🎮", "name": "Nakano Broadway", "time": "~17:10–20:00", "desc": "Mandarake / rare-used мерч", "lat": 35.70916, "lng": 139.66587}, {"n": 11, "emoji": "🍽️", "name": "Nakano dinner area", "time": "~20:00", "desc": "Ужин по настроению", "lat": 35.70869, "lng": 139.66534}];
+const points = [{"n": 1, "emoji": "🏠", "name": "Airbnb Shiba 2-9-9", "time": "07:05", "desc": "Старт / 7-Eleven", "lat": 35.655, "lng": 139.7505}, {"n": 2, "emoji": "⛩️", "name": "Senso-ji", "time": "~08:00–09:45", "desc": "Храм", "lat": 35.71477, "lng": 139.79666}, {"n": 3, "emoji": "🥪", "name": "Nakamise-dori", "time": "после храма", "desc": "Перекус: ningyo-yaki / melon pan", "lat": 35.71177, "lng": 139.79654}, {"n": 4, "emoji": "🌊", "name": "Sumida River", "time": "~09:45–10:20", "desc": "Набережная", "lat": 35.7106, "lng": 139.79825}, {"n": 5, "emoji": "🌳", "name": "Ueno Park", "time": "~10:40–11:30", "desc": "Большой парк", "lat": 35.7156, "lng": 139.77306}, {"n": 6, "emoji": "🍜", "name": "Monja Moheji Ueno", "time": "~11:30–12:30", "desc": "Наш выбор: monjayaki рядом с Ameyoko", "lat": 35.7079078, "lng": 139.7746634}, {"n": 7, "emoji": "🌿", "name": "Hama-rikyu", "time": "~13:15–14:40", "desc": "Японский сад", "lat": 35.65954, "lng": 139.76373}, {"n": 8, "emoji": "🍵", "name": "Nakajima-no-ochaya", "time": "внутри сада", "desc": "Matcha + wagashi", "lat": 35.65976, "lng": 139.76472}, {"n": 9, "emoji": "📚", "name": "Haruki Murakami Library", "time": "~15:25–16:40", "desc": "Waseda / Peter Cat piano", "lat": 35.70903, "lng": 139.71957}, {"n": 10, "emoji": "🎮", "name": "Nakano Broadway", "time": "~17:10–20:00", "desc": "Mandarake / rare-used мерч", "lat": 35.70916, "lng": 139.66587}, {"n": 11, "emoji": "🍽️", "name": "Nakano dinner area", "time": "~20:00", "desc": "Ужин по настроению", "lat": 35.70869, "lng": 139.66534}];
 const segments = [{"type": "rail", "path": [1, 2]}, {"type": "local", "path": [2, 3, 4]}, {"type": "rail", "path": [4, 5]}, {"type": "local", "path": [5, 6]}, {"type": "rail", "path": [6, 7]}, {"type": "local", "path": [7, 8]}, {"type": "rail", "path": [8, 9, 10]}, {"type": "local", "path": [10, 11]}];
 const activeDate = new URLSearchParams(window.location.search).get('date');
 if (activeDate) document.getElementById('map-title').textContent = `📚 ${activeDate} — Asakusa + Ueno + Hama-rikyu + Murakami + Nakano`;

@@ -344,10 +344,10 @@ h1 {
         <div class="stop">
           <div class="stop-emoji">🍜</div>
           <div class="stop-main">
-            <div class="stop-name">10. Ramen Zundouya Shinsaibashi</div>
-            <div class="stop-desc">Ужин: тонкоцу-рамен</div>
+            <div class="stop-name">10. Torisoba Zagin Niboshi</div>
+            <div class="stop-desc">Наш выбор: chicken paitan и niboshi ramen</div>
             <div class="stop-links">
-              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=34.6727,135.5016" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=Torisoba+Zagin+Niboshi+Osaka" target="_blank" rel="noopener">Открыть в Google Maps →</a>
             </div>
           </div>
           <div class="stop-time">после PARCO</div>
@@ -358,7 +358,7 @@ h1 {
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const points = [{"n": 1, "emoji": "🚇", "name": "Nagahoribashi", "time": "06:50", "desc": "Старт дня / 7-Eleven по пути", "lat": 34.67486, "lng": 135.50635}, {"n": 2, "emoji": "🚆", "name": "Tennoji Station", "time": "07:59", "desc": "Kuroshio 1 → Shirahama", "lat": 34.64734, "lng": 135.51524}, {"n": 3, "emoji": "📕", "name": "Shirahama Station", "time": "~10:10", "desc": "Stamp + автобус", "lat": 33.67588, "lng": 135.38731}, {"n": 4, "emoji": "🏖️", "name": "Shirarahama", "time": "~10:45–12:15", "desc": "Белый пляж / Тихий океан", "lat": 33.68166, "lng": 135.34368}, {"n": 5, "emoji": "🍜", "name": "Обед у пляжа", "time": "~12:15", "desc": "Kaisendon / seafood по месту", "lat": 33.6813, "lng": 135.3445}, {"n": 6, "emoji": "🌊", "name": "Senjojiki", "time": "~13:00", "desc": "Скалы у океана", "lat": 33.66694, "lng": 135.32611}, {"n": 7, "emoji": "⛰️", "name": "Sandanbeki", "time": "~14:00", "desc": "Утёсы", "lat": 33.66544, "lng": 135.33522}, {"n": 8, "emoji": "🚆", "name": "Shirahama Station", "time": "цель 16:20", "desc": "Kuroshio обратно в Osaka", "lat": 33.67588, "lng": 135.38731}, {"n": 9, "emoji": "🎮", "name": "Shinsaibashi PARCO", "time": "~19:00", "desc": "KOJIMA PRODUCTIONS + TORCH TORCH", "lat": 34.67385, "lng": 135.50096}, {"n": 10, "emoji": "🍜", "name": "Ramen Zundouya Shinsaibashi", "time": "после PARCO", "desc": "Ужин: тонкоцу-рамен", "lat": 34.6727, "lng": 135.5016}];
+const points = [{"n": 1, "emoji": "🚇", "name": "Nagahoribashi", "time": "06:50", "desc": "Старт дня / 7-Eleven по пути", "lat": 34.67486, "lng": 135.50635}, {"n": 2, "emoji": "🚆", "name": "Tennoji Station", "time": "07:59", "desc": "Kuroshio 1 → Shirahama", "lat": 34.64734, "lng": 135.51524}, {"n": 3, "emoji": "📕", "name": "Shirahama Station", "time": "~10:10", "desc": "Stamp + автобус", "lat": 33.67588, "lng": 135.38731}, {"n": 4, "emoji": "🏖️", "name": "Shirarahama", "time": "~10:45–12:15", "desc": "Белый пляж / Тихий океан", "lat": 33.68166, "lng": 135.34368}, {"n": 5, "emoji": "🍜", "name": "Обед у пляжа", "time": "~12:15", "desc": "Kaisendon / seafood по месту", "lat": 33.6813, "lng": 135.3445}, {"n": 6, "emoji": "🌊", "name": "Senjojiki", "time": "~13:00", "desc": "Скалы у океана", "lat": 33.66694, "lng": 135.32611}, {"n": 7, "emoji": "⛰️", "name": "Sandanbeki", "time": "~14:00", "desc": "Утёсы", "lat": 33.66544, "lng": 135.33522}, {"n": 8, "emoji": "🚆", "name": "Shirahama Station", "time": "цель 16:20", "desc": "Kuroshio обратно в Osaka", "lat": 33.67588, "lng": 135.38731}, {"n": 9, "emoji": "🎮", "name": "Shinsaibashi PARCO", "time": "~19:00", "desc": "KOJIMA PRODUCTIONS + TORCH TORCH", "lat": 34.67385, "lng": 135.50096}, {"n": 10, "emoji": "🍜", "name": "Torisoba Zagin Niboshi", "time": "после PARCO", "desc": "Наш выбор: chicken paitan и niboshi ramen", "lat": 34.6776915, "lng": 135.5011927}];
 const segments = [{"type": "rail", "path": [1, 2, 3]}, {"type": "local", "path": [3, 4, 5, 6, 7, 8]}, {"type": "rail", "path": [8, 9]}, {"type": "local", "path": [9, 10]}];
 
 const map = L.map('map', {

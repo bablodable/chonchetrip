@@ -93,6 +93,7 @@ const cover = {
   osaka: '/assets/osaka-cover.webp',
   kyoto: '/assets/kyoto-cover.webp',
   tokyo: '/assets/tokyo-cover.webp',
+  fuji: '/assets/fuji-cover.webp',
   intro: '/assets/chonchetrip-splash.webp',
 }
 
@@ -189,7 +190,7 @@ export const tripDays: TripDay[] = [
     vibe: dayVibe('steady', 'Мягкий старт', 'Мягкое приземление', 'Первый вечер — не марафон: Япония уже началась, даже если получится только неон и тёплый ужин.', 'Главное: билет, заселение, еда. Бонусы — только по силам.', '🏮'),
     cover: cover.osaka,
     mapFile: '2026-09-30-arrival-osaka.html',
-    mapRouteScenes: [['kix-arrival'], ['kuroshio-ticket', 'stamp-kix'], ['to-hotel-osaka'], ['osaka-checkin'], ['dotonbori'], ['dotonbori-snack'], ['osaka-dinner'], ['travel-passport'], ['shinsaibashi-night']],
+    mapRouteScenes: [['kix-arrival'], ['kuroshio-ticket', 'stamp-kix'], ['to-hotel-osaka'], ['osaka-checkin'], ['dotonbori'], ['dotonbori-snack'], ['osaka-dinner'], ['travel-passport'], ['shinsaibashi-night'], ['shinsaibashi-night']],
     achievementId: 'welcome-to-japan',
     achievementTitle: 'Welcome to Japan',
     claimLabel: 'Я в Японии!',
@@ -304,7 +305,7 @@ export const tripDays: TripDay[] = [
     timeline: [
       { id: 'early-breakfast', time: '06:50', title: 'Собрать завтрак охотника за океаном', kind: 'food', food: freeFood('Завтрак', 'Egg sando, onigiri и кофе — всё остальное сделает поезд.', 'По дороге к Tennoji'), details: [] },
       { id: 'train-shirahama', time: '07:59', title: 'Сбежать из города к океану', kind: 'route', details: ['Kuroshio 1 отправляется из Tennoji и через два часа привозит к белому берегу.'] },
-      { id: 'stamp-shirahama', time: 'По прибытии', title: 'Найти печать с запахом океана', kind: 'quest', details: ['На Shirahama Station найти Eki Stamp #2 и самостоятельно поставить его в туристический блокнот.', 'После этого отметить вторую находку в Passport приложения. Это обычный станционный штамп, не храмовый goshuin.'] },
+      { id: 'stamp-shirahama', time: 'По прибытии', title: 'Найти печать с запахом океана', kind: 'quest', details: ['На Shirahama Station найти Eki Stamp #2, поставить его в туристический блокнот и отметить вторую находку в Passport приложения.'] },
       { id: 'beach', time: 'До обеда', title: 'Коснуться Тихого океана', kind: 'quest', details: ['Разуться, выйти на белый песок и проверить, действительно ли океан холодный.'] },
       { id: 'seafood', time: 'Когда проголодаешься', title: 'Выбрать обед у океана', kind: 'food', food: freeFood('Обед', 'Seafood, kaisendon, sashimi или рыба дня — выбрать то, что выглядит самым свежим именно сейчас.', 'Shirahama'), details: [] },
       { id: 'coast', time: 'После обеда', title: 'Пройти по краю мира', kind: 'place', details: ['Senjojiki и Sandanbeki — ветер, утёсы и океан без конца.'] },
@@ -408,7 +409,7 @@ export const tripDays: TripDay[] = [
     },
     timeline: [
       { id: 'move-kyoto', time: 'После завтрака', title: 'Сменить неон на старую столицу', kind: 'route', details: ['Keihan увезёт прямо к Gion-Shijo — там начинается новая глава.'] },
-      { id: 'stamp-gion', time: 'На станции', title: 'Поставить печать Kyoto', kind: 'quest', details: ['На Gion-Shijo Station найти Eki Stamp #3 и самостоятельно поставить его в туристический блокнот.', 'Затем отметить третью находку в Passport приложения. Goshuincho для этого не используется.'] },
+      { id: 'stamp-gion', time: 'На станции', title: 'Поставить печать Kyoto', kind: 'quest', details: ['На Gion-Shijo Station найти Eki Stamp #3, поставить его в туристический блокнот и отметить третью находку в Passport приложения.'] },
       { id: 'tazuru-bags', time: 'Перед прогулкой', title: 'Оставить чемоданы и стать налегке', kind: 'rest', details: ['Tazuru приютит вещи до check-in.'] },
       { id: 'kiyomizu', time: 'До обеда', title: 'Начать отдельную книгу goshuin', kind: 'quest', details: ['У Kiyomizu-dera купить goshuincho — специальную книжку только для записей из храмов и святилищ.', 'Показать её в окне goshuin: служитель сам добавит каллиграфию и красную печать. В туристический блокнот это не ставится и в счётчик Eki stamp не входит.'] },
       { id: 'old-streets', time: 'После храма', title: 'Потеряться в старых улочках', kind: 'place', details: ['Sannenzaka, Ninenzaka, пагода и столько matcha-сладостей, сколько захочется.', 'По пути обратить внимание на Yasaka Kōshin-dō с разноцветными kukurizaru — 5–10 минут на тихий кадр. Затем просто пройти Ishibe-kōji: короткая каменная улочка по дороге к Gion. Никаких отдельных обязательных остановок.'] },
@@ -566,7 +567,7 @@ export const tripDays: TripDay[] = [
     title: 'Fuji Found!',
     subtitle: 'Chureito, Lake Kawaguchi и вид с канатной дороги',
     vibe: dayVibe('adventure', 'Приключенческий', 'Охота за Fuji', 'Погода здесь главнее маршрута: когда гора показалась — можно остановиться и просто смотреть.', 'Не видно Fuji или выбились из графика — бонусные точки отпускаем сразу.', '🗻'),
-    cover: cover.intro,
+    cover: cover.fuji,
     mapFile: '2026-10-09-fuji.html',
     mapRouteScenes: [['fuji-train'], ['fuji-train'], ['fuji-train'], ['fuji-train'], ['chureito'], ['chureito'], ['houtou'], ['houtou'], ['oishi'], ['ropeway'], ['ropeway'], ['fuji-return']],
     achievementId: 'fuji-found',
@@ -603,7 +604,7 @@ export const tripDays: TripDay[] = [
     cover: cover.tokyo,
     mapFile: '2026-10-10-ginza-akihabara.html',
     mapNote: 'Повторный заход в JINS отмечен в карточке точки JINS; расписание сцен выше остаётся главным.',
-    mapRouteScenes: [['tsukiji-breakfast'], ['tsukiji-breakfast'], ['ginza-walk', 'jins', 'jins-pickup'], ['apple-ginza'], ['uniqlo-sushi'], ['sushi-midori'], ['ginza-to-akihabara', 'stamp-akihabara'], ['kanda-myojin-anime'], ['steins-gate-line'], ['steins-gate-line'], ['akihabara'], ['akihabara'], ['akihabara'], ['akihabara'], ['akiba-night', 'akiba-lights'], ['akiba-home']],
+    mapRouteScenes: [['tsukiji-breakfast'], ['tsukiji-breakfast'], ['ginza-walk', 'jins'], ['apple-ginza'], ['uniqlo-sushi'], ['jins-pickup'], ['sushi-midori'], ['ginza-to-akihabara', 'stamp-akihabara'], ['kanda-myojin-anime'], ['steins-gate-line'], ['steins-gate-line'], ['akihabara'], ['akihabara'], ['akihabara'], ['akihabara'], ['akiba-night', 'akiba-lights'], ['akiba-home']],
     achievementId: 'tokyo-explorer',
     achievementTitle: 'Tokyo Explorer',
     claimLabel: 'Главные точки Tokyo открыты',
@@ -625,7 +626,7 @@ export const tripDays: TripDay[] = [
       { id: 'jins-pickup', time: '12:20–12:30', title: 'Проверить готовность очков', kind: 'quest', details: ['Если очки готовы — забрать. Если нет, оставить получение на потом или на 11 октября.'] },
       { id: 'sushi-midori', time: '12:45–13:45', title: 'Сделать обеденную паузу в Ginza', kind: 'food', food: primaryFood('Обед', 'Ginza Bairin Honten', 'Tonkatsu перед переключением на электрический город.', [{ name: 'Sushi no Midori Ginza', note: 'Суши-альтернатива, которая уже была в плане.' }], 'Можно спокойно выбрать другое место рядом в Ginza.'), details: [] },
       { id: 'ginza-to-akihabara', time: 'После обеда', title: 'Переключиться на электрическую линию', kind: 'route', details: ['Дойти до Ginza Station, войти по Suica и по Hibiya Line доехать до Akihabara. После выхода перейти к станции JR.'] },
-      { id: 'stamp-akihabara', time: 'Около 14:15', title: 'Поймать электрическую печать', kind: 'quest', details: ['В районе Central Gate станции JR найти 駅スタンプ / Eki Stamp #4.', 'Самостоятельно поставить его в туристический блокнот и отметить в Passport приложения. Книжка goshuincho здесь не нужна.'] },
+      { id: 'stamp-akihabara', time: 'Около 14:15', title: 'Поймать электрическую печать', kind: 'quest', details: ['В районе Central Gate станции JR найти 駅スタンプ / Eki Stamp #4, поставить его в туристический блокнот и отметить находку в Passport приложения.'] },
       { id: 'kanda-myojin-anime', time: '14:30–15:00', title: 'Попросить удачу у хранителя Akihabara', kind: 'quest', details: ['От станции около 7–10 минут пешком до Kanda Myojin — святилища из мира Love Live! и Steins;Gate.', 'Для храмовой коллекции показать отдельную goshuincho служителю и попросить goshuin.', 'Ema — деревянная табличка для желания: можно выбрать иллюстрированную, написать желание и оставить на специальной стойке. Не фотографировать там, где это запрещено.'] },
       { id: 'steins-gate-line', time: 'С 15:10', title: 'Перейти на мировую линию Steins;Gate', kind: 'quest', details: ['Начать с Radio Kaikan у Electric Town Exit: культовая точка Steins;Gate, фигурки, мерч и AmiAmi.', 'Затем пройти через Manseibashi Bridge — ещё одну знакомую точку из аниме.'] },
       { id: 'akihabara', time: 'До 19:30', title: 'Начать большую охоту за сокровищами', kind: 'quest', details: ['Зайти в Mandarake Complex за used-мерчем, Super Potato за ретро-играми, animate Akihabara, GiGO и магазины Electric Town.', 'Новые вещи можно брать здесь; редкий и used-мерч сначала сравнить с завтрашним Nakano Broadway.'] },
@@ -751,22 +752,10 @@ export const sideQuests: SideQuest[] = [
     icon: 'sparkles',
   },
   {
-    id: 'gachapon-oracle',
-    title: 'Оракул gachapon',
-    description: 'Один раз доверить выбор капсулы чистой случайности.',
-    icon: 'quest',
-  },
-  {
     id: 'paper-fortune',
     title: 'Бумажная судьба',
     description: 'Вытянуть omikuji и узнать, что приготовила удача.',
     icon: 'fox',
-  },
-  {
-    id: 'mascot-encounter',
-    title: 'Встреча с талисманом',
-    description: 'Найти местного mascot: живого, на вывеске или упаковке.',
-    icon: 'camera',
   },
   {
     id: 'plastic-masterpiece',
@@ -775,22 +764,28 @@ export const sideQuests: SideQuest[] = [
     icon: 'food',
   },
   {
-    id: 'tiny-shrine',
-    title: 'Тайное святилище',
-    description: 'Заметить крошечный храм или torii среди большого города.',
-    icon: 'place',
-  },
-  {
     id: 'station-melody',
     title: 'Мелодия пути',
     description: 'Услышать станционную мелодию и выбрать любимую за поездку.',
     icon: 'route',
   },
   {
-    id: 'anime-frame',
-    title: 'Оживший кадр',
-    description: 'Снять свою версию любого аниме-кадра, не перекрывая дорогу прохожим.',
+    id: 'journey-reflection',
+    title: 'Отражение пути',
+    description: 'Снять вас вдвоём в отражении: витрина, окно поезда, вода или стекло башни.',
     icon: 'camera',
+  },
+  {
+    id: 'taste-for-two',
+    title: 'Вкус на двоих',
+    description: 'Разделить что-то, выбранное по запаху, витрине или совершенно странному виду.',
+    icon: 'food',
+  },
+  {
+    id: 'japan-oddity',
+    title: 'Японская странность',
+    description: 'Заметить деталь, от которой хочется сказать: «ну это очень Япония».',
+    icon: 'sparkles',
   },
 ]
 
@@ -831,7 +826,7 @@ export const achievements: Achievement[] = [
   { id: 'manhole-hunter', title: 'Manhole Hunter', description: 'Найден самый красивый японский люк.', type: 'secret', image: badge('manhole-hunter') },
   { id: 'capsule-of-fate', title: 'Capsule of Fate', description: 'Судьба доверена одному gachapon.', type: 'secret', image: badge('capsule-of-fate') },
   { id: 'fortune-found', title: 'Fortune Found', description: 'Бумажное предсказание omikuji найдено.', type: 'secret', image: badge('fortune-found') },
-  { id: 'wandering-legend', title: 'Wandering Legend', description: 'Выполнены все миссии без маршрута.', type: 'meta', image: badge('wandering-legend') },
+  { id: 'wandering-legend', title: 'Wandering Legend', description: 'Пять находок без маршрута стали частью истории.', type: 'meta', image: badge('wandering-legend') },
   { id: 'japan-collector', title: 'Japan Collector', description: 'Собрано 15 любых достижений.', type: 'meta', image: badge('japan-collector') },
   { id: 'completionist', title: 'Completionist', description: 'Собраны все доступные достижения.', type: 'meta', image: badge('completionist') },
 ]

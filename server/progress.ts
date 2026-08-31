@@ -17,6 +17,16 @@ const ratings = (value: unknown) => {
   }))
 }
 
+const dailySteps = (value: unknown) => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
+  return Object.fromEntries(Object.entries(value).flatMap(([key, item]) => {
+    const steps = Number(item)
+    return Number.isFinite(steps) && steps > 0
+      ? [[key, Math.min(100_000, Math.round(steps))]]
+      : []
+  }))
+}
+
 const counterValue = (value: unknown) => {
   const count = Number(value)
   return Number.isFinite(count) && count >= 0 ? Math.min(9_999, Math.floor(count)) : 0
@@ -58,6 +68,7 @@ export const sanitizeProgress = (value: unknown): StoredProgress | null => {
     konbini: strings(source.konbini),
     ramen: source.ramen === true,
     ratings: ratings(source.ratings),
+    dailySteps: dailySteps(source.dailySteps),
     fujiDate: source.fujiDate === '2026-10-11' ? '2026-10-11' : '2026-10-09',
     foxFires: strings(source.foxFires),
     kitsuEncounters: strings(source.kitsuEncounters),

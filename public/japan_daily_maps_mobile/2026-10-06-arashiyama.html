@@ -318,10 +318,10 @@ h1 {
         <div class="stop">
           <div class="stop-emoji">🍜</div>
           <div class="stop-main">
-            <div class="stop-name">8. Yudofu Sagano</div>
-            <div class="stop-desc">Обед: yudofu</div>
+            <div class="stop-name">8. Arashiyama Yoshimura</div>
+            <div class="stop-desc">Наш выбор: soba с видом на Arashiyama</div>
             <div class="stop-links">
-              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.01701,135.67316" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=Arashiyama+Yoshimura+Kyoto" target="_blank" rel="noopener">Открыть в Google Maps →</a>
             </div>
           </div>
           <div class="stop-time">~12:00–13:00</div>
@@ -370,10 +370,10 @@ h1 {
         <div class="stop">
           <div class="stop-emoji">🍽️</div>
           <div class="stop-main">
-            <div class="stop-name">12. Kawaramachi / obanzai</div>
-            <div class="stop-desc">Ужин по настроению</div>
+            <div class="stop-name">12. Keiraku Yakiniku Yabu</div>
+            <div class="stop-desc">Наш выбор: yakiniku после Arashiyama</div>
             <div class="stop-links">
-              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=35.00463,135.76853" target="_blank" rel="noopener">Открыть в Google Maps →</a>
+              <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=Keiraku+Yakiniku+Yabu+Kyoto" target="_blank" rel="noopener">Открыть в Google Maps →</a>
             </div>
           </div>
           <div class="stop-time">~19:00</div>
@@ -384,7 +384,7 @@ h1 {
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const points = [{"n": 1, "emoji": "🏠", "name": "Tazuru", "time": "06:40", "desc": "Старт / 7-Eleven", "lat": 35.00118, "lng": 135.77239}, {"n": 2, "emoji": "🚆", "name": "Kyoto-Kawaramachi", "time": "~07:05", "desc": "Hankyu к Arashiyama", "lat": 35.00373, "lng": 135.76915}, {"n": 3, "emoji": "🌉", "name": "Togetsukyo", "time": "~08:00", "desc": "Знаменитый мост", "lat": 35.01286, "lng": 135.67611}, {"n": 4, "emoji": "🎋", "name": "Bamboo Grove", "time": "~08:20–08:45", "desc": "Бамбуковая роща", "lat": 35.01766, "lng": 135.67214}, {"n": 5, "emoji": "⛩️", "name": "Tenryu-ji", "time": "~08:50–09:50", "desc": "Дзен-храм и сад", "lat": 35.01593, "lng": 135.67388}, {"n": 6, "emoji": "🌿", "name": "Okochi Sanso", "time": "~10:00–11:00", "desc": "Японский сад + matcha", "lat": 35.01864, "lng": 135.67098}, {"n": 7, "emoji": "🏞️", "name": "Kameyama Park", "time": "~11:05–11:45", "desc": "Вид на реку Hozu", "lat": 35.01737, "lng": 135.66855}, {"n": 8, "emoji": "🍜", "name": "Yudofu Sagano", "time": "~12:00–13:00", "desc": "Обед: yudofu", "lat": 35.01701, "lng": 135.67316}, {"n": 9, "emoji": "🗿", "name": "Otagi Nenbutsu-ji", "time": "~13:45–14:30", "desc": "Храм со статуями", "lat": 35.02874, "lng": 135.66655}, {"n": 10, "emoji": "🏘️", "name": "Saga Toriimoto", "time": "~14:30–16:00", "desc": "Старая улица", "lat": 35.02489, "lng": 135.66829}, {"n": 11, "emoji": "💡", "name": "Kimono Forest", "time": "~17:30", "desc": "Световые колонны", "lat": 35.01498, "lng": 135.68139}, {"n": 12, "emoji": "🍽️", "name": "Kawaramachi / obanzai", "time": "~19:00", "desc": "Ужин по настроению", "lat": 35.00463, "lng": 135.76853}];
+const points = [{"n": 1, "emoji": "🏠", "name": "Tazuru", "time": "06:40", "desc": "Старт / 7-Eleven", "lat": 35.00118, "lng": 135.77239}, {"n": 2, "emoji": "🚆", "name": "Kyoto-Kawaramachi", "time": "~07:05", "desc": "Hankyu к Arashiyama", "lat": 35.00373, "lng": 135.76915}, {"n": 3, "emoji": "🌉", "name": "Togetsukyo", "time": "~08:00", "desc": "Знаменитый мост", "lat": 35.01286, "lng": 135.67611}, {"n": 4, "emoji": "🎋", "name": "Bamboo Grove", "time": "~08:20–08:45", "desc": "Бамбуковая роща", "lat": 35.01766, "lng": 135.67214}, {"n": 5, "emoji": "⛩️", "name": "Tenryu-ji", "time": "~08:50–09:50", "desc": "Дзен-храм и сад", "lat": 35.01593, "lng": 135.67388}, {"n": 6, "emoji": "🌿", "name": "Okochi Sanso", "time": "~10:00–11:00", "desc": "Японский сад + matcha", "lat": 35.01864, "lng": 135.67098}, {"n": 7, "emoji": "🏞️", "name": "Kameyama Park", "time": "~11:05–11:45", "desc": "Вид на реку Hozu", "lat": 35.01737, "lng": 135.66855}, {"n": 8, "emoji": "🍜", "name": "Arashiyama Yoshimura", "time": "~12:00–13:00", "desc": "Наш выбор: soba с видом на Arashiyama", "lat": 35.0142595, "lng": 135.6759774}, {"n": 9, "emoji": "🗿", "name": "Otagi Nenbutsu-ji", "time": "~13:45–14:30", "desc": "Храм со статуями", "lat": 35.02874, "lng": 135.66655}, {"n": 10, "emoji": "🏘️", "name": "Saga Toriimoto", "time": "~14:30–16:00", "desc": "Старая улица", "lat": 35.02489, "lng": 135.66829}, {"n": 11, "emoji": "💡", "name": "Kimono Forest", "time": "~17:30", "desc": "Световые колонны", "lat": 35.01498, "lng": 135.68139}, {"n": 12, "emoji": "🍽️", "name": "Keiraku Yakiniku Yabu", "time": "~19:00", "desc": "Наш выбор: yakiniku после Arashiyama", "lat": 35.004838, "lng": 135.770216}];
 const segments = [{"type": "rail", "path": [1, 2, 3]}, {"type": "local", "path": [3, 4, 5, 6, 7, 8, 9, 10, 11]}, {"type": "rail", "path": [11, 12]}];
 
 const map = L.map('map', {
