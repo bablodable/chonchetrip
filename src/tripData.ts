@@ -417,7 +417,7 @@ export const tripDays: TripDay[] = [
       { id: 'matcha-ekiben', time: 'Перед поездом', title: 'Собрать идеальный набор в Shinkansen', kind: 'food', details: ['Matcha-десерт сейчас, красивый ekiben — с собой.'] },
       { id: 'shinkansen', time: 'Около 12:30', title: 'Промчаться через Японию', kind: 'route', details: ['Nozomi доставит из Kyoto в Shinagawa быстрее, чем закончится ощущение дороги.'] },
       { id: 'tokyo-checkin', time: 'После прибытия', title: 'Оставить вещи в новом доме', kind: 'rest', details: ['Небольшая пауза в Shiba перед первым вечером Tokyo.'] },
-      { id: 'shiba', time: 'Ближе к закату', title: 'Войти в кадр Weathering With You', kind: 'quest', details: ['Пройди через Zojo-ji в Shiba Park и поймай Tokyo Tower между деревьями. Не копируй кадр идеально — найди своё небо над городом.'] },
+      { id: 'shiba', time: 'Ближе к закату', title: 'Войти в кадр Weathering With You', kind: 'quest', details: ['Пройди через Zojo-ji к большой лужайке Shiba Park. У края поля найди ракурс, где Tokyo Tower остаётся слева, а крыша храма видна ближе к центру — почти как в фильме.'] },
       { id: 'tower', time: 'Когда зажгутся огни', title: 'Подняться ближе к небу', kind: 'quest', details: ['Поднимись на Main Deck и дождись первых огней. Отметь обе точки — парк и башню — чтобы закрыть аниме-миссию.'] },
       { id: 'jangara', time: 'После башни', title: 'Закрепить знакомство ramen', kind: 'food', details: ['Tonkotsu ramen и спокойная прогулка домой через Shiba Park.', 'После переезда из Kyoto и первого вечера Tokyo этого достаточно: дальше только отдых в новом доме.'] },
     ],

@@ -823,6 +823,156 @@ button {
   color: #50615c;
 }
 
+.anime-frame-card {
+  overflow: hidden;
+  margin-top: 2px;
+  border: 1px solid rgba(81, 69, 91, 0.14);
+  border-radius: 15px;
+  background: linear-gradient(150deg, rgba(237, 230, 239, 0.72), rgba(255, 249, 239, 0.9));
+}
+
+.anime-frame-heading {
+  display: grid;
+  grid-template-columns: 31px 1fr;
+  gap: 9px;
+  align-items: center;
+  padding: 10px 11px 9px;
+}
+
+.anime-frame-heading > span {
+  display: grid;
+  width: 31px;
+  height: 31px;
+  place-items: center;
+  border-radius: 10px;
+  color: #69546c;
+  background: rgba(108, 82, 112, 0.11);
+}
+
+.anime-frame-heading small,
+.anime-frame-heading strong {
+  display: block;
+}
+
+.anime-frame-heading small {
+  color: #806c83;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.anime-frame-heading strong {
+  margin-top: 4px;
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.anime-frame-image {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: #29242d;
+  cursor: zoom-in;
+}
+
+.anime-frame-image img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.anime-frame-image > span {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(26, 22, 29, 0.72);
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1;
+  backdrop-filter: blur(7px);
+}
+
+.anime-frame-copy {
+  padding: 10px 11px 12px;
+}
+
+.anime-frame-copy strong {
+  display: block;
+  color: #5d485f;
+  font-family: var(--display);
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.anime-frame-copy p {
+  margin: 5px 0 0;
+  color: var(--muted-dark);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.anime-frame-lightbox {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 11px;
+  padding: 48px 16px 24px;
+  color: #fff;
+  background: rgba(19, 16, 21, 0.94);
+  cursor: zoom-out;
+}
+
+.anime-frame-lightbox img {
+  display: block;
+  width: min(100%, 1080px);
+  max-height: calc(100dvh - 120px);
+  border-radius: 13px;
+  object-fit: contain;
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.42);
+  cursor: default;
+}
+
+.anime-frame-lightbox > button {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  right: 14px;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  padding: 0 0 3px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 27px;
+  line-height: 1;
+}
+
+.anime-frame-lightbox > strong {
+  max-width: 720px;
+  font-size: 11px;
+  line-height: 1.35;
+  text-align: center;
+}
+
 .day-map-card {
   overflow: hidden;
   border: 1px solid rgba(64, 90, 91, 0.16);
@@ -2381,20 +2531,66 @@ button {
 .fox-fire-tile strong { display: -webkit-box; overflow: hidden; color: var(--ink-soft); font-size: 9px; line-height: 1.25; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .fox-fire-tile.is-found strong { color: color-mix(in srgb, var(--flame-color) 60%, #493a31 40%); }
 
-.encounter-counter {
+.night-story-list {
   display: grid;
-  grid-template-columns: 28px 1fr auto;
-  align-items: center;
-  gap: 7px;
-  padding: 10px 12px;
-  border: 1px solid rgba(93, 73, 62, 0.11);
-  border-radius: 15px;
-  color: var(--red-dark);
-  background: rgba(255, 250, 241, 0.58);
+  gap: 8px;
 }
 
-.encounter-counter span { color: var(--muted-dark); font-size: 9px; }
-.encounter-counter strong { color: var(--ink); font-size: 10px; }
+.night-story {
+  overflow: hidden;
+  width: 100%;
+  padding: 0;
+  border: 1px solid rgba(102, 72, 54, 0.1);
+  border-radius: 17px;
+  color: var(--muted);
+  background: rgba(249, 239, 221, 0.58);
+  text-align: left;
+}
+
+.night-story > summary,
+button.night-story {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 18px;
+  gap: 10px;
+  align-items: center;
+  min-height: 66px;
+  padding: 10px 12px;
+}
+
+.night-story > summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.night-story > summary::-webkit-details-marker { display: none; }
+.night-story > summary > span:nth-child(2),
+button.night-story > span:nth-child(2) { min-width: 0; }
+.night-story small { display: block; color: var(--muted); font-size: 7px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+.night-story strong { display: block; margin-top: 3px; color: var(--ink); font-family: var(--display); font-size: 13px; line-height: 1.2; }
+.night-story span p { margin: 4px 0 0; color: var(--muted); font-size: 8px; line-height: 1.35; }
+.night-story > summary > svg,
+button.night-story > svg { color: var(--muted); transform: rotate(-90deg); transition: transform 180ms ease; }
+.night-story[open] > summary > svg { transform: rotate(0); }
+
+.night-story-mark {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--muted);
+  background: rgba(255, 249, 238, 0.7);
+}
+
+.night-story.is-found {
+  border-color: color-mix(in srgb, var(--flame-color) 28%, transparent);
+  background: radial-gradient(circle at 8% 25%, color-mix(in srgb, var(--flame-color) 14%, transparent), transparent 30%), #fff9ee;
+}
+
+.night-story.is-found .night-story-mark { color: color-mix(in srgb, var(--flame-color) 68%, #7e3029 32%); background: color-mix(in srgb, var(--flame-color) 12%, #fffaf0 88%); }
+.night-story.is-near { border-style: dashed; border-color: rgba(174, 119, 67, 0.25); background: rgba(251, 241, 223, 0.82); }
+.night-story:disabled { opacity: 0.62; }
+.night-story > p { margin: 0; padding: 0 14px 14px 62px; color: var(--muted-dark); font-size: 10px; line-height: 1.55; }
 
 .talisman-grid {
   display: grid;

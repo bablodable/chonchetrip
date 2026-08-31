@@ -29,6 +29,7 @@ import {
   type KitsuMagicDay,
 } from './kitsuMagic'
 import { sceneGuides } from './sceneGuides'
+import { animeFrameGuides, type AnimeFrameGuide } from './animeFrameGuides'
 
 type ViewName = 'journey' | 'collection' | 'passport' | 'kitsu'
 type CloudStatus = 'checking' | 'synced' | 'offline' | 'error'
@@ -566,6 +567,7 @@ function TimelineCard({ item, complete, locked, editable, onToggle, onForceUnloc
   const holdOrigin = useRef({ x: 0, y: 0 })
   const [holding, setHolding] = useState(false)
   const guides = sceneGuides[item.id] ?? []
+  const animeFrames = animeFrameGuides[item.id] ?? []
 
   const cancelUnlockHold = () => {
     if (holdTimer.current !== undefined) window.clearTimeout(holdTimer.current)
@@ -651,8 +653,43 @@ function TimelineCard({ item, complete, locked, editable, onToggle, onForceUnloc
             <p>{guide.text}</p>
           </div>
         ))}
+        {animeFrames.map((frame) => <AnimeFrameCard key={`${item.id}-${frame.work}`} frame={frame} />)}
       </div>
     </details>
+  )
+}
+
+function AnimeFrameCard({ frame }: { frame: AnimeFrameGuide }) {
+  const [enlarged, setEnlarged] = useState(false)
+
+  useEffect(() => {
+    if (!enlarged) return
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setEnlarged(false)
+    }
+    document.addEventListener('keydown', closeOnEscape)
+    return () => document.removeEventListener('keydown', closeOnEscape)
+  }, [enlarged])
+
+  return (
+    <div className="anime-frame-card">
+      <div className="anime-frame-heading">
+        <span><Icon name="eye" size={16} /></span>
+        <div><small>Кадр из аниме</small><strong>{frame.work}</strong></div>
+      </div>
+      <button type="button" className="anime-frame-image" onClick={() => setEnlarged(true)} aria-label={`Увеличить: ${frame.moment}`}>
+        <img src={frame.image} alt={frame.alt} loading="lazy" />
+        <span><Icon name="camera" size={15} /> Нажми, чтобы увеличить</span>
+      </button>
+      <div className="anime-frame-copy"><strong>{frame.moment}</strong><p>{frame.shot}</p></div>
+      {enlarged && (
+        <div className="anime-frame-lightbox" role="dialog" aria-modal="true" aria-label={frame.moment} onClick={() => setEnlarged(false)}>
+          <button type="button" aria-label="Закрыть увеличенный кадр" onClick={() => setEnlarged(false)}>×</button>
+          <img src={frame.image} alt={frame.alt} onClick={(event) => event.stopPropagation()} />
+          <strong>{frame.work} · {frame.moment}</strong>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -872,6 +909,8 @@ function App() {
   const completedSideQuests = progress.sideQuests ?? []
   const previewMode = PREVIEW_MODE
   const knownFoxFires = progress.foxFires.filter((id) => Boolean(kitsuMagicByDay[id]))
+  const nightMagicDays = kitsuMagicDays.filter((magic) => Boolean(magic.nightEncounter))
+  const knownKitsuEncounters = progress.kitsuEncounters.filter((id) => nightMagicDays.some((magic) => magic.dayId === id))
   const selectedFoxFireFound = selectedMagic ? knownFoxFires.includes(selectedMagic.dayId) : false
   const selectedEncounterFound = selectedMagic ? progress.kitsuEncounters.includes(selectedMagic.dayId) : false
   const selectedNightMagicUnlocked = PREVIEW_MODE || selectedDate < today || (selectedDate === today && japanHour >= 19)
@@ -1715,7 +1754,40 @@ function App() {
                   )
                 })}
               </div>
-              <div className="encounter-counter"><Icon name="fox" size={18} /><span>Редкие встречи после заката</span><strong>{progress.kitsuEncounters.length}/{kitsuMagicDays.filter((day) => day.nightEncounter).length}</strong></div>
+            </section>
+
+            <section className="kitsu-magic-section night-stories-section">
+              <div className="section-title"><div><span className="section-kicker">Редкие встречи</span><h2>Ночной след Кицу</h2></div><strong>{knownKitsuEncounters.length}/{nightMagicDays.length}</strong></div>
+              <p className="kitsu-section-note">В некоторые вечера Кицу появляется в главе после заката. Замеченная встреча навсегда открывает здесь маленькую историю этого дня.</p>
+              <div className="night-story-list">
+                {nightMagicDays.map((magic, index) => {
+                  const encounter = magic.nightEncounter!
+                  const found = knownKitsuEncounters.includes(magic.dayId)
+                  const slot = findMagicSlot(magic.dayId)
+                  const available = PREVIEW_MODE || Boolean(slot && (slot.date < today || (slot.date === today && japanHour >= 19)))
+
+                  if (found) {
+                    return (
+                      <details key={magic.dayId} className="night-story is-found" style={{ '--flame-color': magic.flameColor } as React.CSSProperties}>
+                        <summary>
+                          <span className="night-story-mark"><Icon name="fox" size={20} /></span>
+                          <span><small>{slot?.dateLabel ?? `След ${index + 1}`}</small><strong>{encounter.title}</strong></span>
+                          <Icon name="chevron" size={17} />
+                        </summary>
+                        <p>{encounter.story}</p>
+                      </details>
+                    )
+                  }
+
+                  return (
+                    <button key={magic.dayId} type="button" className={available ? 'night-story is-near' : 'night-story'} disabled={!available} onClick={() => { if (!slot) return; setSelectedDate(slot.date); setView('journey'); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>
+                      <span className="night-story-mark"><Icon name={available ? 'eye' : 'lock'} size={19} /></span>
+                      <span><small>{available && slot ? slot.dateLabel : `Ночной след ${index + 1}`}</small><strong>{available ? 'Кицу был где-то рядом…' : 'Пока запечатано'}</strong><p>{available ? 'Вернись в эту главу и найди рыжий хвост.' : 'История откроется в подходящий вечер.'}</p></span>
+                      {available && <Icon name="chevron" size={17} />}
+                    </button>
+                  )
+                })}
+              </div>
             </section>
 
             <section className="kitsu-magic-section">
@@ -1768,7 +1840,7 @@ function App() {
                     <span><strong>{knownFoxFires.length}</strong><small>лисьих огней</small></span>
                     <span><strong>{Object.keys(progress.photos).length}</strong><small>кадров памяти</small></span>
                     <span><strong>{progress.stamps.length}</strong><small>печатей</small></span>
-                    <span><strong>{progress.kitsuEncounters.length}</strong><small>встреч с Кицу</small></span>
+                    <span><strong>{knownKitsuEncounters.length}</strong><small>встреч с Кицу</small></span>
                   </div>
                   {bestRatingEntry && <p className="finale-favorite">Самая высокая оценка — <strong>{bestRatedDay?.dateLabel ?? 'один особенный день'} · {bestRatingEntry[1]}/10</strong></p>}
                   <blockquote>«Спасибо за эту Японию — с усталыми ногами, случайными находками и моментами, которых не было ни в одном плане. У этой истории будет продолжение.»</blockquote>
