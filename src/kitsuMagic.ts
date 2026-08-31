@@ -25,13 +25,6 @@ export type SealedLetter = {
   unlock: { fireCount: number } | { dayId: string }
 }
 
-export type KitsuTalisman = {
-  id: 'tabiji' | 'umi' | 'inari' | 'fuji' | 'kioku' | 'okaeri'
-  symbol: string
-  title: string
-  description: string
-}
-
 export const kitsuMagicDays: KitsuMagicDay[] = [
   {
     dayId: 'belgrade-dubai',
@@ -256,13 +249,4 @@ export const sealedLetters: SealedLetter[] = [
     text: 'Последнее письмо.\n\nМне немного грустно, что путешествие заканчивается, но очень нравится другое: теперь эта Япония навсегда немного наша.\n\nУ нас останутся фотографии, штампы, покупки, места, которые мы случайно нашли, еда, которую будем вспоминать, и куча историй, понятных только нам двоим.\n\nСпасибо тебе за эти дни. За ранние подъёмы, километры пешком, океан, Kyoto, Tokyo и вообще за то, что любое далёкое место рядом с тобой довольно быстро становится своим.\n\nДомой мы возвращаемся вдвоём. А значит, всё самое важное я увожу с собой. ❤️',
     unlock: { dayId: 'last-day' },
   },
-]
-
-export const kitsuTalismans: KitsuTalisman[] = [
-  { id: 'tabiji', symbol: '旅', title: 'Tabiji', description: 'Омамори первого шага и счастливой дороги.' },
-  { id: 'umi', symbol: '海', title: 'Umi', description: 'Талисман океана, ветра и смелости идти далеко.' },
-  { id: 'inari', symbol: '稲', title: 'Inari', description: 'Лисий ключ от старых дорог Kyoto.' },
-  { id: 'fuji', symbol: '富', title: 'Fuji', description: 'Спокойствие принимать и ясное небо, и облака.' },
-  { id: 'kioku', symbol: '憶', title: 'Kioku', description: 'Хранитель фотографий и маленьких деталей.' },
-  { id: 'okaeri', symbol: '帰', title: 'Okaeri', description: 'Оберег возвращения домой с новой историей.' },
 ]

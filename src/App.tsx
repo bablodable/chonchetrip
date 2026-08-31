@@ -24,15 +24,36 @@ import {
 import {
   kitsuMagicByDay,
   kitsuMagicDays,
-  kitsuTalismans,
   sealedLetters,
   type KitsuMagicDay,
+  type SealedLetter,
 } from './kitsuMagic'
 import { sceneGuides } from './sceneGuides'
 import { animeFrameGuides, type AnimeFrameGuide } from './animeFrameGuides'
 
 type ViewName = 'journey' | 'collection' | 'passport' | 'kitsu'
 type CloudStatus = 'checking' | 'synced' | 'offline' | 'error'
+type FromsoftRelic = 'dark-souls' | 'elden-ring'
+type TripCounterId = 'ramen' | 'onigiri' | 'gachapon' | 'goshuin' | 'vending' | 'sweets'
+type TripCounters = Record<TripCounterId, number>
+
+const tripCounterDefinitions: { id: TripCounterId; icon: string; title: string; actionLabel: string; finaleLabel: string }[] = [
+  { id: 'ramen', icon: '🍜', title: 'Ramen', actionLabel: 'Ещё миска!', finaleLabel: 'мисок ramen' },
+  { id: 'onigiri', icon: '🍙', title: 'Onigiri', actionLabel: 'Ещё один!', finaleLabel: 'onigiri' },
+  { id: 'gachapon', icon: '🎰', title: 'Gachapon', actionLabel: 'Новая капсула!', finaleLabel: 'капсул gachapon' },
+  { id: 'goshuin', icon: '⛩️', title: 'Goshuin', actionLabel: 'Новая запись!', finaleLabel: 'goshuin' },
+  { id: 'vending', icon: '🥤', title: 'Автомат', actionLabel: 'Ещё напиток!', finaleLabel: 'напитков из автоматов' },
+  { id: 'sweets', icon: '🍡', title: 'Сладость', actionLabel: 'Ещё одна!', finaleLabel: 'японских сладостей' },
+]
+
+const emptyTripCounters: TripCounters = {
+  ramen: 0,
+  onigiri: 0,
+  gachapon: 0,
+  goshuin: 0,
+  vending: 0,
+  sweets: 0,
+}
 
 type ConfirmationRequest = {
   title: string
@@ -60,6 +81,9 @@ type Progress = {
   kitsuEncounters: string[]
   openedLetters: string[]
   finaleOpened: boolean
+  fromsoftRelic: FromsoftRelic | null
+  fromsoftEmberUsedAt: string | null
+  tripCounters: TripCounters
 }
 
 const timelineLeadLabels: Record<TimelineItem['kind'], string> = {
@@ -108,12 +132,16 @@ const emptyProgress: Progress = {
   kitsuEncounters: [],
   openedLetters: [],
   finaleOpened: false,
+  fromsoftRelic: null,
+  fromsoftEmberUsedAt: null,
+  tripCounters: emptyTripCounters,
 }
 
 const normalizeProgress = (value: unknown): Progress => {
   const parsed = value && typeof value === 'object' && !Array.isArray(value)
     ? value as Partial<Progress>
     : {}
+  const storedCounters = parsed.tripCounters ?? emptyTripCounters
   return {
     ...emptyProgress,
     ...parsed,
@@ -128,6 +156,13 @@ const normalizeProgress = (value: unknown): Progress => {
     kitsuEncounters: parsed.kitsuEncounters ?? [],
     openedLetters: parsed.openedLetters ?? [],
     finaleOpened: parsed.finaleOpened ?? false,
+    fromsoftRelic: parsed.fromsoftRelic ?? null,
+    fromsoftEmberUsedAt: parsed.fromsoftEmberUsedAt ?? null,
+    tripCounters: {
+      ...emptyTripCounters,
+      ...storedCounters,
+      ramen: Math.max(0, storedCounters.ramen ?? (parsed.ramen ? 1 : 0)),
+    },
   }
 }
 
@@ -372,12 +407,78 @@ function MagicDiscoveryModal({ magic, onClose }: { magic: KitsuMagicDay; onClose
   )
 }
 
+function LetterModal({ letter, onClose }: { letter: SealedLetter; onClose: () => void }) {
+  const closeRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    closeRef.current?.focus()
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [onClose])
+
+  return (
+    <div className="letter-modal" role="dialog" aria-modal="true" aria-labelledby="letter-modal-title" onClick={onClose}>
+      <article className="letter-modal-sheet" onClick={(event) => event.stopPropagation()}>
+        <div className="letter-paper-fold" aria-hidden="true" />
+        <button ref={closeRef} type="button" className="letter-modal-close" aria-label="Закрыть письмо" onClick={onClose}>×</button>
+        <span className="letter-modal-private"><Icon name="lock" size={12} /> Только для Юльчоны</span>
+        <span className="letter-modal-seal" aria-hidden="true">{letter.seal}</span>
+        <h2 id="letter-modal-title">{letter.title}</h2>
+        <div className="letter-modal-text">
+          {letter.text.split('\n\n').map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+        </div>
+        <span className="letter-modal-foot">Кицу сохранил эти слова в дороге</span>
+      </article>
+    </div>
+  )
+}
+
 function KitsuReactionToast({ message }: { message: string }) {
   return (
     <div className="kitsu-reaction" role="status">
       <img src="/assets/kitsune-guide.webp" alt="" />
       <div><span>Кицу заметил</span><p>{message}</p></div>
     </div>
+  )
+}
+
+function TripCounterArt({ id }: { id: TripCounterId }) {
+  const drawings: Record<TripCounterId, React.ReactNode> = {
+    ramen: <><path d="M19 57h82c-3 22-17 31-41 31S22 79 19 57Z" /><path d="M27 57c6-8 18-12 33-12s27 4 33 12M42 42c-5-8 5-11 0-20M60 42c-5-8 5-11 0-20M78 42c-5-8 5-11 0-20M35 91h50" /><path d="m77 14 25 38M84 10l24 38" /></>,
+    onigiri: <><path d="M60 15c8 0 34 38 37 51 3 14-10 23-37 23S20 80 23 66c3-13 29-51 37-51Z" /><path d="M43 64h34v25H43z" /><circle cx="44" cy="48" r="2" /><circle cx="73" cy="39" r="2" /><path d="M31 68c8 4 15 5 21 5M89 68c-8 4-15 5-21 5" /></>,
+    gachapon: <><rect x="27" y="10" width="66" height="80" rx="13" /><circle cx="60" cy="40" r="25" /><circle cx="48" cy="31" r="7" /><circle cx="67" cy="27" r="7" /><circle cx="73" cy="47" r="7" /><circle cx="50" cy="50" r="7" /><path d="M48 68h24v13H48zM92 53h13M101 48v10M39 90v7M81 90v7" /></>,
+    goshuin: <><rect x="46" y="28" width="50" height="62" rx="4" /><circle cx="71" cy="58" r="14" /><path d="M63 58h16M71 50v16M18 37h38M25 27h24M29 16h16M23 37v49M51 37v49M16 49h42" /></>,
+    vending: <><rect x="30" y="8" width="61" height="86" rx="7" /><rect x="38" y="17" width="45" height="37" rx="3" /><path d="M42 25h37M42 36h37M42 47h37M51 20v31M69 20v31" /><rect x="40" y="64" width="26" height="15" rx="2" /><circle cx="79" cy="68" r="4" /><path d="M73 80h11M37 94v5M84 94v5" /></>,
+    sweets: <><path d="m24 86 66-66" /><circle cx="40" cy="70" r="13" /><circle cx="58" cy="52" r="13" /><circle cx="76" cy="34" r="13" /><path d="M78 75c13-2 22 4 24 16-13 2-22-4-24-16ZM22 28c10-7 20-5 27 5-10 7-20 5-27-5Z" /><path d="M82 82c-10-4-18-2-24 5" /></>,
+  }
+
+  return <svg className="trip-counter-art" viewBox="0 0 120 105" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{drawings[id]}</svg>
+}
+
+function TripCounterCard({ definition, editable, onAdd }: { definition: (typeof tripCounterDefinitions)[number]; editable: boolean; onAdd: () => void }) {
+  const [burst, setBurst] = useState(0)
+
+  const addOne = () => {
+    if (!editable) return
+    setBurst((current) => current + 1)
+    onAdd()
+  }
+
+  return (
+    <button type="button" className={`trip-counter-card counter-${definition.id}`} disabled={!editable} onClick={addOne}>
+      <TripCounterArt id={definition.id} />
+      <span className="trip-counter-copy"><strong>{definition.title}</strong><small>{editable ? definition.actionLabel : 'Считает Юльчона'}</small></span>
+      <span className="trip-counter-add"><Icon name={editable ? 'sparkles' : 'lock'} size={17} /></span>
+      {burst > 0 && <i key={burst} className="trip-counter-burst">Запомнил ✦</i>}
+    </button>
   )
 }
 
@@ -562,7 +663,46 @@ function JourneyDayChip({ slot, index, city, active, unlocked, claimed, editable
   )
 }
 
-function TimelineCard({ item, complete, locked, editable, onToggle, onForceUnlock }: { item: TimelineItem; complete: boolean; locked: boolean; editable: boolean; onToggle: () => void; onForceUnlock: () => void }) {
+function FromsoftQuestCard({ stage, relic, editable, onFind }: { stage: 'akihabara' | 'nakano'; relic: FromsoftRelic | null; editable: boolean; onFind: (relic: FromsoftRelic) => void }) {
+  const foundDarkSouls = relic === 'dark-souls'
+
+  if (relic) {
+    return (
+      <div className="fromsoft-quest is-kindled">
+        <div className="fromsoft-quest-mark"><Icon name="sparkles" size={18} /></div>
+        <div className="fromsoft-quest-copy">
+          <small>Скрытая миссия · выполнено</small>
+          <h3>{foundDarkSouls ? 'Костёр зажжён' : 'Благодать найдена'}</h3>
+          <p>{foundDarkSouls
+            ? 'Реликвия Dark Souls найдена. Кицу сохранил её искру и приготовил одно аварийное открытие сцены.'
+            : 'Знак Elden Ring найден. Золотая искра ушла к Кицу и превратилась в одно аварийное открытие сцены.'}</p>
+        </div>
+        <span className="fromsoft-found"><Icon name="check" size={15} /> {foundDarkSouls ? 'Dark Souls' : 'Elden Ring'}</span>
+      </div>
+    )
+  }
+
+  const isNakano = stage === 'nakano'
+  return (
+    <div className="fromsoft-quest">
+      <div className="fromsoft-quest-mark"><Icon name="sparkles" size={18} /></div>
+      <div className="fromsoft-quest-copy">
+        <small>Скрытая миссия · FromSoftware</small>
+        <h3>{isNakano ? 'Искра ещё тлеет' : 'Путь негорящей искры'}</h3>
+        <p>{isNakano
+          ? 'Если в Akihabara ничего не выпало, Nakano Broadway даёт вторую попытку. Ищи Dark Souls в первую очередь, Elden Ring — как редкий запасной знак.'
+          : 'Среди витрин ищи сначала что-нибудь из Dark Souls. Если город подкинет Elden Ring — это тоже считается знаком.'}</p>
+        <p className="fromsoft-rule">Подойдёт фигурка, артбук, брелок, коробка игры или просто редкая вещь в витрине. Покупать необязательно — фотография тоже считается.</p>
+      </div>
+      <div className="fromsoft-actions" aria-label="Отметить найденную реликвию">
+        <button type="button" disabled={!editable} onClick={() => onFind('dark-souls')}>Нашла Dark Souls</button>
+        <button type="button" disabled={!editable} onClick={() => onFind('elden-ring')}>Нашла Elden Ring</button>
+      </div>
+    </div>
+  )
+}
+
+function TimelineCard({ item, complete, locked, editable, fromsoftRelic, fromsoftEmberAvailable, onToggle, onForceUnlock, onUseFromsoftEmber, onFindFromsoftRelic }: { item: TimelineItem; complete: boolean; locked: boolean; editable: boolean; fromsoftRelic: FromsoftRelic | null; fromsoftEmberAvailable: boolean; onToggle: () => void; onForceUnlock: () => void; onUseFromsoftEmber: () => void; onFindFromsoftRelic: (relic: FromsoftRelic) => void }) {
   const holdTimer = useRef<number | undefined>(undefined)
   const holdOrigin = useRef({ x: 0, y: 0 })
   const [holding, setHolding] = useState(false)
@@ -628,6 +768,18 @@ function TimelineCard({ item, complete, locked, editable, onToggle, onForceUnloc
           </span>
           <span className="details-chevron"><Icon name="lock" size={15} /></span>
         </div>
+        {fromsoftEmberAvailable && (
+          <button
+            type="button"
+            className="fromsoft-ember-button"
+            onPointerDown={(event) => event.stopPropagation()}
+            onKeyDown={(event) => event.stopPropagation()}
+            onClick={(event) => { event.stopPropagation(); onUseFromsoftEmber() }}
+          >
+            <span><Icon name="sparkles" size={15} /></span>
+            <span><strong>Разжечь негорящую искру</strong><small>Один раз открыть эту сцену раньше</small></span>
+          </button>
+        )}
       </div>
     )
   }
@@ -654,6 +806,8 @@ function TimelineCard({ item, complete, locked, editable, onToggle, onForceUnloc
           </div>
         ))}
         {animeFrames.map((frame) => <AnimeFrameCard key={`${item.id}-${frame.work}`} frame={frame} />)}
+        {item.id === 'akihabara' && <FromsoftQuestCard stage="akihabara" relic={fromsoftRelic} editable={editable} onFind={onFindFromsoftRelic} />}
+        {item.id === 'nakano' && <FromsoftQuestCard stage="nakano" relic={fromsoftRelic} editable={editable} onFind={onFindFromsoftRelic} />}
       </div>
     </details>
   )
@@ -870,6 +1024,7 @@ function App() {
   const [riddleAnswers, setRiddleAnswers] = useState<Record<string, number>>({})
   const [modal, setModal] = useState<{ id: string; isNew: boolean; queue: string[] } | null>(null)
   const [magicModalDayId, setMagicModalDayId] = useState<string | null>(null)
+  const [activeLetterId, setActiveLetterId] = useState<string | null>(null)
   const [kitsuReaction, setKitsuReaction] = useState<{ id: number; message: string } | null>(null)
   const [confirmation, setConfirmation] = useState<ConfirmationRequest | null>(null)
   const [photoError, setPhotoError] = useState('')
@@ -911,10 +1066,12 @@ function App() {
   const knownFoxFires = progress.foxFires.filter((id) => Boolean(kitsuMagicByDay[id]))
   const nightMagicDays = kitsuMagicDays.filter((magic) => Boolean(magic.nightEncounter))
   const knownKitsuEncounters = progress.kitsuEncounters.filter((id) => nightMagicDays.some((magic) => magic.dayId === id))
+  const tripCounters = progress.tripCounters ?? emptyTripCounters
   const selectedFoxFireFound = selectedMagic ? knownFoxFires.includes(selectedMagic.dayId) : false
   const selectedEncounterFound = selectedMagic ? progress.kitsuEncounters.includes(selectedMagic.dayId) : false
   const selectedNightMagicUnlocked = PREVIEW_MODE || selectedDate < today || (selectedDate === today && japanHour >= 19)
   const magicModal = magicModalDayId ? kitsuMagicByDay[magicModalDayId] : undefined
+  const activeLetter = activeLetterId ? sealedLetters.find((letter) => letter.id === activeLetterId) : undefined
   const kitsuMood = japanHour < 10 ? 'sleepy' : japanHour < 18 ? 'adventurous' : 'cozy'
   const kitsuMoodLabel = kitsuMood === 'sleepy' ? 'сонная проводница' : kitsuMood === 'adventurous' ? 'охотница за знаками' : 'хранительница вечерних огней'
   const kitsuStages = [
@@ -928,16 +1085,10 @@ function App() {
   const kitsuStage = [...kitsuStages].reverse().find((stage) => knownFoxFires.length >= stage.min) ?? kitsuStages[0]
   const visibleTailCount = Math.min(9, Math.max(1, Math.ceil(knownFoxFires.length / 2)))
   const finaleReady = PREVIEW_MODE || today >= '2026-10-13' || progress.unlockedDays.includes('2026-10-13')
-  const unlockedTalismans = new Set<string>([
-    ...(knownFoxFires.length >= 1 ? ['tabiji'] : []),
-    ...(knownFoxFires.includes('shirahama') || progress.claimed.includes('touch-the-pacific') ? ['umi'] : []),
-    ...(knownFoxFires.includes('fushimi') || progress.claimed.includes('a-thousand-gates') ? ['inari'] : []),
-    ...(knownFoxFires.includes('fuji') || progress.claimed.includes('fuji-found') ? ['fuji'] : []),
-    ...(Object.keys(progress.photos).length >= 5 ? ['kioku'] : []),
-    ...(progress.finaleOpened ? ['okaeri'] : []),
-  ])
+  const fromsoftQuestAvailable = PREVIEW_MODE || today >= '2026-10-10' || progress.unlockedDays.includes('2026-10-10')
   const bestRatingEntry = Object.entries(progress.ratings).sort(([, a], [, b]) => b - a)[0]
   const bestRatedDay = bestRatingEntry ? tripDays.find((slot) => dayContentForDate(slot.date, progress.fujiDate).id === bestRatingEntry[0]) : undefined
+  const tripCounterTotal = Object.values(tripCounters).reduce((sum, value) => sum + value, 0)
 
   useEffect(() => {
     progressRef.current = progress
@@ -1131,6 +1282,7 @@ function App() {
     unlock(stopDone('shibuya-story', 'jujutsu-route'), 'shibuya-incident')
     unlock(stopDone('shibuya-story', 'suga-steps'), 'i-remember-you')
     unlock(stopDone('ginza-akihabara', 'kanda-myojin-anime') && stopDone('ginza-akihabara', 'steins-gate-line'), 'el-psy-kongroo')
+    unlock(Boolean(progress.fromsoftRelic), 'kindled-in-japan')
     unlock(claimed.size >= 15, 'japan-collector')
     unlock(achievements.filter((item) => item.id !== 'completionist').every((item) => claimed.has(item.id)), 'completionist')
     const next = [...claimed]
@@ -1148,6 +1300,45 @@ function App() {
   }, [progress, canEdit])
 
   const showKitsuReaction = (message: string) => setKitsuReaction((current) => ({ id: (current?.id ?? 0) + 1, message }))
+
+  const findFromsoftRelic = (relic: FromsoftRelic) => {
+    if (!canEdit || progress.fromsoftRelic) return
+    const isDarkSouls = relic === 'dark-souls'
+    setConfirmation({
+      title: isDarkSouls ? 'Реликвия Dark Souls найдена?' : 'Знак Elden Ring найден?',
+      description: 'Покупка не обязательна: предмет в витрине или фотография тоже честно закрывают эту скрытую миссию.',
+      confirmLabel: 'Да, искра найдена',
+      onConfirm: () => {
+        setProgress((current) => current.fromsoftRelic ? current : { ...current, fromsoftRelic: relic })
+        showKitsuReaction(isDarkSouls
+          ? 'Костёр зажёгся. Кицу унёс одну негорящую искру во вкладку своих реликвий.'
+          : 'Золотой знак вспыхнул. Кицу спрятал одну искру благодати среди своих реликвий.')
+      },
+    })
+  }
+
+  const activateFromsoftEmber = (dayId: string, stopId: string) => {
+    if (!canEdit || !progress.fromsoftRelic || progress.fromsoftEmberUsedAt) return
+    setConfirmation({
+      title: 'Разжечь негорящую искру?',
+      description: 'Она откроет эту сцену раньше обычного и после этого погаснет. Использовать искру можно только один раз за всё путешествие.',
+      confirmLabel: 'Разжечь искру',
+      onConfirm: () => {
+        setProgress((current) => {
+          if (!current.fromsoftRelic || current.fromsoftEmberUsedAt) return current
+          const unlocked = current.unlockedStops[dayId] ?? []
+          return {
+            ...current,
+            fromsoftEmberUsedAt: `${dayId}:${stopId}`,
+            unlockedStops: unlocked.includes(stopId)
+              ? current.unlockedStops
+              : { ...current.unlockedStops, [dayId]: [...unlocked, stopId] },
+          }
+        })
+        showKitsuReaction('Искра вспыхнула и сняла печать со сцены. Даже Кицу на секунду стал похож на хранителя костра.')
+      },
+    })
+  }
 
   const isLetterUnlocked = (letter: (typeof sealedLetters)[number]) => {
     if (PREVIEW_MODE) return true
@@ -1182,11 +1373,15 @@ function App() {
   }
 
   const openLetter = (letter: (typeof sealedLetters)[number]) => {
-    if (!canEdit || !isLetterUnlocked(letter) || progress.openedLetters.includes(letter.id)) return
-    setProgress((current) => current.openedLetters.includes(letter.id)
-      ? current
-      : { ...current, openedLetters: [...current.openedLetters, letter.id] })
-    showKitsuReaction('Печать стала тёплой и рассыпалась золотой пылью. Письмо теперь останется открытым.')
+    if (!canEdit || !isLetterUnlocked(letter)) return
+    const firstOpening = !progress.openedLetters.includes(letter.id)
+    if (firstOpening) {
+      setProgress((current) => current.openedLetters.includes(letter.id)
+        ? current
+        : { ...current, openedLetters: [...current.openedLetters, letter.id] })
+      showKitsuReaction('Печать стала тёплой и рассыпалась золотой пылью. Письмо теперь можно перечитывать в любой момент.')
+    }
+    setActiveLetterId(letter.id)
   }
 
   const openFinale = () => {
@@ -1365,16 +1560,18 @@ function App() {
     })
   }
 
-  const toggleRamen = () => {
-    if (progress.ramen || progress.claimed.includes('ramen-initiation')) {
-      setProgress((current) => ({ ...current, ramen: !current.ramen }))
-      return
-    }
-    setConfirmation({
-      title: 'Первая миска съедена?',
-      description: 'Эта отметка навсегда откроет ачивку за первый ramen поездки.',
-      confirmLabel: 'Да, съедена',
-      onConfirm: () => setProgress((current) => ({ ...current, ramen: true })),
+  const recordTripCounter = (id: TripCounterId) => {
+    if (!canEdit) return
+    setProgress((current) => {
+      const currentCounters = current.tripCounters ?? emptyTripCounters
+      const nextValue = (currentCounters[id] ?? 0) + 1
+      const unlocksGachaponQuest = id === 'gachapon' && nextValue > 0 && !current.sideQuests.includes('gachapon-oracle')
+      return {
+        ...current,
+        ramen: current.ramen || (id === 'ramen' && nextValue > 0),
+        tripCounters: { ...currentCounters, [id]: nextValue },
+        sideQuests: unlocksGachaponQuest ? [...current.sideQuests, 'gachapon-oracle'] : current.sideQuests,
+      }
     })
   }
 
@@ -1521,7 +1718,21 @@ function App() {
                     const previousComplete = index < 2 || selectedStops.includes(selectedDay.timeline[index - 1].id)
                     const manuallyUnlocked = selectedUnlockedStops.includes(item.id)
                     const accessible = previousComplete || timeUnlocked || manuallyUnlocked
-                    return <TimelineCard key={item.id} item={item} complete={complete} locked={!complete && !accessible} editable={canEdit} onToggle={() => toggleStop(selectedDay.id, item.id, accessible)} onForceUnlock={() => forceUnlockStop(selectedDay.id, item.id)} />
+                    return (
+                      <TimelineCard
+                        key={item.id}
+                        item={item}
+                        complete={complete}
+                        locked={!complete && !accessible}
+                        editable={canEdit}
+                        fromsoftRelic={progress.fromsoftRelic}
+                        fromsoftEmberAvailable={canEdit && Boolean(progress.fromsoftRelic) && !progress.fromsoftEmberUsedAt}
+                        onToggle={() => toggleStop(selectedDay.id, item.id, accessible)}
+                        onForceUnlock={() => forceUnlockStop(selectedDay.id, item.id)}
+                        onUseFromsoftEmber={() => activateFromsoftEmber(selectedDay.id, item.id)}
+                        onFindFromsoftRelic={findFromsoftRelic}
+                      />
+                    )
                   })}
                 </section>
 
@@ -1646,14 +1857,30 @@ function App() {
         {view === 'passport' && (
           <div className="screen-content passport-screen">
             <section className="page-intro passport-intro">
-              <div><span className="section-kicker">Travel Passport</span><h1>Полевой дневник</h1><p>Маленькие отметки, которые превращают маршрут в историю.</p></div>
+              <div><span className="section-kicker">Travel Passport</span><h1>Дневник Юльчоны</h1><p>Здесь Кицу складывает находки, случайности и маленькие победы всей поездки.</p></div>
               <img src="/assets/kitsune-guide.webp" alt="" />
+            </section>
+
+            <section className="passport-overview" aria-label="Краткий обзор полевого дневника">
+              <span><Icon name="stamp" size={17} /><strong>{progress.stamps.length}/5</strong><small>печатей</small></span>
+              <span><Icon name="camera" size={17} /><strong>{Object.keys(progress.photos).length}</strong><small>фото дня</small></span>
+              <span><Icon name="quest" size={17} /><strong>{completedSideQuests.length}</strong><small>находок</small></span>
+            </section>
+
+            <section className="passport-section trip-counters-section">
+              <div className="section-title"><div><span className="section-kicker">Секретный счёт Кицу</span><h2>Кицу, запомни!</h2></div><span className="trip-counters-seal"><Icon name="fox" size={19} /></span></div>
+              <p className="trip-counters-note">Нажми на нужную плитку после находки. Числа останутся тайной до самого финала.</p>
+              <div className="trip-counter-list">
+                {tripCounterDefinitions.map((definition) => (
+                  <TripCounterCard key={definition.id} definition={definition} editable={canEdit} onAdd={() => recordTripCounter(definition.id)} />
+                ))}
+              </div>
             </section>
 
             <section className="paper-card fuji-switcher">
               <div className="card-label"><Icon name="place" size={18} /> План Fuji</div>
-              <h3>Когда охотимся за горой?</h3>
-              <p>Если облачно, контент Fuji и награда переедут вместе.</p>
+              <h3>Если гора спрячется в облаках</h3>
+              <p>Одним нажатием перенеси весь день Fuji вместе с картой и наградой.</p>
               <div className="segmented-control">
                 <button type="button" disabled={!canEdit} className={progress.fujiDate === '2026-10-09' ? 'is-active' : ''} onClick={() => setProgress((current) => ({ ...current, fujiDate: '2026-10-09' }))}>9 окт</button>
                 <button type="button" disabled={!canEdit} className={progress.fujiDate === '2026-10-11' ? 'is-active' : ''} onClick={() => setProgress((current) => ({ ...current, fujiDate: '2026-10-11' }))}>11 окт</button>
@@ -1661,17 +1888,20 @@ function App() {
             </section>
 
             <section className="passport-section">
-              <div className="section-title"><div><span className="section-kicker">Eki stamp</span><h2>Пять печатей</h2></div><strong>{progress.stamps.length}/5</strong></div>
-              <div className="stamp-system-guide">
-                <div>
-                  <strong>Eki stamp</strong>
-                  <p>Ставишь сама в туристический блокнот — не в загранпаспорт. Ниже отмечаешь находку в приложении.</p>
+              <div className="section-title"><div><span className="section-kicker">Eki stamp</span><h2>Пять станционных печатей</h2></div><strong>{progress.stamps.length}/5</strong></div>
+              <details className="stamp-help">
+                <summary><span><Icon name="hint" size={18} /></span><span><strong>Какая печать куда?</strong><small>Короткая шпаргалка без путаницы</small></span><Icon name="chevron" size={17} /></summary>
+                <div className="stamp-system-guide">
+                  <div>
+                    <strong>Eki stamp</strong>
+                    <p>Ставишь сама в туристический блокнот — не в загранпаспорт. Ниже отмечаешь находку в приложении.</p>
+                  </div>
+                  <div>
+                    <strong>Goshuin</strong>
+                    <p>Служитель оформляет в отдельной goshuincho. В эти пять станционных печатей он не входит.</p>
+                  </div>
                 </div>
-                <div>
-                  <strong>Goshuin</strong>
-                  <p>Служитель оформляет в отдельной goshuincho. В эти пять станционных печатей он не входит.</p>
-                </div>
-              </div>
+              </details>
               <div className="stamp-list">
                 {passportStamps.map((stamp, index) => {
                   const found = progress.stamps.includes(stamp.id)
@@ -1688,31 +1918,27 @@ function App() {
 
             <section className="paper-card side-quests">
               <div className="card-label"><Icon name="quest" size={18} /> Side quests</div>
-              <h3>Вкусные секреты</h3>
-              <button type="button" disabled={!canEdit} className={progress.ramen ? 'quest-toggle is-complete' : 'quest-toggle'} onClick={toggleRamen}>
-                <span className="quest-toggle-icon"><Icon name="bowl" size={23} /></span><span><strong>Первый ramen</strong><small>Отметить после первой миски</small></span><span className="mini-check">{progress.ramen && <Icon name="check" size={16} />}</span>
-              </button>
-              <p className="mini-label">Три разных konbini</p>
+              <h3>Случайные находки</h3>
+              <p className="side-quest-note">Никаких дедлайнов: сюда попадает только то, что само встретилось по дороге.</p>
+              <p className="mini-label">Заглянуть в три разных konbini</p>
               <div className="konbini-grid">
                 {['7-Eleven', 'FamilyMart', 'Lawson'].map((shop) => <button key={shop} type="button" disabled={!canEdit} className={progress.konbini.includes(shop) ? 'is-active' : ''} onClick={() => toggleListValue('konbini', shop)}>{progress.konbini.includes(shop) && <Icon name="check" size={14} />}{shop}</button>)}
               </div>
-              <div className="side-quest-heading">
-                <p className="mini-label">Миссии без маршрута</p>
-                <strong>{completedSideQuests.length}/{sideQuests.length}</strong>
-              </div>
-              <p className="side-quest-note">Никаких дедлайнов — отмечай случайные находки в любой день.</p>
-              <div className="side-quest-list">
-                {sideQuests.map((quest) => {
-                  const complete = completedSideQuests.includes(quest.id)
-                  return (
-                    <button key={quest.id} type="button" disabled={!canEdit} className={complete ? 'quest-toggle is-complete' : 'quest-toggle'} onClick={() => toggleListValue('sideQuests', quest.id)}>
-                      <span className="quest-toggle-icon"><Icon name={quest.icon} size={21} /></span>
-                      <span><strong>{quest.title}</strong><small>{quest.description}</small></span>
-                      <span className="mini-check">{complete && <Icon name="check" size={16} />}</span>
-                    </button>
-                  )
-                })}
-              </div>
+              <details className="side-quest-drawer">
+                <summary><span><Icon name="sparkles" size={18} /></span><span><strong>Открыть миссии без маршрута</strong><small>{completedSideQuests.length} из {sideQuests.length} уже стали частью истории</small></span><Icon name="chevron" size={17} /></summary>
+                <div className="side-quest-list">
+                  {sideQuests.map((quest) => {
+                    const complete = completedSideQuests.includes(quest.id)
+                    return (
+                      <button key={quest.id} type="button" disabled={!canEdit} className={complete ? 'quest-toggle is-complete' : 'quest-toggle'} onClick={() => toggleListValue('sideQuests', quest.id)}>
+                        <span className="quest-toggle-icon"><Icon name={quest.icon} size={21} /></span>
+                        <span><strong>{quest.title}</strong><small>{quest.description}</small></span>
+                        <span className="mini-check">{complete && <Icon name="check" size={16} />}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </details>
             </section>
 
             <section className="passport-section photo-journal">
@@ -1737,7 +1963,27 @@ function App() {
               <img src="/assets/kitsune-guide.webp" alt="Кицу — лисий проводник путешествия" />
             </section>
 
-            <section className="kitsu-magic-section">
+            <section className="kitsu-welcome" aria-label="Кто такой Кицу и главное правило путешествия">
+              <div className="kitsu-welcome-about">
+                <span className="kitsu-welcome-icon"><Icon name="fox" size={21} /></span>
+                <div><small>Кто такой Кицу</small><h2>Хранитель вашей истории</h2><p>Он ничего не проверяет и не считает опоздания — только подсказывает, замечает находки и бережно хранит то, что случилось именно с вами.</p></div>
+              </div>
+              <div className="kitsu-welcome-rule">
+                <span><Icon name="sparkles" size={18} /></span>
+                <div><small>Главное правило</small><h3>Никакой гонки</h3><p>Устала — отдых тоже приключение. Погода поменяла план — история просто выбрала другой путь. Здесь невозможно пройти что-то неправильно.</p></div>
+              </div>
+            </section>
+
+            <nav className="kitsu-shortcuts" aria-label="Быстрые переходы по вкладке Кицу">
+              {[
+                ['kitsu-fires', 'Огни', 'sparkles'],
+                ['kitsu-letters', 'Письма', 'lock'],
+                ['kitsu-encounters', 'Истории', 'fox'],
+                ['kitsu-phrases', 'Фразы', 'hint'],
+              ].map(([target, label, icon]) => <button key={target} type="button" onClick={() => document.getElementById(target)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}><Icon name={icon} size={15} />{label}</button>)}
+            </nav>
+
+            <section id="kitsu-fires" className="kitsu-magic-section kitsu-anchor-section">
               <div className="section-title"><div><span className="section-kicker">Kitsunebi</span><h2>Созвездие лисьих огней</h2></div><strong>{knownFoxFires.length}/{kitsuMagicDays.length}</strong></div>
               <p className="kitsu-section-note">Каждый огонь появляется после одной настоящей маленькой находки. Ничего не нужно выполнять на 100%.</p>
               <div className="fox-fire-grid">
@@ -1756,7 +2002,34 @@ function App() {
               </div>
             </section>
 
-            <section className="kitsu-magic-section night-stories-section">
+            <section id="kitsu-letters" className="kitsu-magic-section letter-section kitsu-anchor-section">
+              <div className="section-title"><div><span className="section-kicker">Запечатанные слова</span><h2>Пять писем по дороге</h2></div>{canEdit ? <strong>{progress.openedLetters.length}/{sealedLetters.length}</strong> : <Icon name="lock" size={18} />}</div>
+              {canEdit ? (
+                <>
+                  <p className="kitsu-section-note">Нажми на конверт — бумага развернётся поверх страницы. Уже открытые письма можно перечитывать.</p>
+                  <div className="letter-stack">
+                    {sealedLetters.map((letter) => {
+                      const unlocked = isLetterUnlocked(letter)
+                      const opened = progress.openedLetters.includes(letter.id)
+                      return (
+                        <button key={letter.id} type="button" disabled={!unlocked} className={opened ? 'sealed-letter is-open' : unlocked ? 'sealed-letter is-ready' : 'sealed-letter'} onClick={() => openLetter(letter)}>
+                          <span className="letter-seal">{opened ? '心' : letter.seal}</span>
+                          <span className="sealed-letter-copy"><small>{opened ? 'Письмо открыто' : unlocked ? 'Печать стала тёплой' : 'Пока запечатано'}</small><strong>{opened || unlocked ? letter.title : 'Слова из будущей главы'}</strong><p>{opened ? 'Нажми, чтобы перечитать письмо.' : unlocked ? 'Нажми, чтобы снять печать и развернуть бумагу.' : letter.preview}</p></span>
+                          <span className="letter-card-action"><Icon name={opened ? 'eye' : unlocked ? 'chevron' : 'lock'} size={16} /></span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </>
+              ) : (
+                <div className="private-letter-lock">
+                  <span><Icon name="lock" size={23} /></span>
+                  <div><strong>Личные письма Юльчоны</strong><p>Кицу не раскрывает чужие письма. Их сможет прочитать только хозяйка этой истории.</p></div>
+                </div>
+              )}
+            </section>
+
+            <section id="kitsu-encounters" className="kitsu-magic-section night-stories-section kitsu-anchor-section">
               <div className="section-title"><div><span className="section-kicker">Редкие встречи</span><h2>Ночной след Кицу</h2></div><strong>{knownKitsuEncounters.length}/{nightMagicDays.length}</strong></div>
               <p className="kitsu-section-note">В некоторые вечера Кицу появляется в главе после заката. Замеченная встреча навсегда открывает здесь маленькую историю этого дня.</p>
               <div className="night-story-list">
@@ -1790,39 +2063,34 @@ function App() {
               </div>
             </section>
 
-            <section className="kitsu-magic-section">
-              <div className="section-title"><div><span className="section-kicker">Omamori</span><h2>Талисманы пути</h2></div><strong>{unlockedTalismans.size}/{kitsuTalismans.length}</strong></div>
-              <div className="talisman-grid">
-                {kitsuTalismans.map((talisman) => {
-                  const unlocked = unlockedTalismans.has(talisman.id)
-                  return <article key={talisman.id} className={unlocked ? 'talisman is-unlocked' : 'talisman'}><span>{unlocked ? talisman.symbol : '封'}</span><div><strong>{unlocked ? talisman.title : 'Запечатано'}</strong><p>{unlocked ? talisman.description : 'Талисман откроется в подходящий момент пути.'}</p></div></article>
-                })}
-              </div>
-            </section>
-
-            <section className="kitsu-magic-section letter-section">
-              <div className="section-title"><div><span className="section-kicker">Запечатанные слова</span><h2>Пять писем по дороге</h2></div>{canEdit ? <strong>{progress.openedLetters.length}/{sealedLetters.length}</strong> : <Icon name="lock" size={18} />}</div>
-              {canEdit ? (
-                <div className="letter-stack">
-                  {sealedLetters.map((letter) => {
-                    const unlocked = isLetterUnlocked(letter)
-                    const opened = progress.openedLetters.includes(letter.id)
-                    return (
-                      <article key={letter.id} className={opened ? 'sealed-letter is-open' : unlocked ? 'sealed-letter is-ready' : 'sealed-letter'}>
-                        <span className="letter-seal">{opened ? '心' : letter.seal}</span>
-                        <div><small>{opened ? 'Письмо открыто' : unlocked ? 'Печать стала тёплой' : 'Пока запечатано'}</small><h3>{opened || unlocked ? letter.title : 'Слова из будущей главы'}</h3><p>{opened ? letter.text : letter.preview}</p></div>
-                        {!opened && <button type="button" disabled={!unlocked} onClick={() => openLetter(letter)}>{unlocked ? 'Открыть' : <Icon name="lock" size={15} />}</button>}
-                      </article>
-                    )
-                  })}
-                </div>
-              ) : (
-                <div className="private-letter-lock">
-                  <span><Icon name="lock" size={23} /></span>
-                  <div><strong>Личные письма Юльчоны</strong><p>Кицу не раскрывает чужие письма. Их сможет прочитать только хозяйка этой истории.</p></div>
-                </div>
-              )}
-            </section>
+            {fromsoftQuestAvailable && (
+              <section className="kitsu-magic-section fromsoft-relic-section">
+                <div className="section-title"><div><span className="section-kicker">Скрытый путь</span><h2>Негорящая искра</h2></div>{progress.fromsoftRelic ? <Icon name="sparkles" size={19} /> : <Icon name="lock" size={18} />}</div>
+                <article className={progress.fromsoftRelic ? 'fromsoft-relic-card is-found' : 'fromsoft-relic-card'}>
+                  <div className="fromsoft-relic-visual">
+                    <img src="/assets/achivments/kindled-in-japan.webp" alt="" />
+                    {!progress.fromsoftRelic && <span><Icon name="lock" size={18} /></span>}
+                  </div>
+                  <div className="fromsoft-relic-story">
+                    <small>{progress.fromsoftRelic ? 'Реликвия Кицу' : 'Неразгаданный след'}</small>
+                    <h3>{progress.fromsoftRelic === 'dark-souls' ? 'Костёр среди неона' : progress.fromsoftRelic === 'elden-ring' ? 'Золотой знак в Tokyo' : 'Что-то тлеет в электрическом городе'}</h3>
+                    <p>{progress.fromsoftRelic === 'dark-souls'
+                      ? 'Среди ярких витрин нашлась вещь из мира Dark Souls. Кицу решил, что это не просто сувенир: если такая искра добралась до Японии вместе с вами, погаснуть ей уже нельзя.'
+                      : progress.fromsoftRelic === 'elden-ring'
+                        ? 'Среди вывесок Tokyo мелькнул знак Elden Ring. Кицу поймал золотую искру хвостом и оставил её на случай, если дорога однажды упрётся в закрытую сцену.'
+                        : 'Кицу чувствует знакомое тепло где-то среди витрин Akihabara. Открой сцену большой охоты и проверь, какой мир оставил этот след.'}</p>
+                    {progress.fromsoftRelic ? (
+                      <div className={progress.fromsoftEmberUsedAt ? 'fromsoft-power is-used' : 'fromsoft-power'}>
+                        <span><Icon name="sparkles" size={16} /></span>
+                        <div><strong>{progress.fromsoftEmberUsedAt ? 'Искра уже разожжена' : 'Чит Кицу готов'}</strong><p>{progress.fromsoftEmberUsedAt ? 'Она уже сняла печать с одной закрытой сцены.' : 'У любой закрытой сцены появится кнопка для одного досрочного открытия.'}</p></div>
+                      </div>
+                    ) : (
+                      <button type="button" className="fromsoft-hunt-button" onClick={() => { setSelectedDate('2026-10-10'); setView('journey'); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>К скрытой охоте</button>
+                    )}
+                  </div>
+                </article>
+              </section>
+            )}
 
             <section className={progress.finaleOpened ? 'kitsu-finale is-open' : 'kitsu-finale'}>
               <div className="finale-stars" aria-hidden="true"><i /><i /><i /><i /><i /><i /></div>
@@ -1842,30 +2110,19 @@ function App() {
                     <span><strong>{progress.stamps.length}</strong><small>печатей</small></span>
                     <span><strong>{knownKitsuEncounters.length}</strong><small>встреч с Кицу</small></span>
                   </div>
+                  {tripCounterTotal > 0 && (
+                    <div className="finale-trip-counters">
+                      <small>Что набралось за поездку</small>
+                      <div>{tripCounterDefinitions.filter((definition) => tripCounters[definition.id] > 0).map((definition) => <span key={definition.id}><i>{definition.icon}</i><strong>{tripCounters[definition.id]}</strong><em>{definition.finaleLabel}</em></span>)}</div>
+                    </div>
+                  )}
                   {bestRatingEntry && <p className="finale-favorite">Самая высокая оценка — <strong>{bestRatedDay?.dateLabel ?? 'один особенный день'} · {bestRatingEntry[1]}/10</strong></p>}
                   <blockquote>«Спасибо за эту Японию — с усталыми ногами, случайными находками и моментами, которых не было ни в одном плане. У этой истории будет продолжение.»</blockquote>
                 </>
               )}
             </section>
 
-            <section className="paper-card kitsu-story">
-              <div className="card-label"><Icon name="fox" size={18} /> Кто такой Кицу</div>
-              <h2>Хранитель этой истории</h2>
-              <p>Кицу появился специально для Chonchetrip. Он не гид и не контролёр: не проверяет геолокацию, не считает опоздания и всегда верит честному слову.</p>
-              <p>Утром он оставляет шёпот, днём замечает находки, а после заката иногда сам попадается на глаза. Чем больше настоящих моментов сохранено, тем ярче становится его созвездие.</p>
-            </section>
-
-            <section className="paper-card kitsu-pact">
-              <div className="card-label"><Icon name="sparkles" size={18} /> Договор путешествия</div>
-              <h2>Главное правило — никакой гонки</h2>
-              <ul>
-                <li>Устала — отдых тоже считается приключением.</li>
-                <li>Погода изменила план — значит, история выбрала другой путь.</li>
-                <li>Ничего не нужно закрывать на 100%, чтобы поездка была идеальной.</li>
-              </ul>
-            </section>
-
-            <section className="phrasebook">
+            <section id="kitsu-phrases" className="phrasebook kitsu-anchor-section">
               <div className="section-title"><div><span className="section-kicker">На всякий случай</span><h2>Двенадцать фраз</h2></div></div>
               <div className="phrase-grid">
                 {[
@@ -1899,6 +2156,7 @@ function App() {
 
       {modalAchievement && modal && <AchievementModal achievement={modalAchievement} isNew={modal.isNew} onClose={closeAchievementModal} />}
       {magicModal && <MagicDiscoveryModal magic={magicModal} onClose={() => setMagicModalDayId(null)} />}
+      {activeLetter && canEdit && <LetterModal letter={activeLetter} onClose={() => setActiveLetterId(null)} />}
       {confirmation && <ConfirmationDialog request={confirmation} onCancel={() => setConfirmation(null)} />}
       {kitsuReaction && <KitsuReactionToast key={kitsuReaction.id} message={kitsuReaction.message} />}
     </div>

@@ -486,7 +486,8 @@ export const tripDays: TripDay[] = [
       { id: 'houtou', time: 'После подъёма', title: 'Согреться лапшой из котла', kind: 'food', details: ['Толстая hōtō, овощи и miso-бульон возвращают силы мгновенно.'] },
       { id: 'oishi', time: 'После обеда', title: 'Встретиться с Fuji у воды', kind: 'place', details: ['В Oishi Park между тобой и горой остаётся только озеро.'] },
       { id: 'ropeway', time: 'Перед вечером', title: 'Подняться ещё выше', kind: 'place', details: ['Канатная дорога покажет сразу и Fuji, и Lake Kawaguchi.'] },
-      { id: 'fuji-return', time: '17:41', title: 'Увезти гору с собой', kind: 'route', details: ['Сесть у окна Fuji Excursion 48 и пересматривать фотографии до Tokyo.', 'После прибытия в Shinjuku вернуться к Hamamatsucho и домой. Этот вечер специально остаётся без новых обязательных планов.'] },
+      { id: 'fuji-return', time: '17:41', title: 'Увезти гору с собой', kind: 'route', details: ['Сесть у окна Fuji Excursion 48 и пересматривать фотографии до Tokyo.', 'После прибытия в Shinjuku вернуться к Hamamatsucho, оставить вещи и решить, сколько сил осталось на вечер.'] },
+      { id: 'fuji-evening', time: 'Когда вернётесь', title: 'Оставить вечер только для вас', kind: 'rest', details: ['Если силы ещё есть — выйти на короткую прогулку без маршрута: тихие улицы Hamamatsucho, знакомый огонь Tokyo Tower или случайный konbini по дороге.', 'Если день забрал всё — сразу домой, душ, фотографии Fuji и отдых. Ничего догонять не нужно: оба варианта считаются правильным финалом.'] },
     ],
   },
   {
@@ -706,6 +707,7 @@ export const achievements: Achievement[] = [
   { id: 'shibuya-incident', title: 'Shibuya Incident', description: 'Маршрут Meiji-jingumae — Shibuya пройден по следам Jujutsu Kaisen.', type: 'secret', image: badge('shibuya-incident') },
   { id: 'i-remember-you', title: 'I Remember You', description: 'Ступени Suga Shrine из «Твоего имени» найдены.', type: 'secret', image: badge('i-remember-you') },
   { id: 'el-psy-kongroo', title: 'El Psy Kongroo', description: 'Kanda Myojin, Radio Kaikan и Manseibashi соединились в одной мировой линии.', type: 'secret', image: badge('el-psy-kongroo') },
+  { id: 'kindled-in-japan', title: 'Kindled in Japan', description: 'Реликвия Dark Souls или Elden Ring найдена между неоном Akihabara и лабиринтом Nakano.', type: 'secret', image: badge('kindled-in-japan') },
   { id: 'ramen-initiation', title: 'Ramen Initiation', description: 'Первый ramen поездки.', type: 'secret', image: badge('ramen-initiation') },
   { id: 'konbini-connoisseur', title: 'Konbini Connoisseur', description: 'Находки из трёх разных konbini.', type: 'secret', image: badge('konbini-connoisseur') },
   { id: 'stamp-hunter', title: 'Stamp Hunter', description: 'Пять японских туристических штампов.', type: 'secret', image: badge('stamp-hunter') },
