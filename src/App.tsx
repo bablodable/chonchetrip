@@ -17,7 +17,9 @@ import {
   passportStamps,
   sideQuests,
   tripDays,
+  type FoodOption,
   type Achievement,
+  type FoodPlan,
   type TimelineItem,
   type TripDay,
 } from './tripData'
@@ -826,6 +828,7 @@ function TimelineCard({ item, complete, locked, editable, fromsoftRelic, fromsof
         <span className="details-chevron"><Icon name="chevron" size={18} /></span>
       </summary>
       <div className="timeline-details">
+        {item.food && <FoodChoiceBlock plan={item.food} />}
         {item.details.map((detail, index) => (
           <div className="timeline-detail" key={`${index}-${detail}`}>
             <span className="timeline-detail-label">{getTimelineDetailLabel(item, detail, index)}</span>
@@ -841,6 +844,71 @@ function TimelineCard({ item, complete, locked, editable, fromsoftRelic, fromsof
         {animeFrames.map((frame) => <AnimeFrameCard key={`${item.id}-${frame.work}`} frame={frame} />)}
         {item.id === 'akihabara' && <FromsoftQuestCard stage="akihabara" relic={fromsoftRelic} editable={editable} onFind={onFindFromsoftRelic} />}
         {item.id === 'nakano' && <FromsoftQuestCard stage="nakano" relic={fromsoftRelic} editable={editable} onFind={onFindFromsoftRelic} />}
+      </div>
+    </details>
+  )
+}
+
+function FoodChoiceBlock({ plan }: { plan: FoodPlan }) {
+  const icon = plan.meal.includes('Матча') ? '🍵' : plan.meal.includes('Завтрак') ? '🍳' : plan.meal.includes('Перекус') ? '🥢' : plan.meal.includes('Ужин') ? '🍽️' : '🍜'
+
+  if (plan.mode === 'mood') {
+    return (
+      <section className="food-choice-block food-choice-mood" aria-label={`${plan.meal}: выбрать по настроению`}>
+        <span className="food-choice-meal">{icon} {plan.meal}</span>
+        <span className="food-choice-status">Выбираем по настроению</span>
+        <div className="food-mood-options">
+          {plan.choices.map((choice) => (
+            <article className="food-mood-option" key={choice.name}>
+              <strong>{choice.name}</strong>
+              <p>{choice.note}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  if (plan.mode === 'free') {
+    return (
+      <section className="food-choice-block food-choice-free" aria-label={`${plan.meal}: выбрать по месту`}>
+        <span className="food-choice-meal">{icon} {plan.meal}</span>
+        <span className="food-choice-status">Выбираем по месту</span>
+        {plan.area && <span className="food-choice-area">📍 {plan.area}</span>}
+        <p className="food-choice-note">{plan.note}</p>
+        <FoodAlternatives alternatives={plan.alternatives} label="Если захочется" />
+      </section>
+    )
+  }
+
+  return (
+    <section className="food-choice-block food-choice-primary" aria-label={`${plan.meal}: наш выбор`}>
+      <span className="food-choice-meal">{icon} {plan.meal}</span>
+      <span className="food-choice-status">⭐ Наш выбор</span>
+      <strong className="food-choice-name">{plan.primary.name}</strong>
+      <p className="food-choice-note">{plan.primary.note}</p>
+      <FoodAlternatives alternatives={plan.alternatives} fallback={plan.fallback} />
+    </section>
+  )
+}
+
+function FoodAlternatives({ alternatives, fallback, label = 'Другие хорошие варианты' }: { alternatives?: FoodOption[]; fallback?: string; label?: string }) {
+  if (!alternatives?.length && !fallback) return null
+
+  return (
+    <details className="food-alternatives">
+      <summary>
+        <span>{label}</span>
+        <Icon name="chevron" size={15} />
+      </summary>
+      <div className="food-alternatives-list">
+        {alternatives?.map((option) => (
+          <article className="food-alternative" key={option.name}>
+            <strong>{option.name}</strong>
+            <p>{option.note}</p>
+          </article>
+        ))}
+        {fallback && <p className="food-alternatives-fallback">{fallback}</p>}
       </div>
     </details>
   )

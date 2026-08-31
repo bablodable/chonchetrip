@@ -810,6 +810,158 @@ button {
   padding: 0 14px 15px 54px;
 }
 
+.food-choice-block {
+  display: grid;
+  gap: 5px;
+  padding: 11px;
+  border: 1px solid rgba(184, 121, 46, 0.22);
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(255, 248, 232, 0.94), rgba(250, 239, 214, 0.66));
+}
+
+.food-choice-block.food-choice-free {
+  border-color: rgba(126, 109, 81, 0.2);
+  background: linear-gradient(135deg, rgba(252, 248, 239, 0.96), rgba(239, 232, 218, 0.66));
+}
+
+.food-choice-block.food-choice-mood {
+  border-color: rgba(159, 57, 43, 0.22);
+  background: linear-gradient(135deg, rgba(255, 245, 235, 0.96), rgba(245, 228, 207, 0.72));
+}
+
+.food-choice-meal {
+  color: #8c5a28;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.045em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.food-choice-status {
+  width: fit-content;
+  padding: 3px 7px;
+  border-radius: 999px;
+  color: #9b4d32;
+  background: rgba(178, 70, 46, 0.1);
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.food-choice-free .food-choice-status {
+  color: #645747;
+  background: rgba(98, 84, 69, 0.09);
+}
+
+.food-choice-name,
+.food-mood-option strong,
+.food-alternative strong {
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.28;
+}
+
+.food-choice-note,
+.food-mood-option p,
+.food-alternative p,
+.food-alternatives-fallback {
+  margin: 0;
+  color: var(--muted-dark);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.food-choice-area {
+  color: #665949;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.food-alternatives {
+  margin-top: 3px;
+  border-top: 1px solid rgba(161, 115, 57, 0.17);
+}
+
+.food-alternatives summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 30px;
+  padding-top: 5px;
+  color: #81633d;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 900;
+  list-style: none;
+}
+
+.food-alternatives summary::-webkit-details-marker {
+  display: none;
+}
+
+.food-alternatives summary svg {
+  transition: transform 160ms ease;
+}
+
+.food-alternatives[open] summary svg {
+  transform: rotate(180deg);
+}
+
+.food-alternatives-list {
+  display: grid;
+  gap: 7px;
+  padding: 2px 0 3px;
+}
+
+.food-alternative {
+  padding: 8px 9px;
+  border-radius: 10px;
+  background: rgba(255, 253, 247, 0.62);
+}
+
+.food-alternative strong {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 12px;
+}
+
+.food-alternative p,
+.food-alternatives-fallback {
+  font-size: 11px;
+}
+
+.food-alternatives-fallback {
+  padding: 7px 1px 1px;
+}
+
+.food-mood-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin-top: 2px;
+}
+
+.food-mood-option {
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid rgba(159, 57, 43, 0.13);
+  border-radius: 11px;
+  background: rgba(255, 252, 247, 0.7);
+}
+
+.food-mood-option strong {
+  display: block;
+  font-size: 12px;
+}
+
+.food-mood-option p {
+  margin-top: 3px;
+  font-size: 11px;
+}
+
 .timeline-detail {
   padding: 1px 0 2px 11px;
   border-left: 2px solid rgba(202, 145, 76, 0.38);
@@ -3990,6 +4142,7 @@ button.night-story > svg { color: var(--muted); transform: rotate(-90deg); trans
   .claim-badge { width: 100px; height: 100px; }
   .badge-grid { gap-inline: 6px; }
   .finale-stats { grid-template-columns: repeat(2, 1fr); }
+  .food-mood-options { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {
