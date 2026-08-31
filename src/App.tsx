@@ -1787,7 +1787,7 @@ function App() {
             </section>
 
             <section className="phrasebook">
-              <div className="section-title"><div><span className="section-kicker">На всякий случай</span><h2>Десять фраз</h2></div></div>
+              <div className="section-title"><div><span className="section-kicker">На всякий случай</span><h2>Двенадцать фраз</h2></div></div>
               <div className="phrase-grid">
                 {[
                   ['すみません', 'Sumimasen', 'Извините / можно вас?'],
@@ -1795,7 +1795,9 @@ function App() {
                   ['お願いします', 'Onegaishimasu', 'Пожалуйста'],
                   ['大丈夫です', 'Daijōbu desu', 'Всё хорошо / не нужно'],
                   ['これをください', 'Kore o kudasai', 'Вот это, пожалуйста'],
+                  ['温めてください', 'Atatamete kudasai', 'Подогрейте, пожалуйста'],
                   ['駅はどこですか？', 'Eki wa doko desu ka?', 'Где находится станция?'],
+                  ['トイレはどこですか？', 'Toire wa doko desu ka?', 'Где находится туалет?'],
                   ['二人です', 'Futari desu', 'Нас двое'],
                   ['予約しています', 'Yoyaku shiteimasu', 'У нас есть бронь'],
                   ['写真を撮ってもいいですか？', 'Shashin o totte mo ii desu ka?', 'Можно сфотографировать?'],

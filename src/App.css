@@ -2493,6 +2493,7 @@ button {
 .sealed-letter small { color: var(--red-dark); font-size: 7px; font-weight: 900; letter-spacing: 0.07em; text-transform: uppercase; }
 .sealed-letter h3 { margin: 3px 0 0; color: var(--ink); font-family: var(--display); font-size: 15px; line-height: 1.1; }
 .sealed-letter p { margin: 5px 0 0; color: var(--muted-dark); font-size: 9px; line-height: 1.48; }
+.sealed-letter.is-open p { font-size: 11px; line-height: 1.62; white-space: pre-line; }
 .sealed-letter button { min-width: 54px; min-height: 31px; padding: 6px 8px; border: 1px solid rgba(166, 61, 48, 0.16); border-radius: 10px; color: var(--red-dark); background: rgba(255, 250, 240, 0.72); font-size: 8px; font-weight: 800; }
 .sealed-letter button:disabled { color: var(--muted); opacity: 0.67; }
 
