@@ -53,8 +53,8 @@
     const button = L.DomUtil.create('button', 'live-location-button');
     button.type = 'button';
     button.textContent = '📍';
-    button.title = 'Показать моё точное местоположение';
-    button.setAttribute('aria-label', 'Показать моё точное местоположение');
+    button.title = 'Показать, где я сейчас';
+    button.setAttribute('aria-label', 'Показать, где я сейчас');
     L.DomEvent.disableClickPropagation(button);
     L.DomEvent.on(button, 'click', () => {
       if (userPosition) map.setView(userPosition, Math.max(map.getZoom(), 16));
@@ -68,11 +68,11 @@
   const progressLegend = L.control({ position: 'topleft' });
   progressLegend.onAdd = () => {
     const legend = L.DomUtil.create('div', 'live-progress-legend');
-    legend.setAttribute('aria-label', 'Состояния маршрута');
+    legend.setAttribute('aria-label', 'Что означают цвета');
     legend.innerHTML = [
-      '<span><i class="is-passed"></i>Пройдено</span>',
-      '<span><i class="is-current"></i>Сейчас</span>',
-      '<span><i class="is-future"></i>Дальше</span>',
+      '<span><i class="is-passed"></i>Позади</span>',
+      '<span><i class="is-current"></i>Сюда сейчас</span>',
+      '<span><i class="is-future"></i>Впереди</span>',
     ].join('');
     L.DomEvent.disableClickPropagation(legend);
     return legend;
@@ -147,7 +147,7 @@
       marker.setIcon(liveMarkerIcon(point, status));
       marker.unbindTooltip();
       if (status === 'next') {
-        marker.bindTooltip(`Текущая цель · ${point.n}`, {
+        marker.bindTooltip(`Сюда сейчас · ${point.n}`, {
           permanent: true,
           direction: 'top',
           className: 'live-next-tooltip',
@@ -229,9 +229,9 @@
         className: 'live-user-route',
       }).addTo(map);
       const meters = distanceInMeters({ lat: userPosition[0], lng: userPosition[1] }, target);
-      updateLocationButton(`Вы здесь · GPS ±${Math.round(userAccuracy ?? 0)} м · до цели ${formatDistance(meters)} по прямой`, true);
+      updateLocationButton(`Ты здесь · до золотой точки ${formatDistance(meters)}`, true);
     } else {
-      updateLocationButton(`Вы здесь · GPS ±${Math.round(userAccuracy ?? 0)} м`, true);
+      updateLocationButton('Ты здесь', true);
     }
   }
 
@@ -248,11 +248,11 @@
     if (!locationMarker) {
       const icon = L.divIcon({
         className: '',
-        html: '<div class="live-location-dot" title="Вы здесь"></div>',
+        html: '<div class="live-location-dot" title="Ты здесь"></div>',
         iconSize: [20, 20],
         iconAnchor: [10, 10],
       });
-      locationMarker = L.marker(userPosition, { icon, zIndexOffset: 2000 }).addTo(map).bindTooltip('Вы здесь');
+      locationMarker = L.marker(userPosition, { icon, zIndexOffset: 2000 }).addTo(map).bindTooltip('Ты здесь');
       accuracyCircle = L.circle(userPosition, {
         radius: userAccuracy,
         color: '#1978d4',
@@ -278,17 +278,17 @@
 
   function handleLocationError(error) {
     const messages = {
-      1: 'Разреши геолокацию; на телефоне локальный HTTP её блокирует',
-      2: 'Телефон пока не смог определить позицию',
-      3: 'GPS отвечает слишком долго. Нажми ещё раз',
+      1: 'Кицу не видит, где ты. Разреши доступ к геопозиции в Safari',
+      2: 'Кицу пока не нашёл тебя на карте. Попробуй ещё раз',
+      3: 'Кицу ищет слишком долго. Нажми ещё раз',
     };
     locationButton?.classList.remove('is-waiting');
-    updateLocationButton(messages[error.code] ?? 'Геолокация временно недоступна');
+    updateLocationButton(messages[error.code] ?? 'Кицу пока не видит, где ты. Попробуй ещё раз');
   }
 
   function startLocationWatch(focus = false) {
     if (!navigator.geolocation) {
-      updateLocationButton(window.isSecureContext ? 'Этот браузер не поддерживает геолокацию' : 'GPS заработает на защищённом HTTPS-адресе');
+      updateLocationButton(window.isSecureContext ? 'Кицу не смог найти твоё место' : 'Кицу сможет найти тебя в защищённой версии дневника');
       if (locationButton) locationButton.disabled = true;
       return;
     }

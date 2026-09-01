@@ -61,9 +61,9 @@ const emptyTripCounters: TripCounters = {
 const currentSideQuestIds = new Set(sideQuests.map((quest) => quest.id))
 const currentAchievementIds = new Set(achievements.map((achievement) => achievement.id))
 const achievementGroups: Array<{ type: Achievement['type']; kicker: string; title: string; note: string }> = [
-  { type: 'story', kicker: 'Journey', title: 'Главы путешествия', note: 'По одной тёплой печати за день, который стал вашей историей.' },
-  { type: 'secret', kicker: 'Little wonders', title: 'Особенные находки', note: 'Это не задания на оценку. Просто моменты, которые приятно было заметить.' },
-  { type: 'meta', kicker: 'Our story', title: 'Большие воспоминания', note: 'Появляются, когда несколько случайных моментов складываются во что-то большее.' },
+  { type: 'story', kicker: 'Дорога', title: 'Главы путешествия', note: 'По одной тёплой печати за день, который стал вашей историей.' },
+  { type: 'secret', kicker: 'Маленькие чудеса', title: 'Особенные находки', note: 'Моменты, которые приятно было заметить и оставить с собой.' },
+  { type: 'meta', kicker: 'Наша история', title: 'Большие воспоминания', note: 'Появляются, когда несколько случайных моментов складываются во что-то большее.' },
 ]
 
 type ConfirmationRequest = {
@@ -406,10 +406,10 @@ function daysUntil(date: string): number {
 function compressPhoto(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
-    reader.onerror = () => reject(new Error('Не удалось прочитать фото'))
+    reader.onerror = () => reject(new Error('Кицу не смог разглядеть этот снимок'))
     reader.onload = () => {
       const image = new Image()
-      image.onerror = () => reject(new Error('Не удалось открыть фото'))
+      image.onerror = () => reject(new Error('Этот снимок не открылся. Попробуй выбрать другой'))
       image.onload = () => {
         const maxSide = 760
         const scale = Math.min(1, maxSide / Math.max(image.width, image.height))
@@ -418,7 +418,7 @@ function compressPhoto(file: File): Promise<string> {
         canvas.height = Math.round(image.height * scale)
         const context = canvas.getContext('2d')
         if (!context) {
-          reject(new Error('Фото не поддерживается'))
+          reject(new Error('Этот формат снимка Кицу не узнаёт'))
           return
         }
         context.drawImage(image, 0, 0, canvas.width, canvas.height)
@@ -578,7 +578,7 @@ function AchievementModal({ achievement, isNew, onClose }: { achievement: Achiev
       <div className={`achievement-modal-card${isNew ? ' is-new' : ''}${theme ? ` theme-${theme}` : ''}`} onClick={(event) => event.stopPropagation()}>
         {theme && <AchievementThemeFlourish theme={theme} />}
         <div className="modal-rays" aria-hidden="true" />
-        <p className="modal-kicker">{isNew ? 'Achievement unlocked' : 'Найденная реликвия'}</p>
+        <p className="modal-kicker">{isNew ? 'Новая печать пути' : 'Печать из коллекции'}</p>
         <div className="modal-badge"><AchievementVisual achievement={achievement} eager /></div>
         <h2>{achievement.title}</h2>
         <p>{achievement.description}</p>
@@ -637,7 +637,7 @@ function MagicDiscoveryModal({ magic, onClose }: { magic: KitsuMagicDay; onClose
     <div className="magic-modal" role="dialog" aria-modal="true" aria-label={magic.flameTitle} onClick={onClose}>
       <div className="magic-modal-card" onClick={(event) => event.stopPropagation()} style={{ '--flame-color': magic.flameColor } as React.CSSProperties}>
         <div className="magic-stars" aria-hidden="true"><i /><i /><i /><i /><i /></div>
-        <span className="magic-modal-kicker">Kitsunebi найден</span>
+        <span className="magic-modal-kicker">Лисий огонёк найден</span>
         <span className="fox-fire is-burning" aria-hidden="true"><i /></span>
         <h2>{magic.flameTitle}</h2>
         <p>{magic.discovery}</p>
@@ -713,7 +713,7 @@ function TripCounterCard({ definition, editable, onAdd }: { definition: (typeof 
   return (
     <button type="button" className={`trip-counter-card counter-${definition.id}`} disabled={!editable} onClick={addOne}>
       <TripCounterArt id={definition.id} />
-      <span className="trip-counter-copy"><strong>{definition.title}</strong><small>{editable ? definition.actionLabel : 'Считает Юльчона'}</small></span>
+      <span className="trip-counter-copy"><strong>{definition.title}</strong><small>{editable ? definition.actionLabel : 'Сюда заглянет Юльчона'}</small></span>
       <span className="trip-counter-add"><Icon name={editable ? 'sparkles' : 'lock'} size={17} /></span>
       {burst > 0 && <i key={burst} className="trip-counter-burst">Запомнил ✦</i>}
     </button>
@@ -743,7 +743,7 @@ function ConfirmationDialog({ request, onCancel }: { request: ConfirmationReques
     <div className="confirmation-dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirmation-title" aria-describedby="confirmation-description" onClick={onCancel}>
       <div className="confirmation-card" onClick={(event) => event.stopPropagation()}>
         <span className="confirmation-icon"><Icon name="quest" size={22} /></span>
-        <span className="section-kicker">Проверка от Кицу</span>
+        <span className="section-kicker">Кицу спрашивает</span>
         <h2 id="confirmation-title">{request.title}</h2>
         <p id="confirmation-description">{request.description}</p>
         <div className="confirmation-actions">
@@ -906,10 +906,10 @@ function DayVibeCard({ vibe }: { vibe: DayVibe }) {
   const pace = { gentle: 1, steady: 2, adventure: 3, full: 4 }[vibe.tone]
 
   return (
-    <section className="day-vibe-card" aria-label={`Ритм дня: ${vibe.label}`}>
+    <section className="day-vibe-card" aria-label={`Настроение дня: ${vibe.label}`}>
       <span className="day-vibe-icon" aria-hidden="true">{vibe.icon}</span>
       <div className="day-vibe-copy">
-        <div className="day-vibe-meta"><span>Ритм дня · {pace}/4</span><strong>{vibe.label}</strong></div>
+        <div className="day-vibe-meta"><span>Сколько сил взять с собой · {pace} из 4</span><strong>{vibe.label}</strong></div>
         <h3>{vibe.title}</h3>
         <p>{vibe.description}</p>
         <div className="day-vibe-rule"><Icon name="sparkles" size={15} /><span>{vibe.rule}</span></div>
@@ -927,7 +927,7 @@ function FromsoftQuestCard({ stage, relic, editable, onFind }: { stage: 'akihaba
       <div className="fromsoft-quest is-kindled">
         <div className="fromsoft-quest-mark"><Icon name="sparkles" size={18} /></div>
         <div className="fromsoft-quest-copy">
-          <small>Скрытая миссия · выполнено</small>
+          <small>Скрытая миссия · знак найден</small>
           <h3>{foundDarkSouls ? 'Костёр зажжён' : 'Благодать найдена'}</h3>
           <p>{foundDarkSouls
             ? 'Реликвия Dark Souls найдена. Кицу сохранил её искру: теперь она позволит один раз изменить неверный ответ в загадке дня.'
@@ -1031,7 +1031,7 @@ function TimelineCard({ item, complete, locked, editable, fromsoftRelic, onToggl
   return (
     <details className={complete ? 'timeline-card is-complete' : 'timeline-card'}>
       <summary>
-        <button className="stop-check" type="button" disabled={!editable} aria-label={complete ? 'Отметить как невыполненное' : 'Отметить как выполненное'} onClick={(event) => { event.preventDefault(); onToggle() }}>{complete && <Icon name="check" size={17} />}</button>
+        <button className="stop-check" type="button" disabled={!editable} aria-label={complete ? 'Вернуть этот момент' : 'Этот момент прожит'} onClick={(event) => { event.preventDefault(); onToggle() }}>{complete && <Icon name="check" size={17} />}</button>
         <span className={`kind-icon kind-${item.kind}`}><Icon name={item.kind} size={18} /></span>
         <span className="timeline-title"><small>{item.time}</small><strong>{item.title}</strong></span>
         <span className="details-chevron"><Icon name="chevron" size={18} /></span>
@@ -1188,14 +1188,14 @@ function DayMapCard({ day, completedStops }: { day: TripDay; completedStops: str
     <section className={open ? 'day-map-card is-open' : 'day-map-card'}>
       <button type="button" className="day-map-toggle" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
         <span className="day-map-icon"><Icon name="route" size={21} /></span>
-        <span><small>Маршрут дня</small><strong>Интерактивная карта</strong></span>
+        <span><small>Маршрут дня</small><strong>Живая карта пути</strong></span>
         <Icon name="chevron" size={19} />
       </button>
       {open && (
         <div className="day-map-body">
           {day.mapNote && <p className="day-map-note"><Icon name="hint" size={16} /> {day.mapNote}</p>}
-          <div className="day-map-frame"><iframe ref={frameRef} src={`${mapUrl}?embed=1&date=${mapDate}`} title={`Интерактивная карта · ${day.dateLabel}`} loading="lazy" allow="geolocation" onLoad={sendMapProgress} /></div>
-          <div className="day-map-footer"><span>Серое — уже пройдено, золотое — текущая цель. Светится только последний участок к ней; будущие точки остаются цветными. GPS включается кнопкой 📍.</span><a href={`${mapUrl}?date=${mapDate}&completed=${completedQuery}&routeScenes=${routeScenesQuery}&minimum=${minimumProgress}`} target="_blank" rel="noopener noreferrer">На весь экран →</a></div>
+          <div className="day-map-frame"><iframe ref={frameRef} src={`${mapUrl}?embed=1&date=${mapDate}`} title={`Карта пути · ${day.dateLabel}`} loading="lazy" allow="geolocation" onLoad={sendMapProgress} /></div>
+          <div className="day-map-footer"><span>Карту читает Кицу: серое уже позади, золотое ждёт сейчас, а цветное — дальше. Движется только дорожка к следующей точке. Кнопка 📍 покажет, где ты.</span><a href={`${mapUrl}?date=${mapDate}&completed=${completedQuery}&routeScenes=${routeScenesQuery}&minimum=${minimumProgress}`} target="_blank" rel="noopener noreferrer">Развернуть карту →</a></div>
         </div>
       )}
     </section>
@@ -1256,7 +1256,7 @@ function LockedDayContent({ editable, onForceUnlock }: { editable: boolean; onFo
       }}
     >
       <img src="/assets/kitsune-guide.webp" alt="Кицу, проводник путешествия" draggable="false" />
-      <span className="section-kicker">Время Tokyo · UTC+9</span>
+      <span className="section-kicker">По часам Tokyo</span>
       <h2>{holding ? 'Кицу снимает печать…' : 'Кицу хранит секрет'}</h2>
       <p>{holding ? 'Не отпускай. Печать исчезнет через пять секунд.' : 'Каждая глава просыпается в полночь по японскому времени. До этого маршрут и награда остаются под печатью.'}</p>
       <div className="locked-note"><Icon name="sparkles" size={18} /><span>Коллекцию можно листать заранее, но будущие награды всё равно останутся тайной.</span></div>
@@ -1388,6 +1388,7 @@ function App() {
   const discoveredCount = achievements.filter((achievement) => progress.claimed.includes(achievement.id)).length
   const completedSideQuests = progress.sideQuests ?? []
   const previewMode = PREVIEW_MODE
+  const previewDateLabel = tripDays.find((slot) => slot.date === today)?.dateLabel ?? today
   const knownFoxFires = progress.foxFires.filter((id) => Boolean(kitsuMagicByDay[id]))
   const nightMagicDays = kitsuMagicDays.filter((magic) => Boolean(magic.nightEncounter))
   const knownKitsuEncounters = progress.kitsuEncounters.filter((id) => nightMagicDays.some((magic) => magic.dayId === id))
@@ -1415,6 +1416,9 @@ function App() {
   const bestRatingEntry = Object.entries(progress.ratings).sort(([, a], [, b]) => b - a)[0]
   const bestRatedDay = bestRatingEntry ? tripDays.find((slot) => dayContentForDate(slot.date, progress.fujiDate).id === bestRatingEntry[0]) : undefined
   const tripRatingValues = Object.values(progress.ratings).filter((value) => Number.isFinite(value) && value >= 1 && value <= 10)
+  const tripRatingDaysLabel = tripRatingValues.length === 1
+    ? 'по одному прожитому дню'
+    : `по ${tripRatingValues.length} прожитым дням`
   const averageTripRating = tripRatingValues.length > 0
     ? tripRatingValues.reduce((sum, value) => sum + value, 0) / tripRatingValues.length
     : null
@@ -1747,7 +1751,7 @@ function App() {
             reveals: current.reveals.filter((dayId) => dayId !== day.id),
           }
         })
-        showKitsuReaction('Огонь прошёл по неверному ответу, не тронув сцену. Загадка снова ждёт твоего выбора.')
+        showKitsuReaction('Огонь унёс неверный ответ и не потревожил ни одного воспоминания. Загадка снова ждёт твоего выбора.')
       },
     })
   }
@@ -1879,9 +1883,9 @@ function App() {
 
     if (completesAchievement) {
       setConfirmation({
-        title: 'Миссия точно выполнена?',
-        description: 'Эта отметка завершит задание и навсегда откроет секретную ачивку на этом телефоне.',
-        confirmLabel: 'Да, выполнено',
+        title: 'Этот знак уже твой?',
+        description: 'Если всё случилось, Кицу добавит тайную награду в коллекцию и будет бережно хранить её там.',
+        confirmLabel: 'Да, всё случилось',
         onConfirm: () => applyStopToggle(dayId, stopId),
       })
       return
@@ -1930,7 +1934,7 @@ function App() {
       setProgress((current) => ({ ...current, photos: { ...current.photos, [dayId]: photo } }))
       showKitsuReaction('Этот кадр пахнет сегодняшним днём. Кицу спрятал его в плёнку памяти.')
     } catch (error) {
-      setPhotoError(error instanceof Error ? error.message : 'Не удалось сохранить фото')
+      setPhotoError(error instanceof Error ? error.message : 'Снимок не попал в плёнку. Попробуй ещё раз')
     }
   }
 
@@ -1972,9 +1976,9 @@ function App() {
 
     if (opensAchievement) {
       setConfirmation({
-        title: 'Засчитать находку?',
-        description: 'Эта отметка откроет ачивку. Саму отметку можно снять, но полученная награда уже останется в коллекции.',
-        confirmLabel: 'Да, засчитать',
+        title: 'Оставить находку в истории?',
+        description: 'Кицу откроет за неё особую награду. Даже если потом передумаешь насчёт отметки, воспоминание останется в коллекции.',
+        confirmLabel: 'Оставить в истории',
         onConfirm: () => applyListToggle(field, id),
       })
       return
@@ -1987,9 +1991,9 @@ function App() {
     const allScenesComplete = day.timeline.every((item) => (progress.checkedStops[day.id] ?? []).includes(item.id))
     if (!canEdit || !allScenesComplete || progress.riddleAnswers[day.id] !== undefined || solvedRiddles.includes(day.id)) return
     setConfirmation({
-      title: 'Проверить этот вариант?',
-      description: `Выбран ответ «${day.riddle.options[answer]}». После проверки Кицу сохранит выбор. Если ответ окажется неверным, изменить его сможет только негорящая искра FromSoftware.`,
-      confirmLabel: 'Проверить',
+      title: 'Это твой ответ?',
+      description: `Ты выбрала «${day.riddle.options[answer]}». Кицу запомнит этот выбор. Если он окажется неверным, один шанс вернуть ответ подарит только негорящая искра FromSoftware.`,
+      confirmLabel: 'Да, отвечаю так',
       onConfirm: () => answerRiddle(day, answer),
     })
   }
@@ -1997,9 +2001,9 @@ function App() {
   const requestChapterClaim = (id: string) => {
     if (!canEdit) return
     setConfirmation({
-      title: 'Забрать награду главы?',
-      description: 'Подтверди, что реальная миссия выполнена. Полученную ачивку нельзя будет убрать из коллекции.',
-      confirmLabel: 'Да, забрать',
+      title: 'Забрать печать этой главы?',
+      description: 'Если этот момент уже случился, Кицу положит награду в коллекцию, чтобы она больше не потерялась.',
+      confirmLabel: 'Забрать печать',
       onConfirm: () => claimAchievement(id),
     })
   }
@@ -2025,8 +2029,8 @@ function App() {
     }
     if (value === 10 && !progress.claimed.includes('perfect-day')) {
       setConfirmation({
-        title: 'День правда на 10 из 10?',
-        description: 'Максимальная оценка навсегда откроет секретную ачивку.',
+        title: 'Правда легендарный день?',
+        description: 'Кицу поставит рядом тайную звезду и откроет за неё особую награду.',
         confirmLabel: 'Точно 10/10',
         onConfirm: save,
       })
@@ -2055,9 +2059,9 @@ function App() {
       && !progress.claimed.includes('memory-keeper')
     if (opensAchievement) {
       setConfirmation({
-        title: 'Сохранить пятую фотографию?',
-        description: 'Она появится в общем дневнике и откроет ачивку хранительницы воспоминаний.',
-        confirmLabel: 'Сохранить фото',
+        title: 'Оставить пятый кадр в памяти?',
+        description: 'Он появится в общей плёнке, а Кицу откроет награду хранительницы воспоминаний.',
+        confirmLabel: 'Оставить кадр',
         onConfirm: () => void handlePhoto(file, dayId),
       })
       return
@@ -2099,8 +2103,8 @@ function App() {
           <span><strong>Chonchetrip</strong><small>Юльчона · Japan 2026</small></span>
         </button>
         <div className="topbar-actions">
-          <button className={`access-mode-token is-${cloudStatus}`} type="button" onClick={chooseAnotherMode} aria-label={accessMode === 'editor' ? 'Дневник открыт для Юльчоны. Нажми, чтобы выйти.' : 'Гостевой просмотр. Нажми, чтобы выйти.'}><Icon name={accessMode === 'editor' ? 'fox' : 'eye'} size={16} /><span /></button>
-          <button className="progress-token" type="button" onClick={() => setView('collection')} aria-label={`${discoveredCount} из ${achievements.length} достижений`}><Icon name="collection" size={17} /><span>{discoveredCount}/{achievements.length}</span></button>
+          <button className={`access-mode-token is-${cloudStatus}`} type="button" onClick={chooseAnotherMode} aria-label={accessMode === 'editor' ? 'Это дневник Юльчоны. Нажми, чтобы вернуться ко входу.' : 'Ты листаешь историю как гость. Нажми, чтобы вернуться ко входу.'}><Icon name={accessMode === 'editor' ? 'fox' : 'eye'} size={16} /><span /></button>
+          <button className="progress-token" type="button" onClick={() => setView('collection')} aria-label={`${discoveredCount} из ${achievements.length} печатей пути`}><Icon name="collection" size={17} /><span>{discoveredCount}/{achievements.length}</span></button>
         </div>
       </header>
 
@@ -2117,7 +2121,7 @@ function App() {
             >
               <div className="hero-shade" />
               <div className="hero-content">
-                {previewMode && <span className="preview-pill">Preview · Japan {today}</span>}
+                {previewMode && <span className="preview-pill">Взгляд из будущего · {previewDateLabel}</span>}
                 {!selectedUnlocked && <span className="hero-lock"><Icon name="lock" size={18} /> До открытия главы</span>}
                 <p>{selectedUnlocked ? selectedDay.eyebrow : 'История ещё спит'}</p>
                 <h1>{selectedUnlocked ? selectedDay.title : lockedHeroHold.holding ? 'Открываю…' : `${daysUntil(selectedDate)} дн.`}</h1>
@@ -2156,7 +2160,7 @@ function App() {
                     <blockquote>«{selectedMagic.whisper}»</blockquote>
                     <div className="magic-clue"><Icon name="sparkles" size={18} /><div><strong>{selectedFoxFireFound ? selectedMagic.flameTitle : 'Маленькая миссия'}</strong><p>{selectedFoxFireFound ? selectedMagic.discovery : selectedMagic.clue}</p></div></div>
                     <button type="button" className={selectedFoxFireFound ? 'magic-found-button' : 'magic-find-button'} disabled={selectedFoxFireFound || !canEdit} onClick={() => discoverFoxFire(selectedMagic)}>
-                      {selectedFoxFireFound ? <><Icon name="check" size={17} /> Огонёк сохранён</> : canEdit ? selectedMagic.actionLabel : 'Знак ищет Юльчона'}
+                      {selectedFoxFireFound ? <><Icon name="check" size={17} /> Огонёк с тобой</> : canEdit ? selectedMagic.actionLabel : 'Знак ждёт Юльчону'}
                     </button>
                   </section>
                 )}
@@ -2201,7 +2205,7 @@ function App() {
                   selectedNightMagicUnlocked ? (
                     <button type="button" className={selectedEncounterFound ? 'kitsu-night-encounter is-found' : 'kitsu-night-encounter'} disabled={selectedEncounterFound || !canEdit} onClick={() => findNightEncounter(selectedMagic)}>
                       <span className="night-peek"><img src="/assets/kitsune-guide.webp" alt="" /><i /></span>
-                      <span><small>{selectedEncounterFound ? 'Редкая встреча сохранена' : 'Кто-то прячется рядом…'}</small><strong>{selectedEncounterFound ? selectedMagic.nightEncounter.title : selectedMagic.nightEncounter.actionLabel}</strong><em>{selectedEncounterFound ? selectedMagic.nightEncounter.message : 'Нажми, пока рыжий хвост снова не исчез.'}</em></span>
+                      <span><small>{selectedEncounterFound ? 'История осталась с тобой' : 'Кто-то прячется рядом…'}</small><strong>{selectedEncounterFound ? selectedMagic.nightEncounter.title : selectedMagic.nightEncounter.actionLabel}</strong><em>{selectedEncounterFound ? selectedMagic.nightEncounter.message : 'Лови момент, пока рыжий хвост снова не исчез.'}</em></span>
                       <Icon name={selectedEncounterFound ? 'check' : 'eye'} size={19} />
                     </button>
                   ) : (
@@ -2214,7 +2218,7 @@ function App() {
                     <>
                       <div className="riddle-opened-heading">
                         <div className="card-label"><Icon name="quest" size={18} /> Загадка дня</div>
-                        <span><Icon name="check" size={14} /> Все сцены собраны</span>
+                        <span><Icon name="check" size={14} /> День прожит до конца</span>
                       </div>
                       {selectedDay.riddle.location && (
                         <div className="field-riddle-location">
@@ -2235,33 +2239,33 @@ function App() {
                           return <button key={option} type="button" className={`answer-button${answerClass}`} disabled={answerLocked || revealLocked} onClick={() => requestRiddleAnswer(selectedDay, index)}>{option}</button>
                         })}
                       </div>
-                      {selectedRiddleRevealed && selectedAnswer === undefined && <p className="reveal-note">Кицу подсветил верный след. Нажми на него, чтобы сохранить ответ.</p>}
+                      {selectedRiddleRevealed && selectedAnswer === undefined && <p className="reveal-note">Кицу подсветил верный след. Коснись его, если хочешь выбрать этот ответ.</p>}
                       {isCorrect && <p className="answer-note"><Icon name="check" size={16} /> {selectedDay.riddle.explanation}</p>}
                       {selectedAnswer !== undefined && !isCorrect && (
-                        <p className="try-again">Ответ сохранён. {progress.fromsoftEmberUsedAt ? 'Негорящая искра уже погасла.' : progress.fromsoftRelic ? 'Негорящая искра может один раз вернуть выбор.' : 'Изменить его сможет только найденная искра FromSoftware.'}</p>
+                        <p className="try-again">Кицу запомнил этот ответ. {progress.fromsoftEmberUsedAt ? 'Негорящая искра уже погасла.' : progress.fromsoftRelic ? 'Негорящая искра может один раз вернуть выбор.' : 'Изменить его сможет только найденная искра FromSoftware.'}</p>
                       )}
                       {selectedHintUsed && <p className="hint-text">Подсказка: {selectedDay.riddle.hint}</p>}
                       {selectedEmberAvailable && (
                         <button type="button" className="fromsoft-riddle-button" onClick={() => activateFromsoftEmber(selectedDay)}>
                           <span><Icon name="sparkles" size={17} /></span>
-                          <span><strong>{progress.fromsoftRelic === 'dark-souls' ? 'Разжечь костёр' : 'Коснуться благодати'}</strong><small>Один раз стереть неверный ответ и выбрать снова</small></span>
+                          <span><strong>{progress.fromsoftRelic === 'dark-souls' ? 'Разжечь костёр' : 'Коснуться благодати'}</strong><small>Вернуть один неверный ответ и попробовать ещё раз</small></span>
                           <Icon name="chevron" size={17} />
                         </button>
                       )}
                       <div className="riddle-actions">
                         <button type="button" className="text-button" disabled={!canEdit || selectedAnswer !== undefined || selectedHintUsed || selectedRiddleSolved || selectedRiddleRevealed} onClick={() => addHint(selectedDay.id)}><Icon name="hint" size={17} /> {selectedHintUsed ? 'Подсказка открыта' : selectedRiddleSolved || isCorrect ? 'Разгадано' : 'Подсказка'}</button>
-                        <button type="button" className="text-button muted" disabled={!canEdit || selectedAnswer !== undefined || selectedRiddleRevealed || selectedRiddleSolved} onClick={() => revealAnswer(selectedDay)}><Icon name="eye" size={17} /> {selectedRiddleRevealed ? 'Ответ подсвечен' : selectedRiddleSolved || isCorrect ? 'Разгадано' : 'Reveal answer'}</button>
+                        <button type="button" className="text-button muted" disabled={!canEdit || selectedAnswer !== undefined || selectedRiddleRevealed || selectedRiddleSolved} onClick={() => revealAnswer(selectedDay)}><Icon name="eye" size={17} /> {selectedRiddleRevealed ? 'Верный след открыт' : selectedRiddleSolved || isCorrect ? 'Разгадано' : 'Показать верный след'}</button>
                       </div>
                     </>
                   ) : (
-                    <div className="riddle-seal" role="status" aria-label={`Загадка дня закрыта. Завершено ${selectedCompletedSceneCount} из ${selectedSceneIds.length} сцен.`}>
+                    <div className="riddle-seal" role="status" aria-label={`Загадка дня пока спит. Прожито ${selectedCompletedSceneCount} из ${selectedSceneIds.length} моментов.`}>
                       <span className="riddle-seal-glow" aria-hidden="true"><i /><i /><i /></span>
                       <span className="riddle-seal-lock"><Icon name="lock" size={23} /></span>
                       <small>Финальная печать дня</small>
                       <h3>Загадка пока спит</h3>
-                      <p>Закрой все сцены дня — после последней галочки Кицу зажжёт вопрос.</p>
+                      <p>Отметь все моменты дня — после последней галочки Кицу зажжёт вопрос.</p>
                       <div className="riddle-seal-progress"><span style={{ width: `${selectedSceneIds.length > 0 ? (selectedCompletedSceneCount / selectedSceneIds.length) * 100 : 0}%` }} /></div>
-                      <strong>{selectedCompletedSceneCount} / {selectedSceneIds.length} сцен</strong>
+                      <strong>{selectedCompletedSceneCount} / {selectedSceneIds.length} моментов</strong>
                     </div>
                   )}
                 </section>
@@ -2271,7 +2275,7 @@ function App() {
                     <div className="claim-copy">
                       <span className="section-kicker">Награда главы</span>
                       <h3>{selectedClaimed ? selectedAchievement.title : 'Печать ждёт тебя'}</h3>
-                      <p>{selectedClaimed ? selectedAchievement.description : 'Когда этот момент случится на самом деле, забери награду. Никаких проверок. Кицу тебе верит.'}</p>
+                      <p>{selectedClaimed ? selectedAchievement.description : 'Когда этот момент случится, забери свою печать. Кицу уже оставил для неё место.'}</p>
                     </div>
                     <div className="claim-badge"><AchievementVisual achievement={selectedAchievement} locked={!selectedClaimed} /></div>
                     <button type="button" className={selectedClaimed ? 'claimed-button' : 'primary-button'} disabled={selectedClaimed || !canEdit} onClick={() => requestChapterClaim(selectedAchievement.id)}>
@@ -2281,19 +2285,19 @@ function App() {
                 )}
 
                 <section className="paper-card memory-card">
-                  <div className="memory-heading"><div><span className="section-kicker">Day recap</span><h3>Сохранить этот день</h3></div><Icon name="camera" size={25} /></div>
+                  <div className="memory-heading"><div><span className="section-kicker">Память дня</span><h3>Сохранить этот день</h3></div><Icon name="camera" size={25} /></div>
                   {progress.photos[selectedDay.id] ? (
                     <div className="photo-preview">
                       <img src={progress.photos[selectedDay.id]} alt={`Фото дня · ${selectedDay.dateLabel}`} />
                       {canEdit && <label className="photo-change">Заменить<input type="file" accept="image/*" onChange={(event) => { const file = event.currentTarget.files?.[0]; event.currentTarget.value = ''; selectPhoto(file, selectedDay.id) }} /></label>}
                     </div>
                   ) : canEdit ? (
-                    <label className="photo-drop"><Icon name="camera" size={22} /><span>Добавить Photo of the Day</span><input type="file" accept="image/*" onChange={(event) => { const file = event.currentTarget.files?.[0]; event.currentTarget.value = ''; selectPhoto(file, selectedDay.id) }} /></label>
+                    <label className="photo-drop"><Icon name="camera" size={22} /><span>Выбрать кадр этого дня</span><input type="file" accept="image/*" onChange={(event) => { const file = event.currentTarget.files?.[0]; event.currentTarget.value = ''; selectPhoto(file, selectedDay.id) }} /></label>
                   ) : (
                     <div className="photo-drop is-readonly"><Icon name="camera" size={22} /><span>Фото дня ещё впереди</span></div>
                   )}
                   {photoError && <p className="error-message">{photoError}</p>}
-                  <div className="rating-row"><span>Как прошёл день?</span><strong>{rating ? `${rating}/10` : 'нет'}</strong></div>
+                  <div className="rating-row"><span>Как прошёл день?</span><strong>{rating ? `${rating}/10` : 'ещё нет'}</strong></div>
                   <div id="day-rating" className="rating-options" role="group" aria-label="Оценка дня от 1 до 10">
                     {Array.from({ length: 10 }, (_, index) => index + 1).map((value) => (
                       <button key={value} type="button" className={rating === value ? 'rating-option is-selected' : 'rating-option'} aria-pressed={rating === value} disabled={!canEdit} onClick={() => updateRating(value)}>{value}</button>
@@ -2327,7 +2331,7 @@ function App() {
 
         {view === 'collection' && (
           <div className="screen-content collection-screen">
-            <section className="page-intro"><span className="section-kicker">Memories</span><h1>Коллекция пути</h1><p>Это не список обязательств. Здесь остаётся только то хорошее, что действительно случилось с вами по дороге.</p></section>
+            <section className="page-intro"><span className="section-kicker">Собрано по дороге</span><h1>Коллекция пути</h1><p>Здесь остаются хорошие моменты, которые действительно случились с вами по дороге.</p></section>
             <section className="collection-progress">
               <div><span>Собрано воспоминаний</span><strong>{discoveredCount}<small> / {achievements.length}</small></strong></div>
               <div className="progress-line"><span style={{ width: `${(discoveredCount / achievements.length) * 100}%` }} /></div>
@@ -2371,7 +2375,7 @@ function App() {
         {view === 'passport' && (
           <div className="screen-content passport-screen">
             <section className="page-intro passport-intro">
-              <div><span className="section-kicker">Travel Passport</span><h1>Дневник Юльчоны</h1><p>Здесь Кицу складывает находки, случайности и личные победы всей поездки.</p></div>
+              <div><span className="section-kicker">Путевой дневник</span><h1>Дневник Юльчоны</h1><p>Здесь Кицу складывает находки, случайности и личные победы всей поездки.</p></div>
               <img src="/assets/kitsune-guide.webp" alt="" />
             </section>
 
@@ -2383,7 +2387,7 @@ function App() {
 
             <section className="passport-section trip-counters-section">
               <div className="section-title"><div><span className="section-kicker">Секретный счёт Кицу</span><h2>Кицу, запомни!</h2></div><span className="trip-counters-seal"><Icon name="fox" size={19} /></span></div>
-              <p className="trip-counters-note">Нажми на нужную плитку после находки. Все числа Кицу покажет только в конце путешествия.</p>
+              <p className="trip-counters-note">Когда встретится что-то из списка, коснись его. Все числа Кицу покажет только в конце путешествия.</p>
               <div className="trip-counter-list">
                 {tripCounterDefinitions.map((definition) => (
                   <TripCounterCard key={definition.id} definition={definition} editable={canEdit} onAdd={() => recordTripCounter(definition.id)} />
@@ -2394,7 +2398,7 @@ function App() {
             <section className="paper-card fuji-switcher">
               <div className="card-label"><Icon name="place" size={18} /> План Fuji</div>
               <h3>Если гора спрячется в облаках</h3>
-              <p>Одним нажатием перенеси весь день Fuji вместе с картой и наградой.</p>
+              <p>Выбери дату, и вся глава Fuji переедет вместе с картой и наградой.</p>
               <div className="segmented-control">
                 <button type="button" disabled={!canEdit} className={progress.fujiDate === '2026-10-09' ? 'is-active' : ''} onClick={() => setProgress((current) => ({ ...current, fujiDate: '2026-10-09' }))}>9 окт</button>
                 <button type="button" disabled={!canEdit} className={progress.fujiDate === '2026-10-11' ? 'is-active' : ''} onClick={() => setProgress((current) => ({ ...current, fujiDate: '2026-10-11' }))}>11 окт</button>
@@ -2402,13 +2406,13 @@ function App() {
             </section>
 
             <section className="passport-section">
-              <div className="section-title"><div><span className="section-kicker">Eki stamp</span><h2>Пять станционных печатей</h2></div><strong>{progress.stamps.length}/5</strong></div>
+              <div className="section-title"><div><span className="section-kicker">駅スタンプ · печати станций</span><h2>Пять станционных печатей</h2></div><strong>{progress.stamps.length}/5</strong></div>
               <details className="stamp-help">
                 <summary><span><Icon name="hint" size={18} /></span><span><strong>Какая печать куда?</strong><small>Короткая шпаргалка без путаницы</small></span><Icon name="chevron" size={17} /></summary>
                 <div className="stamp-system-guide">
                   <div>
                     <strong>Eki stamp</strong>
-                    <p>Ставишь сама в туристический блокнот. Не в загранпаспорт. Ниже отмечаешь находку в приложении.</p>
+                    <p>Ставишь сама в туристический блокнот. Не в загранпаспорт. А потом добавляешь находку сюда.</p>
                   </div>
                   <div>
                     <strong>Goshuin</strong>
@@ -2439,7 +2443,7 @@ function App() {
                 {['7-Eleven', 'FamilyMart', 'Lawson'].map((shop) => <button key={shop} type="button" disabled={!canEdit} className={progress.konbini.includes(shop) ? 'is-active' : ''} onClick={() => toggleListValue('konbini', shop)}>{progress.konbini.includes(shop) && <Icon name="check" size={14} />}{shop}</button>)}
               </div>
               <details className="side-quest-drawer">
-                <summary><span><Icon name="sparkles" size={18} /></span><span><strong>Открыть миссии без маршрута</strong><small>{completedSideQuests.length} из {sideQuests.length} уже стали частью истории</small></span><Icon name="chevron" size={17} /></summary>
+                <summary><span><Icon name="sparkles" size={18} /></span><span><strong>Посмотреть случайные находки</strong><small>{completedSideQuests.length} из {sideQuests.length} уже стали частью истории</small></span><Icon name="chevron" size={17} /></summary>
                 <div className="side-quest-list">
                   {sideQuests.map((quest) => {
                     const complete = completedSideQuests.includes(quest.id)
@@ -2456,7 +2460,7 @@ function App() {
             </section>
 
             <section className="passport-section photo-journal">
-              <div className="section-title"><div><span className="section-kicker">Photo of the Day</span><h2>Плёнка памяти</h2></div><strong>{Object.keys(progress.photos).length}</strong></div>
+              <div className="section-title"><div><span className="section-kicker">Кадры по дороге</span><h2>Плёнка памяти</h2></div><strong>{Object.keys(progress.photos).length}</strong></div>
               {Object.keys(progress.photos).length > 0 ? (
                 <div className="photo-strip">{tripDays.map((slot) => dayContentForDate(slot.date, progress.fujiDate)).filter((day) => progress.photos[day.id]).map((day) => <button key={`${day.date}-${day.id}`} type="button" onClick={() => { setSelectedDate(day.date); setView('journey'); window.scrollTo({ top: 0 }) }}><img src={progress.photos[day.id]} alt={day.dateLabel} /><span>{day.dateLabel}</span></button>)}</div>
               ) : <div className="empty-journal"><Icon name="camera" size={25} /></div>}
@@ -2480,7 +2484,7 @@ function App() {
             <section className="kitsu-welcome" aria-label="Кто такой Кицу и главное правило путешествия">
               <div className="kitsu-welcome-about">
                 <span className="kitsu-welcome-icon"><Icon name="fox" size={21} /></span>
-                <div><small>Кто такой Кицу</small><h2>Хранитель вашей истории</h2><p>Он ничего не проверяет и не считает опоздания. Только подсказывает, замечает находки и бережно хранит то, что случилось именно с вами.</p></div>
+                <div><small>Кто такой Кицу</small><h2>Хранитель вашей истории</h2><p>Он не торопит и не считает опоздания. Только подсказывает, замечает находки и бережно хранит то, что случилось именно с вами.</p></div>
               </div>
               <div className="kitsu-welcome-rule">
                 <span><Icon name="sparkles" size={18} /></span>
@@ -2499,7 +2503,7 @@ function App() {
 
             <section id="kitsu-fires" className="kitsu-magic-section kitsu-anchor-section">
               <div className="section-title"><div><span className="section-kicker">Kitsunebi</span><h2>Созвездие лисьих огней</h2></div><strong>{knownFoxFires.length}/{kitsuMagicDays.length}</strong></div>
-              <p className="kitsu-section-note">Каждый огонь появляется после одной настоящей личной находки. Ничего не нужно выполнять на 100%.</p>
+              <p className="kitsu-section-note">Каждый огонь рождается из одной настоящей личной находки — ровно такой, какой она случилась.</p>
               <div className="fox-fire-grid">
                 {kitsuMagicDays.map((magic, index) => {
                   const found = knownFoxFires.includes(magic.dayId)
@@ -2520,7 +2524,7 @@ function App() {
               <div className="section-title"><div><span className="section-kicker">Запечатанные слова</span><h2>Письма по дороге</h2></div>{canEdit ? <strong>{progress.openedLetters.length}/{sealedLetters.length}</strong> : <Icon name="lock" size={18} />}</div>
               {canEdit ? (
                 <>
-                  <p className="kitsu-section-note">Нажми на конверт. Бумага развернётся поверх страницы. Уже открытые письма можно перечитывать.</p>
+                  <p className="kitsu-section-note">Коснись конверта, и письмо развернётся перед тобой. Уже открытые письма можно перечитывать.</p>
                   <div className="letter-stack">
                     {sealedLetters.map((letter) => {
                       const unlocked = isLetterUnlocked(letter)
@@ -2596,7 +2600,7 @@ function App() {
                     {progress.fromsoftRelic ? (
                       <div className={progress.fromsoftEmberUsedAt ? 'fromsoft-power is-used' : 'fromsoft-power'}>
                         <span><Icon name="sparkles" size={16} /></span>
-                        <div><strong>{progress.fromsoftEmberUsedAt ? 'Искра уже разожжена' : 'Второй ответ готов'}</strong><p>{progress.fromsoftEmberUsedAt ? 'Она уже вернула выбор в одной загадке.' : 'После неверного ответа в любой загадке появится кнопка, которая один раз вернёт выбор.'}</p></div>
+                        <div><strong>{progress.fromsoftEmberUsedAt ? 'Искра уже разожжена' : 'Второй ответ готов'}</strong><p>{progress.fromsoftEmberUsedAt ? 'Она уже вернула выбор в одной загадке.' : 'После неверного ответа Кицу один раз предложит вернуть выбор.'}</p></div>
                       </div>
                     ) : (
                       <button type="button" className="fromsoft-hunt-button" onClick={() => { setSelectedDate('2026-10-10'); setView('journey'); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>К скрытой охоте</button>
@@ -2627,7 +2631,7 @@ function App() {
                   {averageTripRatingLabel && (
                     <div className="finale-overall-rating">
                       <span aria-hidden="true">⭐</span>
-                      <div><strong>{averageTripRatingLabel}/10</strong><small>средняя оценка поездки · дней с оценкой: {tripRatingValues.length}</small></div>
+                      <div><strong>{averageTripRatingLabel}/10</strong><small>такой получилась поездка · {tripRatingDaysLabel}</small></div>
                     </div>
                   )}
                   {totalSteps > 0 && (
@@ -2642,7 +2646,7 @@ function App() {
                       <div>{tripCounterDefinitions.filter((definition) => tripCounters[definition.id] > 0).map((definition, index) => <span key={definition.id}><i>{definition.icon}</i><FinaleCount value={tripCounters[definition.id]} delay={440 + index * 70} /><em>{definition.finaleLabel}</em></span>)}</div>
                     </div>
                   )}
-                  {bestRatingEntry && <p className="finale-favorite">Самая высокая оценка: <strong>{bestRatedDay?.dateLabel ?? 'один особенный день'} · {bestRatingEntry[1]}/10</strong></p>}
+                  {bestRatingEntry && <p className="finale-favorite">Ярче всего запомнился: <strong>{bestRatedDay?.dateLabel ?? 'один особенный день'} · {bestRatingEntry[1]}/10</strong></p>}
                   <blockquote>«Спасибо за эту Японию: с усталыми ногами, случайными находками и моментами, которых не было ни в одном плане. У этой истории будет продолжение.»</blockquote>
                 </>
               )}

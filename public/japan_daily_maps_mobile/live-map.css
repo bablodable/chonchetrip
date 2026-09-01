@@ -170,7 +170,7 @@
 }
 
 .stop.live-passed .stop-name::after {
-  content: '  ✓ пройдено';
+  content: '  ✓ позади';
   color: #68716f;
   font-size: 11px;
   font-weight: 800;
@@ -185,7 +185,7 @@
 }
 
 .stop.live-next .stop-name::after {
-  content: '  ← текущая цель';
+  content: '  ← сюда сейчас';
   color: #c06a0b;
   font-size: 11px;
   font-weight: 900;
