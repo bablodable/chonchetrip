@@ -65,6 +65,7 @@ export type TripDay = {
   mapNote?: string
   mapRouteScenes?: string[][]
   mapStartProgress?: number
+  mapNonRouteScenes?: string[]
   achievementId?: string
   achievementTitle?: string
   claimLabel?: string
@@ -572,6 +573,7 @@ export const tripDays: TripDay[] = [
     cover: cover.fuji,
     mapFile: '2026-10-09-fuji.html',
     mapRouteScenes: [['fuji-train'], ['fuji-train'], ['fuji-train'], ['fuji-train'], ['chureito'], ['chureito'], ['houtou'], ['houtou'], ['oishi'], ['ropeway'], ['ropeway'], ['fuji-return']],
+    mapNonRouteScenes: ['fuji-evening'],
     achievementId: 'fuji-found',
     achievementTitle: 'Fuji Found!',
     claimLabel: 'Я увидела Fuji',
@@ -722,6 +724,7 @@ export const tripDays: TripDay[] = [
     mapNote: 'На общей карте 12–13 октября путь к ночному рейсу заканчивается в Haneda Terminal 3.',
     mapRouteScenes: [['flight'], ['flight'], ['flight'], ['flight'], ['flight'], ['flight'], ['flight'], ['flight'], ['flight'], ['flight'], ['flight'], ['flight'], ['flight']],
     mapStartProgress: 13,
+    mapNonRouteScenes: ['final-recap'],
     achievementId: 'japan-complete',
     achievementTitle: 'Our Japan',
     claimLabel: 'Сохранить нашу Японию',

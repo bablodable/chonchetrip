@@ -124,6 +124,16 @@
   background: #78817f;
 }
 
+.route-marker.live-future {
+  border-color: #6579a5;
+  background: linear-gradient(145deg, #f4f0ff, #e9f4f1);
+  box-shadow: 0 4px 12px rgba(71, 88, 130, 0.2);
+}
+
+.route-marker.live-future .live-marker-badge {
+  background: linear-gradient(145deg, #6f7fba, #9f6f75);
+}
+
 .route-marker.live-next {
   width: 42px;
   height: 42px;
@@ -183,6 +193,11 @@
 
 .leaflet-overlay-pane .live-route-current {
   animation: live-route-flow 1.15s linear infinite;
+}
+
+.leaflet-overlay-pane .live-route-passed,
+.leaflet-overlay-pane .live-route-future {
+  animation: none;
 }
 
 .live-location-dot {
