@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>29–30.09 — Dubai → Osaka / Arrival</title>
+  <title>29–30.09 · Dubai → Osaka / Arrival</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <link rel="stylesheet" href="/japan_daily_maps_mobile/live-map.css"/>
   <style>
@@ -204,7 +204,7 @@ h1 {
 <body>
 <div class="wrap">
   <div class="header-card">
-    <h1>🇯🇵 29–30.09 — Dubai → Osaka / Arrival</h1>
+    <h1>🇯🇵 29–30.09 · Dubai → Osaka / Arrival</h1>
     <div class="subtitle">Карта дня прилёта: KIX → отель → первый вечер в Osaka.</div>
     <div class="top-actions">
       <a class="chip" href="#stops">Список точек</a>
@@ -219,7 +219,7 @@ h1 {
     </div>
   </div>
 
-  <div class="tip-card">В Bath &amp; Body Works стоит заглянуть только по пути к нужному gate. Если выход далеко, магазин спокойно оставляем на другой раз.</div>
+  <div class="tip-card">В Bath &amp; Body Works стоит заглянуть только по пути к нужному gate. Если выход далеко, магазин оставляем на другой раз.</div>
 
   <div class="list-card" id="stops">
     <div class="list-title">Места дня</div>
@@ -272,7 +272,7 @@ h1 {
               <a class="small-link" href="https://www.google.com/maps/search/?api=1&query=34.6749,135.5064" target="_blank" rel="noopener">Открыть в Google Maps →</a>
             </div>
           </div>
-          <div class="stop-time">~20:00</div>
+          <div class="stop-time">~20:00 и поздно вечером</div>
         </div>
 
 
@@ -343,7 +343,7 @@ h1 {
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const points = [{"n": 1, "emoji": "✈️", "name": "KIX Terminal 1", "time": "17:15", "desc": "Прилёт в Kansai Airport", "lat": 34.4354, "lng": 135.244}, {"n": 2, "emoji": "🎫", "name": "Kansai-airport Station", "time": "после Customs", "desc": "Купить Kuroshio на 01.10 + stamp", "lat": 34.4364, "lng": 135.2437}, {"n": 3, "emoji": "🚆", "name": "Tengachaya", "time": "вечер", "desc": "Пересадка Nankai → Osaka Metro", "lat": 34.6374, "lng": 135.4936}, {"n": 4, "emoji": "🏠", "name": "Nagahoribashi / hostel", "time": "~20:00 и поздно вечером", "desc": "GRAND HOSTEL LDK OSAKA SHINSAIBASHI", "lat": 34.6749, "lng": 135.5064}, {"n": 5, "emoji": "🌃", "name": "Dotonbori", "time": "~20:30", "desc": "Неоновый район / вечерняя прогулка", "lat": 34.6687, "lng": 135.5031}, {"n": 6, "emoji": "🥪", "name": "Takoyaki Wanaka", "time": "вечер", "desc": "Перекус: takoyaki", "lat": 34.666, "lng": 135.5028}, {"n": 7, "emoji": "🍽️", "name": "Teppan Okonomiyaki Mitsuki", "time": "если голодные", "desc": "Наш выбор: okonomiyaki и teppanyaki", "lat": 34.6695, "lng": 135.5048}, {"n": 8, "emoji": "📔", "name": "DAISO Shinsaibashi-suji", "time": "~21:00 · до 22:00", "desc": "Travel Passport: блокнот, наклейки и ручка", "lat": 34.67065, "lng": 135.50145}, {"n": 9, "emoji": "🌙", "name": "Shinsaibashi-suji", "time": "после ужина", "desc": "Вечерняя торговая улица и дорога обратно в отель", "lat": 34.6716, "lng": 135.5013}];
+const points = [{"n": 1, "emoji": "✈️", "name": "KIX Terminal 1", "time": "17:15", "desc": "Прилёт в Kansai Airport", "lat": 34.4354, "lng": 135.244}, {"n": 2, "emoji": "🎫", "name": "Kansai-airport Station", "time": "после Customs", "desc": "Купить Kuroshio на 01.10 + stamp", "lat": 34.4364, "lng": 135.2437}, {"n": 3, "emoji": "🚆", "name": "Tengachaya", "time": "вечер", "desc": "Пересадка Nankai → Osaka Metro", "lat": 34.6374, "lng": 135.4936}, {"n": 4, "emoji": "🏠", "name": "Nagahoribashi / hostel", "time": "~20:00 и поздно вечером", "desc": "GRAND HOSTEL LDK OSAKA SHINSAIBASHI", "lat": 34.6749, "lng": 135.5064}, {"n": 5, "emoji": "🌃", "name": "Dotonbori", "time": "~20:30", "desc": "Неоновый район / вечерняя прогулка", "lat": 34.6687, "lng": 135.5031}, {"n": 6, "emoji": "🥪", "name": "Takoyaki Wanaka", "time": "вечер", "desc": "Перекус: takoyaki", "lat": 34.666, "lng": 135.5028}, {"n": 7, "emoji": "🍽️", "name": "Teppan Okonomiyaki Mitsuki", "time": "если голодные", "desc": "Наш выбор: okonomiyaki и teppanyaki", "lat": 34.6695, "lng": 135.5048}, {"n": 8, "emoji": "📔", "name": "DAISO Shinsaibashi-suji", "time": "~21:00 · до 22:00", "desc": "Найти Travel Passport: блокнот, наклейки и ручку", "lat": 34.67065, "lng": 135.50145}, {"n": 9, "emoji": "🌙", "name": "Shinsaibashi-suji", "time": "после ужина", "desc": "Вечерняя торговая улица и дорога обратно в отель", "lat": 34.6716, "lng": 135.5013}];
 const segments = [{"type": "rail", "path": [1, 2, 3, 4]}, {"type": "local", "path": [4, 5, 6, 7, 8, 9, 4]}];
 
 const map = L.map('map', {

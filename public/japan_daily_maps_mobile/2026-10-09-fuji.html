@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>09.10 — Fuji / Kawaguchiko</title>
+  <title>09.10 · Fuji / Kawaguchiko</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <link rel="stylesheet" href="/japan_daily_maps_mobile/live-map.css"/>
   <style>
@@ -204,7 +204,7 @@ h1 {
 <body>
 <div class="wrap">
   <div class="header-card">
-    <h1 id="map-title">🗻 09.10 — Fuji / Kawaguchiko</h1>
+    <h1 id="map-title">🗻 09.10 · Fuji / Kawaguchiko</h1>
     <div class="subtitle">Fuji Excursion, Chureito, hōtō, Oishi Park, Ropeway.</div>
     <div class="top-actions">
       <a class="chip" href="#stops">Список точек</a>
@@ -219,7 +219,7 @@ h1 {
     </div>
   </div>
 
-  <div class="tip-card">Если погода плохая, этот день переносится на 11.10 — тогда карту можно использовать там.</div>
+  <div class="tip-card">Если погода плохая, этот день переносится на 11.10. Тогда используй эту карту там.</div>
 
   <div class="list-card" id="stops">
     <div class="list-title">Места дня</div>
@@ -387,7 +387,7 @@ h1 {
 const points = [{"n": 1, "emoji": "🏠", "name": "Airbnb Shiba 2-9-9", "time": "06:00", "desc": "Старт / 7-Eleven", "lat": 35.655, "lng": 139.7505}, {"n": 2, "emoji": "🚇", "name": "Daimon", "time": "рано утром", "desc": "Toei Oedo → Shinjuku", "lat": 35.65512, "lng": 139.75723}, {"n": 3, "emoji": "🚆", "name": "Shinjuku", "time": "07:30", "desc": "Fuji Excursion 3", "lat": 35.69, "lng": 139.7}, {"n": 4, "emoji": "🚆", "name": "Shimoyoshida", "time": "09:13", "desc": "Станция у Chureito", "lat": 35.4997, "lng": 138.80702}, {"n": 5, "emoji": "⛩️", "name": "Arakura Fuji Sengen Shrine", "time": "~09:20", "desc": "Подъём к пагоде", "lat": 35.50248, "lng": 138.80632}, {"n": 6, "emoji": "🗻", "name": "Chureito Pagoda", "time": "~09:20–10:50", "desc": "Главный вид Fuji", "lat": 35.50127, "lng": 138.80823}, {"n": 7, "emoji": "🚆", "name": "Kawaguchiko Station", "time": "~11:30", "desc": "Прибытие на Local", "lat": 35.49824, "lng": 138.76802}, {"n": 8, "emoji": "🍜", "name": "Houtou Fudou Station Front", "time": "~11:30–12:30", "desc": "Обед: hōtō", "lat": 35.49833, "lng": 138.76829}, {"n": 9, "emoji": "🗻", "name": "Oishi Park", "time": "~13:15–14:30", "desc": "Fuji + озеро", "lat": 35.51996, "lng": 138.74355}, {"n": 10, "emoji": "🚠", "name": "Panorama Ropeway", "time": "~15:15–16:15", "desc": "Смотровая", "lat": 35.50133, "lng": 138.76565}, {"n": 11, "emoji": "🌊", "name": "Lake Kawaguchi shore", "time": "~16:15–16:40", "desc": "Последние виды", "lat": 35.50103, "lng": 138.76654}, {"n": 12, "emoji": "🚆", "name": "Kawaguchiko Station", "time": "17:41", "desc": "Fuji Excursion 48 обратно", "lat": 35.49824, "lng": 138.76802}];
 const segments = [{"type": "rail", "path": [1, 2, 3, 4]}, {"type": "local", "path": [4, 5, 6]}, {"type": "rail", "path": [6, 7]}, {"type": "local", "path": [7, 8, 9, 10, 11, 12]}];
 const activeDate = new URLSearchParams(window.location.search).get('date');
-if (activeDate) document.getElementById('map-title').textContent = `🗻 ${activeDate} — Fuji / Kawaguchiko`;
+if (activeDate) document.getElementById('map-title').textContent = `🗻 ${activeDate} · Fuji / Kawaguchiko`;
 
 const map = L.map('map', {
   zoomControl: true,

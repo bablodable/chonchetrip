@@ -13,7 +13,7 @@ export const animeFrameGuides: Record<string, AnimeFrameGuide[]> = {
       moment: 'Тот самый газон Shiba Park',
       image: '/assets/anime-frames/weathering-shiba.webp',
       alt: 'Кадр из Weathering With You: газон Shiba Park, Tokyo Tower, Zojo-ji и герои на скамейке',
-      shot: 'Найди большую открытую лужайку и останься у её края возле скамеек. В нужном направлении Tokyo Tower будет слева, крыша Zojo-ji — ближе к центру, а почти весь низ кадра займёт газон.',
+      shot: 'Найди большую открытую лужайку и останься у её края возле скамеек. В нужном направлении Tokyo Tower будет слева, крыша Zojo-ji ближе к центру, а почти весь низ кадра займёт газон.',
     },
   ],
   'jujutsu-route': [
@@ -22,7 +22,7 @@ export const animeFrameGuides: Record<string, AnimeFrameGuide[]> = {
       moment: 'Shibuya перед инцидентом',
       image: '/assets/anime-frames/jujutsu-shibuya.webp',
       alt: 'Кадр из Jujutsu Kaisen: герой смотрит на круглую башню Shibuya 109',
-      shot: 'У Hachiko Crossing найди круглую башню 109 — в аниме вывеску заменили на «100». Поймай низкий ракурс только во время обычного перехода и не останавливайся посреди дороги.',
+      shot: 'У Hachiko Crossing найди круглую башню 109. В аниме вывеску заменили на «100». Поймай низкий ракурс только во время обычного перехода и не останавливайся посреди дороги.',
     },
   ],
   'suga-steps': [
@@ -40,7 +40,7 @@ export const animeFrameGuides: Record<string, AnimeFrameGuide[]> = {
       moment: 'Тренировочная лестница μ’s',
       image: '/assets/anime-frames/love-live-kanda.webp',
       alt: 'Кадр из Love Live: героини поднимаются по лестнице Otokozaka у Kanda Myojin',
-      shot: 'Это Otokozaka — крутая боковая лестница к Kanda Myojin. Самый узнаваемый ракурс открывается сверху вниз: внизу должна уходить узкая улица, а слева — стена святилища.',
+      shot: 'Это Otokozaka, крутая боковая лестница к Kanda Myojin. Самый узнаваемый ракурс открывается сверху вниз: внизу должна уходить узкая улица, а слева находиться стена святилища.',
     },
   ],
   'steins-gate-line': [
@@ -49,7 +49,7 @@ export const animeFrameGuides: Record<string, AnimeFrameGuide[]> = {
       moment: 'Radio Kaikan и странный гость',
       image: '/assets/anime-frames/steins-radio-kaikan.webp',
       alt: 'Кадр из Steins Gate: Radio Kaikan с загадочным объектом у крыши',
-      shot: 'От Electric Town Exit найди жёлтую вывеску Radio Kaikan и сними фасад снизу вверх. Здание после выхода аниме перестроили, поэтому окна и реклама отличаются — важнее общий угол.',
+      shot: 'От Electric Town Exit найди жёлтую вывеску Radio Kaikan и сними фасад снизу вверх. Здание после выхода аниме перестроили, поэтому окна и реклама отличаются. Важнее сохранить общий угол.',
     },
   ],
 }

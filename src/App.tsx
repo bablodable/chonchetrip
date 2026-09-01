@@ -62,8 +62,8 @@ const currentSideQuestIds = new Set(sideQuests.map((quest) => quest.id))
 const currentAchievementIds = new Set(achievements.map((achievement) => achievement.id))
 const achievementGroups: Array<{ type: Achievement['type']; kicker: string; title: string; note: string }> = [
   { type: 'story', kicker: 'Journey', title: 'Главы путешествия', note: 'По одной тёплой печати за день, который стал вашей историей.' },
-  { type: 'secret', kicker: 'Little wonders', title: 'Особенные находки', note: 'Не задания на оценку — просто моменты, которые приятно было заметить.' },
-  { type: 'meta', kicker: 'Our story', title: 'Большие воспоминания', note: 'Появляются, когда несколько маленьких моментов складываются во что-то большее.' },
+  { type: 'secret', kicker: 'Little wonders', title: 'Особенные находки', note: 'Это не задания на оценку. Просто моменты, которые приятно было заметить.' },
+  { type: 'meta', kicker: 'Our story', title: 'Большие воспоминания', note: 'Появляются, когда несколько случайных моментов складываются во что-то большее.' },
 ]
 
 type ConfirmationRequest = {
@@ -933,9 +933,9 @@ function FromsoftQuestCard({ stage, relic, editable, onFind }: { stage: 'akihaba
         <small>Скрытая миссия · FromSoftware</small>
         <h3>{isNakano ? 'Искра ещё тлеет' : 'Путь негорящей искры'}</h3>
         <p>{isNakano
-          ? 'Если в Akihabara ничего не выпало, Nakano Broadway даёт вторую попытку. Ищи Dark Souls в первую очередь, Elden Ring — как редкий запасной знак.'
-          : 'Среди витрин ищи сначала что-нибудь из Dark Souls. Если город подкинет Elden Ring — это тоже считается знаком.'}</p>
-        <p className="fromsoft-rule">Подойдёт фигурка, артбук, брелок, коробка игры или просто редкая вещь в витрине. Покупать необязательно — фотография тоже считается.</p>
+          ? 'Если в Akihabara ничего не выпало, Nakano Broadway даёт вторую попытку. Ищи Dark Souls в первую очередь. Elden Ring можно считать редким запасным знаком.'
+          : 'Среди витрин ищи сначала что-нибудь из Dark Souls. Если город подкинет Elden Ring, это тоже считается знаком.'}</p>
+        <p className="fromsoft-rule">Подойдёт фигурка, артбук, брелок, коробка игры или просто редкая вещь в витрине. Покупать необязательно. Фотография тоже считается.</p>
       </div>
       <div className="fromsoft-actions" aria-label="Отметить найденную реликвию">
         <button type="button" disabled={!editable} onClick={() => onFind('dark-souls')}>Нашла Dark Souls</button>
@@ -1254,7 +1254,7 @@ function LockedDayContent({ editable, onForceUnlock }: { editable: boolean; onFo
         if (event.key === ' ' || event.key === 'Enter') cancelUnlockHold()
       }}
     >
-      <img src="/assets/kitsune-guide.webp" alt="Кицу — проводник путешествия" draggable="false" />
+      <img src="/assets/kitsune-guide.webp" alt="Кицу, проводник путешествия" draggable="false" />
       <span className="section-kicker">Время Tokyo · UTC+9</span>
       <h2>{holding ? 'Кицу снимает печать…' : 'Кицу хранит секрет'}</h2>
       <p>{holding ? 'Не отпускай. Печать исчезнет через пять секунд.' : 'Каждая глава просыпается в полночь по японскому времени. До этого маршрут и награда остаются под печатью.'}</p>
@@ -1785,7 +1785,7 @@ function App() {
   }
 
   const claimAchievement = (id: string) => {
-    if (progress.claimed.includes(id)) return
+    if (!canEdit || progress.claimed.includes(id)) return
     setProgress((current) => ({ ...current, claimed: [...current.claimed, id] }))
     setModal({ id, isNew: true, queue: [] })
   }
@@ -1799,6 +1799,7 @@ function App() {
   }
 
   const applyStopToggle = (dayId: string, stopId: string) => {
+    if (!canEdit) return
     const adding = !(progress.checkedStops[dayId] ?? []).includes(stopId)
     setProgress((current) => {
       const stops = current.checkedStops[dayId] ?? []
@@ -1814,6 +1815,7 @@ function App() {
   }
 
   const forceUnlockStop = (dayId: string, stopId: string) => {
+    if (!canEdit) return
     setProgress((current) => {
       const unlocked = current.unlockedStops[dayId] ?? []
       if (unlocked.includes(stopId)) return current
@@ -1822,12 +1824,14 @@ function App() {
   }
 
   const forceUnlockDay = (date: string) => {
+    if (!canEdit) return
     setProgress((current) => current.unlockedDays.includes(date)
       ? current
       : { ...current, unlockedDays: [...current.unlockedDays, date] })
   }
 
   const toggleStop = (dayId: string, stopId: string, timeUnlocked = false) => {
+    if (!canEdit) return
     const stops = progress.checkedStops[dayId] ?? []
     const day = tripDays.find((item) => item.id === dayId)
     const stopIndex = day?.timeline.findIndex((item) => item.id === stopId) ?? -1
@@ -1862,15 +1866,18 @@ function App() {
   }
 
   const addHint = (dayId: string) => {
+    if (!canEdit) return
     setProgress((current) => current.hints.includes(dayId) ? current : { ...current, hints: [...current.hints, dayId] })
   }
 
   const revealAnswer = (day: TripDay) => {
+    if (!canEdit) return
     setProgress((current) => current.reveals.includes(day.id) ? current : { ...current, reveals: [...current.reveals, day.id] })
     setRiddleAnswers((current) => ({ ...current, [day.id]: day.riddle.answer }))
   }
 
   const answerRiddle = (day: TripDay, answer: number) => {
+    if (!canEdit) return
     setRiddleAnswers((current) => ({ ...current, [day.id]: answer }))
     if (answer !== day.riddle.answer || !day.riddle.location) return
     setProgress((current) => {
@@ -1881,7 +1888,7 @@ function App() {
   }
 
   const handlePhoto = async (file: File | undefined, dayId: string) => {
-    if (!file) return
+    if (!canEdit || !file) return
     setPhotoError('')
     try {
       const photo = await compressPhoto(file)
@@ -1893,6 +1900,7 @@ function App() {
   }
 
   const applyListToggle = (field: 'stamps' | 'sideQuests' | 'konbini', id: string) => {
+    if (!canEdit) return
     const adding = !(progress[field] ?? []).includes(id)
     setProgress((current) => {
       const values = current[field] ?? []
@@ -1904,6 +1912,7 @@ function App() {
   }
 
   const toggleListValue = (field: 'stamps' | 'sideQuests' | 'konbini', id: string) => {
+    if (!canEdit) return
     const values = progress[field] ?? []
     if (values.includes(id)) {
       applyListToggle(field, id)
@@ -1940,7 +1949,7 @@ function App() {
   }
 
   const requestRiddleAnswer = (day: TripDay, answer: number) => {
-    if (solvedRiddles.includes(day.id)) return
+    if (!canEdit || solvedRiddles.includes(day.id)) return
     setConfirmation({
       title: 'Проверить этот вариант?',
       description: `Выбран ответ «${day.riddle.options[answer]}». Если он верный, решение сохранится и сможет открыть ачивку.`,
@@ -1950,6 +1959,7 @@ function App() {
   }
 
   const requestChapterClaim = (id: string) => {
+    if (!canEdit) return
     setConfirmation({
       title: 'Забрать награду главы?',
       description: 'Подтверди, что реальная миссия выполнена. Полученную ачивку нельзя будет убрать из коллекции.',
@@ -1972,6 +1982,7 @@ function App() {
   }
 
   const updateRating = (value: number) => {
+    if (!canEdit) return
     const save = () => {
       setProgress((current) => ({ ...current, ratings: { ...current.ratings, [selectedDay.id]: value } }))
       if (value === 10) showKitsuReaction('Легендарный день! Кицу поставил рядом маленькую невидимую звезду.')
@@ -2001,7 +2012,7 @@ function App() {
   }
 
   const selectPhoto = (file: File | undefined, dayId: string) => {
-    if (!file) return
+    if (!canEdit || !file) return
     const isNewDayPhoto = !progress.photos[dayId]
     const opensAchievement = isNewDayPhoto
       && Object.keys(progress.photos).length === 4
@@ -2196,7 +2207,7 @@ function App() {
                     <div className="claim-copy">
                       <span className="section-kicker">Награда главы</span>
                       <h3>{selectedClaimed ? selectedAchievement.title : 'Печать ждёт тебя'}</h3>
-                      <p>{selectedClaimed ? selectedAchievement.description : 'Когда этот момент случится на самом деле, забери награду. Никаких проверок — Кицу тебе верит.'}</p>
+                      <p>{selectedClaimed ? selectedAchievement.description : 'Когда этот момент случится на самом деле, забери награду. Никаких проверок. Кицу тебе верит.'}</p>
                     </div>
                     <div className="claim-badge"><AchievementVisual achievement={selectedAchievement} locked={!selectedClaimed} /></div>
                     <button type="button" className={selectedClaimed ? 'claimed-button' : 'primary-button'} disabled={selectedClaimed || !canEdit} onClick={() => requestChapterClaim(selectedAchievement.id)}>
@@ -2218,7 +2229,7 @@ function App() {
                     <div className="photo-drop is-readonly"><Icon name="camera" size={22} /><span>Фото дня ещё впереди</span></div>
                   )}
                   {photoError && <p className="error-message">{photoError}</p>}
-                  <div className="rating-row"><span>Как прошёл день?</span><strong>{rating ? `${rating}/10` : '—'}</strong></div>
+                  <div className="rating-row"><span>Как прошёл день?</span><strong>{rating ? `${rating}/10` : 'нет'}</strong></div>
                   <div id="day-rating" className="rating-options" role="group" aria-label="Оценка дня от 1 до 10">
                     {Array.from({ length: 10 }, (_, index) => index + 1).map((value) => (
                       <button key={value} type="button" className={rating === value ? 'rating-option is-selected' : 'rating-option'} aria-pressed={rating === value} disabled={!canEdit} onClick={() => updateRating(value)}>{value}</button>
@@ -2296,7 +2307,7 @@ function App() {
         {view === 'passport' && (
           <div className="screen-content passport-screen">
             <section className="page-intro passport-intro">
-              <div><span className="section-kicker">Travel Passport</span><h1>Дневник Юльчоны</h1><p>Здесь Кицу складывает находки, случайности и маленькие победы всей поездки.</p></div>
+              <div><span className="section-kicker">Travel Passport</span><h1>Дневник Юльчоны</h1><p>Здесь Кицу складывает находки, случайности и личные победы всей поездки.</p></div>
               <img src="/assets/kitsune-guide.webp" alt="" />
             </section>
 
@@ -2333,7 +2344,7 @@ function App() {
                 <div className="stamp-system-guide">
                   <div>
                     <strong>Eki stamp</strong>
-                    <p>Ставишь сама в туристический блокнот — не в загранпаспорт. Ниже отмечаешь находку в приложении.</p>
+                    <p>Ставишь сама в туристический блокнот. Не в загранпаспорт. Ниже отмечаешь находку в приложении.</p>
                   </div>
                   <div>
                     <strong>Goshuin</strong>
@@ -2399,17 +2410,17 @@ function App() {
                 <div className="kitsu-level"><span><i style={{ width: `${(knownFoxFires.length / kitsuMagicDays.length) * 100}%` }} /></span><strong>{knownFoxFires.length}/{kitsuMagicDays.length} огней</strong></div>
               </div>
               <div className="tail-lights" aria-hidden="true">{Array.from({ length: 9 }, (_, index) => <i key={index} className={index < visibleTailCount ? 'is-lit' : ''} />)}</div>
-              <img src="/assets/kitsune-guide.webp" alt="Кицу — лисий проводник путешествия" />
+              <img src="/assets/kitsune-guide.webp" alt="Кицу, лисий проводник путешествия" />
             </section>
 
             <section className="kitsu-welcome" aria-label="Кто такой Кицу и главное правило путешествия">
               <div className="kitsu-welcome-about">
                 <span className="kitsu-welcome-icon"><Icon name="fox" size={21} /></span>
-                <div><small>Кто такой Кицу</small><h2>Хранитель вашей истории</h2><p>Он ничего не проверяет и не считает опоздания — только подсказывает, замечает находки и бережно хранит то, что случилось именно с вами.</p></div>
+                <div><small>Кто такой Кицу</small><h2>Хранитель вашей истории</h2><p>Он ничего не проверяет и не считает опоздания. Только подсказывает, замечает находки и бережно хранит то, что случилось именно с вами.</p></div>
               </div>
               <div className="kitsu-welcome-rule">
                 <span><Icon name="sparkles" size={18} /></span>
-                <div><small>Главное правило</small><h3>Никакой гонки</h3><p>Устала — отдых тоже приключение. Погода поменяла план — история просто выбрала другой путь. Здесь невозможно пройти что-то неправильно.</p></div>
+                <div><small>Главное правило</small><h3>Никакой гонки</h3><p>Устала? Отдых тоже приключение. Погода поменяла план? Значит, история выбрала другой путь. Здесь невозможно пройти что-то неправильно.</p></div>
               </div>
             </section>
 
@@ -2424,7 +2435,7 @@ function App() {
 
             <section id="kitsu-fires" className="kitsu-magic-section kitsu-anchor-section">
               <div className="section-title"><div><span className="section-kicker">Kitsunebi</span><h2>Созвездие лисьих огней</h2></div><strong>{knownFoxFires.length}/{kitsuMagicDays.length}</strong></div>
-              <p className="kitsu-section-note">Каждый огонь появляется после одной настоящей маленькой находки. Ничего не нужно выполнять на 100%.</p>
+              <p className="kitsu-section-note">Каждый огонь появляется после одной настоящей личной находки. Ничего не нужно выполнять на 100%.</p>
               <div className="fox-fire-grid">
                 {kitsuMagicDays.map((magic, index) => {
                   const found = knownFoxFires.includes(magic.dayId)
@@ -2445,7 +2456,7 @@ function App() {
               <div className="section-title"><div><span className="section-kicker">Запечатанные слова</span><h2>Письма по дороге</h2></div>{canEdit ? <strong>{progress.openedLetters.length}/{sealedLetters.length}</strong> : <Icon name="lock" size={18} />}</div>
               {canEdit ? (
                 <>
-                  <p className="kitsu-section-note">Нажми на конверт — бумага развернётся поверх страницы. Уже открытые письма можно перечитывать.</p>
+                  <p className="kitsu-section-note">Нажми на конверт. Бумага развернётся поверх страницы. Уже открытые письма можно перечитывать.</p>
                   <div className="letter-stack">
                     {sealedLetters.map((letter) => {
                       const unlocked = isLetterUnlocked(letter)
@@ -2470,7 +2481,7 @@ function App() {
 
             <section id="kitsu-encounters" className="kitsu-magic-section night-stories-section kitsu-anchor-section">
               <div className="section-title"><div><span className="section-kicker">Редкие встречи</span><h2>Ночной след Кицу</h2></div><strong>{knownKitsuEncounters.length}/{nightMagicDays.length}</strong></div>
-              <p className="kitsu-section-note">В некоторые вечера Кицу заглядывает к вам после заката. Если заметить его, здесь навсегда останется маленькая история этого дня.</p>
+              <p className="kitsu-section-note">В некоторые вечера Кицу заглядывает к вам после заката. Если заметить его, здесь навсегда останется короткая история этого дня.</p>
               <div className="night-story-list">
                 {nightMagicDays.map((magic, index) => {
                   const encounter = magic.nightEncounter!
@@ -2514,7 +2525,7 @@ function App() {
                     <small>{progress.fromsoftRelic ? 'Реликвия Кицу' : 'Неразгаданный след'}</small>
                     <h3>{progress.fromsoftRelic === 'dark-souls' ? 'Костёр среди неона' : progress.fromsoftRelic === 'elden-ring' ? 'Золотой знак в Tokyo' : 'Что-то тлеет в электрическом городе'}</h3>
                     <p>{progress.fromsoftRelic === 'dark-souls'
-                      ? 'Среди ярких витрин нашлась вещь из мира Dark Souls. Кицу решил, что это не просто сувенир: если такая искра добралась до Японии вместе с вами, погаснуть ей уже нельзя.'
+                      ? 'Среди ярких витрин нашлась вещь из мира Dark Souls. Кицу решил, что в ней живёт настоящая искра: если она добралась до Японии вместе с вами, погаснуть ей уже нельзя.'
                       : progress.fromsoftRelic === 'elden-ring'
                         ? 'Среди вывесок Tokyo мелькнул знак Elden Ring. Кицу поймал золотую искру хвостом и оставил её на случай, если одна из будущих печатей не захочет открываться.'
                         : 'Кицу чувствует знакомое тепло где-то среди витрин Akihabara. Загляни в большую охоту этого дня и проверь, какой мир оставил этот след.'}</p>
@@ -2542,7 +2553,7 @@ function App() {
                 <>
                   <span className="finale-kanji">おかえり</span>
                   <h2>С возвращением из вашей Японии</h2>
-                  <p>Кицу собрал живую историю — ровно такую, какой она случилась.</p>
+                  <p>Кицу собрал живую историю ровно такой, какой она случилась.</p>
                   <div className="finale-stats">
                     <span><FinaleCount value={knownFoxFires.length} delay={80} /><small>лисьих огней</small></span>
                     <span><FinaleCount value={Object.keys(progress.photos).length} delay={170} /><small>кадров памяти</small></span>
@@ -2567,8 +2578,8 @@ function App() {
                       <div>{tripCounterDefinitions.filter((definition) => tripCounters[definition.id] > 0).map((definition, index) => <span key={definition.id}><i>{definition.icon}</i><FinaleCount value={tripCounters[definition.id]} delay={440 + index * 70} /><em>{definition.finaleLabel}</em></span>)}</div>
                     </div>
                   )}
-                  {bestRatingEntry && <p className="finale-favorite">Самая высокая оценка — <strong>{bestRatedDay?.dateLabel ?? 'один особенный день'} · {bestRatingEntry[1]}/10</strong></p>}
-                  <blockquote>«Спасибо за эту Японию — с усталыми ногами, случайными находками и моментами, которых не было ни в одном плане. У этой истории будет продолжение.»</blockquote>
+                  {bestRatingEntry && <p className="finale-favorite">Самая высокая оценка: <strong>{bestRatedDay?.dateLabel ?? 'один особенный день'} · {bestRatingEntry[1]}/10</strong></p>}
+                  <blockquote>«Спасибо за эту Японию: с усталыми ногами, случайными находками и моментами, которых не было ни в одном плане. У этой истории будет продолжение.»</blockquote>
                 </>
               )}
             </section>
