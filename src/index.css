@@ -17,6 +17,7 @@
 }
 
 :root {
+  --app-width: 440px;
   --paper: #f7eddb;
   --paper-light: #fff9ee;
   --ink: #302a25;
@@ -93,7 +94,7 @@ img {
 
 #root {
   width: 100%;
-  max-width: 480px;
+  max-width: var(--app-width);
   min-height: 100svh;
   margin: 0 auto;
 }
