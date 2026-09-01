@@ -4046,7 +4046,7 @@ button.night-story > svg { color: var(--muted); transform: rotate(-90deg); trans
 
 .confirmation-icon {
   display: grid;
-  width: 46px;
+  width: 64px;
   height: 46px;
   margin-bottom: 10px;
   place-items: center;
@@ -4148,6 +4148,125 @@ button.night-story > svg { color: var(--muted); transform: rotate(-90deg); trans
   box-shadow: 0 25px 70px rgba(0, 0, 0, 0.38);
   animation: modal-rise 350ms cubic-bezier(.2, .8, .2, 1);
 }
+
+.achievement-theme-flourish {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.achievement-modal-card.theme-frieren {
+  border-color: rgba(205, 190, 255, 0.34);
+  background:
+    radial-gradient(circle at 50% 23%, rgba(165, 132, 231, 0.25), transparent 38%),
+    linear-gradient(155deg, #33384a, #1b2430);
+}
+
+.frieren-hourglass {
+  position: absolute;
+  top: 73px;
+  left: 25px;
+  width: 34px;
+  height: 48px;
+  border-top: 2px solid rgba(230, 216, 255, 0.74);
+  border-bottom: 2px solid rgba(230, 216, 255, 0.74);
+  opacity: 0;
+  animation: frieren-hourglass-arrive 1.4s 180ms ease-out both;
+}
+
+.frieren-hourglass::before,
+.frieren-hourglass::after {
+  position: absolute;
+  left: 3px;
+  width: 26px;
+  height: 22px;
+  clip-path: polygon(0 0, 100% 0, 53% 100%, 47% 100%);
+  background: linear-gradient(180deg, rgba(218, 198, 255, 0.15), rgba(235, 211, 145, 0.62));
+  content: '';
+}
+
+.frieren-hourglass::before { top: 3px; }
+.frieren-hourglass::after { bottom: 3px; transform: rotate(180deg); opacity: 0.42; }
+.frieren-hourglass i { position: absolute; top: 18px; left: 16px; width: 2px; height: 13px; background: #efd89d; box-shadow: 0 0 8px rgba(227, 202, 255, 0.7); }
+.frieren-hourglass b { position: absolute; right: -4px; bottom: -7px; left: -4px; height: 2px; border-radius: 50%; background: rgba(227, 212, 255, 0.45); }
+
+.frieren-time-ring {
+  position: absolute;
+  top: 82px;
+  left: 50%;
+  width: 268px;
+  height: 268px;
+  border: 1px solid rgba(210, 190, 255, 0.2);
+  border-radius: 50%;
+  box-shadow: inset 0 0 30px rgba(170, 137, 226, 0.08), 0 0 28px rgba(187, 151, 236, 0.08);
+  transform: translateX(-50%);
+  animation: frieren-time-ring 7s linear infinite;
+}
+
+.frieren-time-ring::before,
+.frieren-time-ring::after {
+  position: absolute;
+  inset: 12px;
+  border: 1px dashed rgba(240, 221, 166, 0.2);
+  border-radius: 50%;
+  content: '';
+}
+
+.frieren-time-ring::after { inset: 31px; border-color: rgba(211, 188, 255, 0.16); }
+.frieren-time-spark { position: absolute; top: 102px; right: 39px; width: 6px; height: 6px; border-radius: 50%; background: #f1d899; box-shadow: 0 0 17px #cdb1ff; animation: magic-twinkle 2.1s ease-in-out infinite; }
+
+.achievement-modal-card.theme-pokemon {
+  border-color: rgba(255, 214, 91, 0.42);
+  background:
+    radial-gradient(circle at 50% 23%, rgba(255, 216, 86, 0.24), transparent 38%),
+    linear-gradient(155deg, #33444b, #19262d);
+}
+
+.flourish-pokemon > i {
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  clip-path: polygon(50% 0, 61% 37%, 100% 50%, 61% 63%, 50% 100%, 39% 63%, 0 50%, 39% 37%);
+  background: #ffe071;
+  filter: drop-shadow(0 0 7px rgba(255, 212, 78, 0.72));
+  animation: pokemon-star-burst 1.5s cubic-bezier(.2, .8, .2, 1) both;
+}
+
+.flourish-pokemon > i:nth-child(1) { top: 90px; left: 22px; animation-delay: 80ms; }
+.flourish-pokemon > i:nth-child(2) { top: 58px; right: 52px; width: 10px; height: 10px; animation-delay: 180ms; }
+.flourish-pokemon > i:nth-child(3) { top: 177px; left: 20px; width: 9px; height: 9px; animation-delay: 260ms; }
+.flourish-pokemon > i:nth-child(4) { top: 235px; right: 17px; animation-delay: 120ms; }
+.flourish-pokemon > i:nth-child(5) { top: 323px; left: 42px; width: 8px; height: 8px; animation-delay: 350ms; }
+.flourish-pokemon > i:nth-child(6) { top: 343px; right: 42px; width: 11px; height: 11px; animation-delay: 220ms; }
+.flourish-pokemon > i:nth-child(7) { top: 130px; right: 24px; width: 7px; height: 7px; animation-delay: 420ms; }
+.flourish-pokemon > i:nth-child(8) { top: 273px; left: 27px; width: 12px; height: 12px; animation-delay: 300ms; }
+
+.pokemon-orbit {
+  position: absolute;
+  top: 94px;
+  left: 50%;
+  width: 252px;
+  height: 252px;
+  border: 1px dashed rgba(255, 221, 103, 0.23);
+  border-radius: 50%;
+  transform: translateX(-50%) rotate(-7deg);
+  animation: pokemon-orbit 8s linear infinite;
+}
+
+.achievement-modal-card.theme-murakami {
+  border-color: rgba(218, 96, 80, 0.38);
+  background:
+    radial-gradient(circle at 50% 23%, rgba(201, 76, 61, 0.18), transparent 38%),
+    linear-gradient(155deg, #313d40, #192428);
+}
+
+.flourish-murakami svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.flourish-murakami path { fill: none; stroke: rgba(225, 82, 67, 0.72); stroke-width: 2.2; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; filter: drop-shadow(0 0 5px rgba(221, 70, 56, 0.4)); animation: murakami-thread-draw 1.6s 150ms ease-out both; }
+.flourish-murakami circle { fill: #f0c884; opacity: 0; filter: drop-shadow(0 0 8px rgba(238, 187, 111, 0.78)); animation: murakami-knot 500ms 1.25s ease-out both; }
+.murakami-page { position: absolute; top: 72px; right: 27px; color: rgba(239, 212, 174, 0.38); font-family: 'Yu Mincho', var(--display); font-size: 27px; transform: rotate(4deg); animation: murakami-page-float 4.8s ease-in-out infinite; }
 
 .modal-rays {
   position: absolute;
@@ -4359,6 +4478,197 @@ button.night-story > svg { color: var(--muted); transform: rotate(-90deg); trans
 .kitsu-reaction span { color: #eab36b; font-size: 8.5px; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; }
 .kitsu-reaction p { margin: 0; color: rgba(255, 247, 230, 0.84); font-size: 10px; line-height: 1.42; }
 
+.ambient-tail-visit,
+.ambient-eyes-backdrop,
+.ambient-paw-trail,
+.ambient-foxfire-flight {
+  position: fixed;
+  pointer-events: none;
+  user-select: none;
+}
+
+.ambient-tail-visit {
+  z-index: 27;
+  top: clamp(150px, 42svh, 470px);
+  width: 286px;
+  height: 286px;
+}
+
+.ambient-tail-visit.from-right {
+  right: max(-28px, calc((100vw - 480px) / 2 - 28px));
+}
+
+.ambient-tail-visit.from-left {
+  left: max(-28px, calc((100vw - 480px) / 2 - 28px));
+  transform: scaleX(-1);
+}
+
+.ambient-tail-visit img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 16px rgba(80, 49, 35, 0.2));
+  transform-origin: 94% 61%;
+}
+
+.ambient-tail-visit.from-right img {
+  animation: ambient-tail-sweep-right 3.35s cubic-bezier(.22, .72, .2, 1) both;
+}
+
+.ambient-tail-visit.from-left img { animation: ambient-tail-sweep-right 3.35s cubic-bezier(.22, .72, .2, 1) both; }
+
+.kitsu-background-eyes {
+  display: flex;
+  width: 142px;
+  height: 62px;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  pointer-events: none;
+  user-select: none;
+}
+
+.kitsu-background-eyes::before {
+  position: absolute;
+  inset: -20px -27px;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse at center, rgba(37, 29, 27, 0.31), rgba(63, 44, 36, 0.12) 42%, transparent 70%);
+  content: '';
+  filter: blur(8px);
+}
+
+.kitsu-background-eyes > i {
+  position: relative;
+  z-index: 1;
+  width: 46px;
+  height: 17px;
+  clip-path: polygon(0 54%, 16% 30%, 45% 10%, 72% 18%, 100% 48%, 82% 70%, 52% 83%, 23% 72%);
+  background: linear-gradient(180deg, #4d241c 0%, #df7a39 24%, #ffc56d 49%, #a8462e 74%, #3d201a 100%);
+  box-shadow: 0 0 13px rgba(235, 126, 54, 0.54), 0 0 24px rgba(242, 170, 76, 0.22);
+}
+
+.kitsu-background-eyes > i::before {
+  position: absolute;
+  z-index: 2;
+  top: 1px;
+  bottom: 1px;
+  left: 52%;
+  width: 3px;
+  border-radius: 50%;
+  background: #241511;
+  box-shadow: 0 0 3px rgba(53, 25, 18, 0.78);
+  content: '';
+  transform: translateX(-50%);
+}
+
+.kitsu-background-eyes > i::after {
+  position: absolute;
+  z-index: 3;
+  top: 3px;
+  left: 42%;
+  width: 3px;
+  height: 2px;
+  border-radius: 50%;
+  background: rgba(255, 240, 196, 0.92);
+  content: '';
+}
+
+.kitsu-background-eyes > i:first-child { transform: rotate(7deg); }
+.kitsu-background-eyes > i:last-child { transform: scaleX(-1) rotate(7deg); }
+
+.ambient-eye-dim {
+  position: fixed;
+  z-index: 34;
+  inset-block: 0;
+  right: max(0px, calc((100vw - 480px) / 2));
+  left: max(0px, calc((100vw - 480px) / 2));
+  pointer-events: none;
+  background: rgba(24, 25, 26, 0.24);
+  backdrop-filter: brightness(0.88) saturate(0.82);
+  animation: ambient-eye-dim-in 4.5s ease-in-out both;
+}
+
+.ambient-eyes-backdrop {
+  z-index: 35;
+  top: clamp(185px, 42svh, 510px);
+  width: 160px;
+  height: 70px;
+  animation: ambient-background-eyes 4.5s ease-in-out both;
+}
+
+.ambient-eyes-backdrop.from-right {
+  right: max(12px, calc((100vw - 480px) / 2 + 18px));
+}
+
+.ambient-eyes-backdrop.from-left {
+  left: max(12px, calc((100vw - 480px) / 2 + 18px));
+}
+
+.ambient-paw-trail {
+  z-index: 36;
+  right: max(12px, calc((100vw - 480px) / 2 + 12px));
+  bottom: calc(82px + env(safe-area-inset-bottom));
+  left: max(12px, calc((100vw - 480px) / 2 + 12px));
+  height: min(52svh, 480px);
+  animation: ambient-paw-rise 3.15s ease-out both;
+}
+
+.ambient-paw-trail > span {
+  position: absolute;
+  bottom: var(--paw-y);
+  left: var(--paw-x);
+  display: block;
+  width: 29px;
+  height: 33px;
+  color: rgba(157, 65, 48, 0.82);
+  opacity: 0;
+  transform: translate(-50%, 50%) rotate(var(--paw-angle));
+  animation: ambient-paw-appear 1.8s ease-out both;
+  animation-delay: var(--paw-delay);
+}
+
+.ambient-paw-trail > span svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: currentColor;
+  filter: drop-shadow(0 2px 1px rgba(255, 242, 215, 0.22)) drop-shadow(0 0 6px rgba(157, 65, 48, 0.13));
+}
+
+.ambient-foxfire-flight {
+  z-index: 96;
+  top: 45svh;
+  left: 50%;
+  width: 48px;
+  height: 58px;
+  margin: -24px 0 0 -24px;
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--flame-color) 56%, transparent));
+  animation: ambient-foxfire-to-kitsu 1.75s cubic-bezier(.25, .7, .2, 1) both;
+}
+
+.ambient-foxfire-flight .fox-fire {
+  opacity: 1;
+  filter: none;
+  transform: scale(0.92);
+}
+
+.foxfire-flight-spark {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--flame-color) 72%, #fff 28%);
+  box-shadow: 0 0 8px var(--flame-color);
+  animation: foxfire-spark-fall 750ms ease-out infinite;
+}
+
+.spark-one { top: 26px; left: 0; }
+.spark-two { top: 42px; left: 11px; animation-delay: -280ms; }
+.spark-three { top: 15px; left: 7px; animation-delay: -510ms; }
+
 @keyframes modal-fade {
   from { opacity: 0; }
 }
@@ -4421,6 +4731,91 @@ button.night-story > svg { color: var(--muted); transform: rotate(-90deg); trans
   from { opacity: 0; transform: translateY(18px) scale(0.96); }
 }
 
+@keyframes frieren-hourglass-arrive {
+  0% { opacity: 0; transform: translateY(-14px) rotate(-18deg); }
+  45% { opacity: 0.8; transform: translateY(0) rotate(5deg); }
+  100% { opacity: 0.52; transform: rotate(0); }
+}
+
+@keyframes frieren-time-ring {
+  to { transform: translateX(-50%) rotate(360deg); }
+}
+
+@keyframes pokemon-star-burst {
+  0% { opacity: 0; transform: translateY(18px) scale(0.2) rotate(-28deg); }
+  52% { opacity: 1; transform: translateY(-4px) scale(1.18) rotate(8deg); }
+  100% { opacity: 0.55; transform: translateY(0) scale(0.86) rotate(0); }
+}
+
+@keyframes pokemon-orbit {
+  to { transform: translateX(-50%) rotate(353deg); }
+}
+
+@keyframes murakami-thread-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes murakami-knot {
+  from { opacity: 0; transform: scale(0); transform-origin: 183px 338px; }
+  to { opacity: 1; transform: scale(1); transform-origin: 183px 338px; }
+}
+
+@keyframes murakami-page-float {
+  0%, 100% { opacity: 0.34; transform: translateY(0) rotate(4deg); }
+  50% { opacity: 0.52; transform: translateY(-4px) rotate(1deg); }
+}
+
+@keyframes ambient-tail-sweep-right {
+  0% { opacity: 0; transform: translateX(92%) rotate(7deg) scale(0.9); }
+  13% { opacity: 1; }
+  23% { transform: translateX(3%) rotate(24deg) scale(1); }
+  38% { transform: translateX(1%) rotate(-22deg) scale(1.03); }
+  53% { transform: translateX(2%) rotate(20deg) scale(1.02); }
+  67% { opacity: 1; transform: translateX(1%) rotate(-16deg) scale(1.01); }
+  79% { transform: translateX(2%) rotate(11deg) scale(1); }
+  88% { opacity: 0.94; transform: translateX(5%) rotate(-7deg) scale(0.98); }
+  100% { opacity: 0; transform: translateX(92%) rotate(-7deg) scale(0.9); }
+}
+
+@keyframes ambient-background-eyes {
+  0%, 100% { opacity: 0; transform: translateY(7px) scale(0.88); filter: blur(4px); }
+  19%, 46% { opacity: 0.78; transform: translateY(0) scale(1); filter: blur(0); }
+  49% { opacity: 0; transform: translateY(0) scaleY(0.08); filter: blur(0); }
+  53%, 73% { opacity: 0.78; transform: translateY(0) scale(1); filter: blur(0); }
+  86% { opacity: 0.24; transform: translateY(-4px) scale(0.96); filter: blur(2px); }
+}
+
+@keyframes ambient-eye-dim-in {
+  0%, 100% { opacity: 0; }
+  15%, 77% { opacity: 1; }
+  88% { opacity: 0.28; }
+}
+
+@keyframes ambient-paw-rise {
+  0% { opacity: 0; transform: translateY(16px); }
+  16%, 76% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-14px); }
+}
+
+@keyframes ambient-paw-appear {
+  0% { opacity: 0; filter: blur(2px); }
+  24%, 78% { opacity: 0.88; filter: blur(0); }
+  100% { opacity: 0.18; }
+}
+
+@keyframes ambient-foxfire-to-kitsu {
+  0% { top: 45svh; left: 50%; opacity: 0; transform: translateY(14px) scale(0.55); }
+  13% { opacity: 1; transform: translateY(0) scale(1); }
+  46% { top: 30svh; left: calc(50% + min(22vw, 105px)); transform: rotate(12deg) scale(0.88); }
+  82% { opacity: 1; }
+  100% { top: calc(100svh - 42px - env(safe-area-inset-bottom)); left: calc(50% + min(38vw, 182px)); opacity: 0; transform: rotate(-8deg) scale(0.32); }
+}
+
+@keyframes foxfire-spark-fall {
+  from { opacity: 0.9; transform: translate(6px, -3px) scale(1); }
+  to { opacity: 0; transform: translate(-12px, 18px) scale(0.25); }
+}
+
 @media (min-width: 481px) {
   .app-shell {
     border-right: 1px solid rgba(82, 59, 43, 0.12);
@@ -4455,5 +4850,14 @@ button.night-story > svg { color: var(--muted); transform: rotate(-90deg); trans
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .kitsu-background-eyes,
+  .ambient-eye-dim,
+  .achievement-theme-flourish,
+  .ambient-tail-visit,
+  .ambient-paw-trail,
+  .ambient-foxfire-flight {
+    display: none !important;
   }
 }

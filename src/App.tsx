@@ -73,6 +73,57 @@ type ConfirmationRequest = {
   onConfirm: () => void
 }
 
+type AmbientVisit = {
+  id: number
+  kind: 'tail' | 'eyes' | 'paws'
+  side: 'left' | 'right'
+}
+
+type FoxFireFlight = {
+  id: number
+  color: string
+}
+
+type PawPath = 'diagonal-right' | 'diagonal-left' | 'snake-right' | 'snake-left'
+
+type PawBurst = {
+  id: number | string
+  path: PawPath
+}
+
+const pawPathOrder: PawPath[] = ['diagonal-right', 'snake-left', 'diagonal-left', 'snake-right']
+const pawTrailPaths: Record<PawPath, Array<{ x: number; y: number; angle: number }>> = {
+  'diagonal-right': [
+    { x: 12, y: 3, angle: -9 }, { x: 20, y: 15, angle: 8 }, { x: 16, y: 27, angle: -8 }, { x: 25, y: 39, angle: 9 },
+    { x: 21, y: 51, angle: -8 }, { x: 30, y: 63, angle: 8 }, { x: 26, y: 75, angle: -7 }, { x: 35, y: 87, angle: 8 },
+  ],
+  'diagonal-left': [
+    { x: 88, y: 3, angle: 9 }, { x: 80, y: 15, angle: -8 }, { x: 84, y: 27, angle: 8 }, { x: 75, y: 39, angle: -9 },
+    { x: 79, y: 51, angle: 8 }, { x: 70, y: 63, angle: -8 }, { x: 74, y: 75, angle: 7 }, { x: 65, y: 87, angle: -8 },
+  ],
+  'snake-right': [
+    { x: 18, y: 3, angle: -11 }, { x: 30, y: 15, angle: 9 }, { x: 22, y: 27, angle: -9 }, { x: 38, y: 39, angle: 11 },
+    { x: 27, y: 51, angle: -10 }, { x: 45, y: 63, angle: 10 }, { x: 32, y: 75, angle: -9 }, { x: 50, y: 87, angle: 9 },
+  ],
+  'snake-left': [
+    { x: 82, y: 3, angle: 11 }, { x: 70, y: 15, angle: -9 }, { x: 78, y: 27, angle: 9 }, { x: 62, y: 39, angle: -11 },
+    { x: 73, y: 51, angle: 10 }, { x: 55, y: 63, angle: -10 }, { x: 68, y: 75, angle: 9 }, { x: 50, y: 87, angle: -9 },
+  ],
+}
+
+function pawPathForKey(key: string): PawPath {
+  const hash = [...key].reduce((sum, character) => sum + (character.codePointAt(0) ?? 0), 0)
+  return pawPathOrder[hash % pawPathOrder.length]
+}
+
+type AchievementTheme = 'frieren' | 'pokemon' | 'murakami'
+
+const achievementThemes: Partial<Record<string, AchievementTheme>> = {
+  'beyond-the-journey': 'frieren',
+  'kitsu-i-choose-you': 'pokemon',
+  'library-between-worlds': 'murakami',
+}
+
 type Progress = {
   claimed: string[]
   checkedStops: Record<string, string[]>
@@ -406,8 +457,99 @@ function useBodyScrollLock(active = true) {
   }, [active])
 }
 
+function AchievementThemeFlourish({ theme }: { theme: AchievementTheme }) {
+  if (theme === 'frieren') {
+    return (
+      <div className="achievement-theme-flourish flourish-frieren" aria-hidden="true">
+        <span className="frieren-hourglass"><i /><b /></span>
+        <span className="frieren-time-ring" />
+        <span className="frieren-time-spark" />
+      </div>
+    )
+  }
+
+  if (theme === 'pokemon') {
+    return (
+      <div className="achievement-theme-flourish flourish-pokemon" aria-hidden="true">
+        {Array.from({ length: 8 }, (_, index) => <i key={index} />)}
+        <span className="pokemon-orbit" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="achievement-theme-flourish flourish-murakami" aria-hidden="true">
+      <svg viewBox="0 0 390 520" preserveAspectRatio="none">
+        <path pathLength="1" d="M-18 366 C70 292 103 434 183 338 S303 218 420 292" />
+        <circle cx="183" cy="338" r="4" />
+      </svg>
+      <span className="murakami-page">頁</span>
+    </div>
+  )
+}
+
+function KitsuBackgroundEyes({ className = '' }: { className?: string }) {
+  return (
+    <span className={`kitsu-background-eyes${className ? ` ${className}` : ''}`} aria-hidden="true">
+      <i /><i />
+    </span>
+  )
+}
+
+function AmbientTailVisit({ visit }: { visit: AmbientVisit }) {
+  return (
+    <div className={`ambient-tail-visit from-${visit.side}`} aria-hidden="true">
+      <img src="/assets/kitsu-tail.webp" alt="" />
+    </div>
+  )
+}
+
+function AmbientEyesBackdrop({ side }: { side: AmbientVisit['side'] }) {
+  return (
+    <>
+      <span className="ambient-eye-dim" aria-hidden="true" />
+      <KitsuBackgroundEyes className={`ambient-eyes-backdrop from-${side}`} />
+    </>
+  )
+}
+
+function ScenePawTrail({ path, onDone }: { path: PawPath; onDone: () => void }) {
+  return (
+    <div className={`ambient-paw-trail path-${path}`} aria-hidden="true" onAnimationEnd={(event) => { if (event.currentTarget === event.target) onDone() }}>
+      {pawTrailPaths[path].map((step, index) => (
+        <span key={index} style={{ '--paw-x': `${step.x}%`, '--paw-y': `${step.y}%`, '--paw-angle': `${step.angle}deg`, '--paw-delay': `${index * 165}ms` } as React.CSSProperties}>
+          <svg viewBox="0 0 40 46" aria-hidden="true">
+            <ellipse cx="20" cy="32" rx="10.5" ry="11.5" />
+            <ellipse cx="7.5" cy="17" rx="4.3" ry="6.1" transform="rotate(-22 7.5 17)" />
+            <ellipse cx="16" cy="10" rx="4.4" ry="6.2" transform="rotate(-7 16 10)" />
+            <ellipse cx="25" cy="10" rx="4.4" ry="6.2" transform="rotate(7 25 10)" />
+            <ellipse cx="33" cy="17" rx="4.3" ry="6.1" transform="rotate(22 33 17)" />
+          </svg>
+        </span>
+      ))}
+    </div>
+  )
+}
+
+function FoxFireFlightEffect({ flight, onDone }: { flight: FoxFireFlight; onDone: () => void }) {
+  return (
+    <div
+      className="ambient-foxfire-flight"
+      aria-hidden="true"
+      style={{ '--flame-color': flight.color } as React.CSSProperties}
+      onAnimationEnd={(event) => { if (event.currentTarget === event.target) onDone() }}
+    >
+      <span className="fox-fire is-burning"><i /></span>
+      <i className="foxfire-flight-spark spark-one" />
+      <i className="foxfire-flight-spark spark-two" />
+      <i className="foxfire-flight-spark spark-three" />
+    </div>
+  )
+}
+
 function AchievementModal({ achievement, isNew, onClose }: { achievement: Achievement; isNew: boolean; onClose: () => void }) {
   const closeRef = useRef<HTMLButtonElement>(null)
+  const theme = achievementThemes[achievement.id]
   useBodyScrollLock()
   useEffect(() => {
     closeRef.current?.focus()
@@ -420,7 +562,8 @@ function AchievementModal({ achievement, isNew, onClose }: { achievement: Achiev
 
   return (
     <div className="achievement-modal" role="dialog" aria-modal="true" aria-label={achievement.title} onClick={onClose}>
-      <div className={isNew ? 'achievement-modal-card is-new' : 'achievement-modal-card'} onClick={(event) => event.stopPropagation()}>
+      <div className={`achievement-modal-card${isNew ? ' is-new' : ''}${theme ? ` theme-${theme}` : ''}`} onClick={(event) => event.stopPropagation()}>
+        {theme && <AchievementThemeFlourish theme={theme} />}
         <div className="modal-rays" aria-hidden="true" />
         <p className="modal-kicker">{isNew ? 'Achievement unlocked' : 'Найденная реликвия'}</p>
         <div className="modal-badge"><AchievementVisual achievement={achievement} /></div>
@@ -1194,6 +1337,9 @@ function App() {
   const [magicModalDayId, setMagicModalDayId] = useState<string | null>(null)
   const [activeLetterId, setActiveLetterId] = useState<string | null>(null)
   const [kitsuReaction, setKitsuReaction] = useState<{ id: number; message: string } | null>(null)
+  const [ambientVisit, setAmbientVisit] = useState<AmbientVisit | null>(null)
+  const [pawBurst, setPawBurst] = useState<PawBurst | null>(null)
+  const [foxFireFlight, setFoxFireFlight] = useState<FoxFireFlight | null>(null)
   const [confirmation, setConfirmation] = useState<ConfirmationRequest | null>(null)
   const [photoError, setPhotoError] = useState('')
   const progressRef = useRef(progress)
@@ -1241,6 +1387,7 @@ function App() {
   const selectedNightMagicUnlocked = PREVIEW_MODE || selectedDate < today || (selectedDate === today && japanHour >= 19)
   const magicModal = magicModalDayId ? kitsuMagicByDay[magicModalDayId] : undefined
   const activeLetter = activeLetterId ? sealedLetters.find((letter) => letter.id === activeLetterId) : undefined
+  const ambientEffectsPaused = Boolean(modal || magicModal || activeLetter || confirmation)
   const kitsuMood = japanHour < 10 ? 'sleepy' : japanHour < 18 ? 'adventurous' : 'cozy'
   const kitsuMoodLabel = kitsuMood === 'sleepy' ? 'сонная проводница' : kitsuMood === 'adventurous' ? 'охотница за знаками' : 'хранительница вечерних огней'
   const kitsuStages = [
@@ -1274,6 +1421,73 @@ function App() {
     const timer = window.setTimeout(() => setKitsuReaction((current) => current?.id === kitsuReaction.id ? null : current), 4_800)
     return () => window.clearTimeout(timer)
   }, [kitsuReaction])
+
+  useEffect(() => {
+    if (!accessMode || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    let visitTimer: number | undefined
+    let hideTimer: number | undefined
+    let previewVisitIndex = 0
+
+    const clearTimers = () => {
+      if (visitTimer !== undefined) window.clearTimeout(visitTimer)
+      if (hideTimer !== undefined) window.clearTimeout(hideTimer)
+      visitTimer = undefined
+      hideTimer = undefined
+    }
+
+    const scheduleVisit = () => {
+      const delay = PREVIEW_MODE
+        ? 7_000 + Math.random() * 3_000
+        : 120_000 + Math.random() * 120_000
+      visitTimer = window.setTimeout(() => {
+        if (document.visibilityState !== 'visible') return
+        const hour = getJapanHour()
+        const night = hour >= 19 || hour < 5
+        const randomVisit = Math.random()
+        const previewKinds: AmbientVisit['kind'][] = ['paws', 'eyes', 'tail']
+        const visitKind: AmbientVisit['kind'] = PREVIEW_MODE
+          ? previewKinds[previewVisitIndex % previewKinds.length]
+          : night && randomVisit < 0.3
+            ? 'eyes'
+            : randomVisit < (night ? 0.48 : 0.2)
+              ? 'paws'
+              : 'tail'
+        const visitSide = PREVIEW_MODE
+          ? previewVisitIndex % 2 === 0 ? 'right' : 'left'
+          : Math.random() < 0.5 ? 'left' : 'right'
+        const pawPath = PREVIEW_MODE
+          ? pawPathOrder[previewVisitIndex % pawPathOrder.length]
+          : pawPathOrder[Math.floor(Math.random() * pawPathOrder.length)]
+        const visitId = Date.now()
+        previewVisitIndex += 1
+        setAmbientVisit({
+          id: visitId,
+          kind: visitKind,
+          side: visitSide,
+        })
+        if (visitKind === 'paws') setPawBurst({ id: visitId, path: pawPath })
+        hideTimer = window.setTimeout(() => {
+          setAmbientVisit(null)
+          scheduleVisit()
+        }, visitKind === 'eyes' ? 4_500 : 4_000)
+      }, delay)
+    }
+
+    const syncVisibility = () => {
+      clearTimers()
+      setAmbientVisit(null)
+      setPawBurst(null)
+      if (document.visibilityState === 'visible') scheduleVisit()
+    }
+
+    if (document.visibilityState === 'visible') scheduleVisit()
+    document.addEventListener('visibilitychange', syncVisibility)
+    return () => {
+      clearTimers()
+      document.removeEventListener('visibilitychange', syncVisibility)
+    }
+  }, [accessMode])
 
   useEffect(() => {
     try {
@@ -1537,6 +1751,13 @@ function App() {
     })
   }
 
+  const closeMagicDiscovery = () => {
+    if (magicModal && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setFoxFireFlight({ id: Date.now(), color: magicModal.flameColor })
+    }
+    setMagicModalDayId(null)
+  }
+
   const findNightEncounter = (magic: KitsuMagicDay) => {
     if (!canEdit || !magic.nightEncounter || progress.kitsuEncounters.includes(magic.dayId)) return
     setProgress((current) => current.kitsuEncounters.includes(magic.dayId)
@@ -1578,11 +1799,15 @@ function App() {
   }
 
   const applyStopToggle = (dayId: string, stopId: string) => {
+    const adding = !(progress.checkedStops[dayId] ?? []).includes(stopId)
     setProgress((current) => {
       const stops = current.checkedStops[dayId] ?? []
       const nextStops = stops.includes(stopId) ? stops.filter((id) => id !== stopId) : [...stops, stopId]
       return { ...current, checkedStops: { ...current.checkedStops, [dayId]: nextStops } }
     })
+    if (adding && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setPawBurst({ id: `${dayId}:${stopId}`, path: pawPathForKey(`${dayId}:${stopId}`) })
+    }
   }
 
   const forceUnlockStop = (dayId: string, stopId: string) => {
@@ -2377,8 +2602,18 @@ function App() {
         <button type="button" className={view === 'kitsu' ? 'is-active' : ''} onClick={() => { setView('kitsu'); window.scrollTo({ top: 0, behavior: 'smooth' }) }}><Icon name="fox" size={20} /><span>Кицу</span></button>
       </nav>
 
+      {ambientVisit?.kind === 'tail' && !ambientEffectsPaused && <AmbientTailVisit key={ambientVisit.id} visit={ambientVisit} />}
+      {ambientVisit?.kind === 'eyes' && !ambientEffectsPaused && <AmbientEyesBackdrop key={ambientVisit.id} side={ambientVisit.side} />}
+      {pawBurst && !ambientEffectsPaused && <ScenePawTrail key={pawBurst.id} path={pawBurst.path} onDone={() => setPawBurst((current) => current?.id === pawBurst.id ? null : current)} />}
+      {foxFireFlight && !ambientEffectsPaused && (
+        <FoxFireFlightEffect
+          key={foxFireFlight.id}
+          flight={foxFireFlight}
+          onDone={() => setFoxFireFlight((current) => current?.id === foxFireFlight.id ? null : current)}
+        />
+      )}
       {modalAchievement && modal && <AchievementModal achievement={modalAchievement} isNew={modal.isNew} onClose={closeAchievementModal} />}
-      {magicModal && <MagicDiscoveryModal magic={magicModal} onClose={() => setMagicModalDayId(null)} />}
+      {magicModal && <MagicDiscoveryModal magic={magicModal} onClose={closeMagicDiscovery} />}
       {activeLetter && canEdit && <LetterModal letter={activeLetter} onClose={() => setActiveLetterId(null)} />}
       {confirmation && <ConfirmationDialog request={confirmation} onCancel={() => setConfirmation(null)} />}
       {kitsuReaction && <KitsuReactionToast key={kitsuReaction.id} message={kitsuReaction.message} />}
