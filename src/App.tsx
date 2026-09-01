@@ -879,7 +879,7 @@ function JourneyDayChip({ slot, index, city, active, unlocked, claimed, editable
       type="button"
       className={`day-chip${active ? ' is-active' : ''}${unlocked ? '' : ' is-locked'}${claimed ? ' is-claimed' : ''}${hold.holding ? ' is-holding' : ''}`}
       onClick={onSelect}
-      aria-label={`${slot.dateLabel}. ${unlocked ? city : editable ? 'Глава закрыта. Для аварийного открытия удерживай пять секунд.' : 'Глава закрыта.'}`}
+      aria-label={`${slot.dateLabel}. ${unlocked ? city : editable ? 'Глава под печатью. Чтобы открыть её раньше, удерживай пять секунд.' : 'Глава пока под печатью.'}`}
       {...hold.holdProps}
     >
       <small>{index + 1}</small>
@@ -917,8 +917,8 @@ function FromsoftQuestCard({ stage, relic, editable, onFind }: { stage: 'akihaba
           <small>Скрытая миссия · выполнено</small>
           <h3>{foundDarkSouls ? 'Костёр зажжён' : 'Благодать найдена'}</h3>
           <p>{foundDarkSouls
-            ? 'Реликвия Dark Souls найдена. Кицу сохранил её искру и приготовил одно аварийное открытие сцены.'
-            : 'Знак Elden Ring найден. Золотая искра ушла к Кицу и превратилась в одно аварийное открытие сцены.'}</p>
+            ? 'Реликвия Dark Souls найдена. Кицу сохранил её искру: теперь она сможет один раз снять печать с будущего момента.'
+            : 'Знак Elden Ring найден. Кицу сохранил золотую искру: теперь она сможет один раз снять печать с будущего момента.'}</p>
         </div>
         <span className="fromsoft-found"><Icon name="check" size={15} /> {foundDarkSouls ? 'Dark Souls' : 'Elden Ring'}</span>
       </div>
@@ -978,7 +978,7 @@ function TimelineCard({ item, complete, locked, editable, fromsoftRelic, fromsof
         className={`timeline-card is-locked${holding ? ' is-holding' : ''}`}
         role={editable ? 'button' : undefined}
         tabIndex={editable ? 0 : undefined}
-        aria-label={`${item.time}. ${item.title}. Сцена пока закрыта.${editable ? ' Для аварийного открытия удерживай пять секунд.' : ''}`}
+        aria-label={`${item.time}. ${item.title}. Этот момент пока под печатью.${editable ? ' Чтобы открыть его раньше, удерживай пять секунд.' : ''}`}
         onPointerDown={(event) => {
           if (!event.isPrimary || event.button !== 0) return
           holdOrigin.current = { x: event.clientX, y: event.clientY }
@@ -1007,7 +1007,7 @@ function TimelineCard({ item, complete, locked, editable, fromsoftRelic, fromsof
           <span className="timeline-title">
             <small>{item.time}</small>
             <strong>{item.title}</strong>
-            <span className="timeline-lock-note">{holding ? 'Не отпускай · Кицу снимает печать…' : 'Сцена пока скрыта'}</span>
+            <span className="timeline-lock-note">{holding ? 'Не отпускай · Кицу снимает печать…' : 'Этот момент пока скрыт'}</span>
           </span>
           <span className="details-chevron"><Icon name="lock" size={15} /></span>
         </div>
@@ -1020,7 +1020,7 @@ function TimelineCard({ item, complete, locked, editable, fromsoftRelic, fromsof
             onClick={(event) => { event.stopPropagation(); onUseFromsoftEmber() }}
           >
             <span><Icon name="sparkles" size={15} /></span>
-            <span><strong>Разжечь негорящую искру</strong><small>Один раз открыть эту сцену раньше</small></span>
+            <span><strong>Разжечь негорящую искру</strong><small>Один раз снять печать раньше</small></span>
           </button>
         )}
       </div>
@@ -1194,7 +1194,7 @@ function DayMapCard({ day, completedStops }: { day: TripDay; completedStops: str
         <div className="day-map-body">
           {day.mapNote && <p className="day-map-note"><Icon name="hint" size={16} /> {day.mapNote}</p>}
           <div className="day-map-frame"><iframe ref={frameRef} src={`${mapUrl}?embed=1&date=${mapDate}`} title={`Интерактивная карта · ${day.dateLabel}`} loading="lazy" allow="geolocation" onLoad={sendMapProgress} /></div>
-          <div className="day-map-footer"><span>Точки закрываются только вместе со связанными сценами. Геолокация остаётся на устройстве.</span><a href={`${mapUrl}?date=${mapDate}&completed=${completedQuery}&routeScenes=${routeScenesQuery}&minimum=${minimumProgress}`} target="_blank" rel="noopener noreferrer">На весь экран →</a></div>
+          <div className="day-map-footer"><span>Пройденные места становятся серыми после галочки в дневнике. Геолокация остаётся на этом устройстве.</span><a href={`${mapUrl}?date=${mapDate}&completed=${completedQuery}&routeScenes=${routeScenesQuery}&minimum=${minimumProgress}`} target="_blank" rel="noopener noreferrer">На весь экран →</a></div>
         </div>
       )}
     </section>
@@ -1231,7 +1231,7 @@ function LockedDayContent({ editable, onForceUnlock }: { editable: boolean; onFo
       className={`screen-content locked-content emergency-day-unlock${holding ? ' is-holding' : ''}`}
       role={editable ? 'button' : undefined}
       tabIndex={editable ? 0 : undefined}
-      aria-label={editable ? 'Закрытая глава. Для аварийного открытия удерживай пять секунд.' : 'Закрытая глава.'}
+      aria-label={editable ? 'Глава пока под печатью. Чтобы открыть её раньше, удерживай пять секунд.' : 'Глава пока под печатью.'}
       onPointerDown={(event) => {
         if (!event.isPrimary || event.button !== 0) return
         holdOrigin.current = { x: event.clientX, y: event.clientY }
@@ -1257,8 +1257,8 @@ function LockedDayContent({ editable, onForceUnlock }: { editable: boolean; onFo
       <img src="/assets/kitsune-guide.webp" alt="Кицу — проводник путешествия" draggable="false" />
       <span className="section-kicker">Время Tokyo · UTC+9</span>
       <h2>{holding ? 'Кицу снимает печать…' : 'Кицу хранит секрет'}</h2>
-      <p>{holding ? 'Не отпускай. Аварийный проход откроется через пять секунд.' : 'Каждая глава открывается в полночь по японскому времени. До этого маршрут и награда остаются под печатью.'}</p>
-      <div className="locked-note"><Icon name="sparkles" size={18} /><span>Можно заранее смотреть коллекцию, но будущие бейджи не спойлерят приключение.</span></div>
+      <p>{holding ? 'Не отпускай. Печать исчезнет через пять секунд.' : 'Каждая глава просыпается в полночь по японскому времени. До этого маршрут и награда остаются под печатью.'}</p>
+      <div className="locked-note"><Icon name="sparkles" size={18} /><span>Коллекцию можно листать заранее, но будущие награды всё равно останутся тайной.</span></div>
     </div>
   )
 }
@@ -1693,7 +1693,7 @@ function App() {
     const isDarkSouls = relic === 'dark-souls'
     setConfirmation({
       title: isDarkSouls ? 'Реликвия Dark Souls найдена?' : 'Знак Elden Ring найден?',
-      description: 'Покупка не обязательна: предмет в витрине или фотография тоже честно закрывают эту скрытую миссию.',
+      description: 'Покупать ничего не нужно: вещь в витрине или фотография тоже честно зажигают эту искру.',
       confirmLabel: 'Да, искра найдена',
       onConfirm: () => {
         setProgress((current) => current.fromsoftRelic ? current : { ...current, fromsoftRelic: relic })
@@ -1708,7 +1708,7 @@ function App() {
     if (!canEdit || !progress.fromsoftRelic || progress.fromsoftEmberUsedAt) return
     setConfirmation({
       title: 'Разжечь негорящую искру?',
-      description: 'Она откроет эту сцену раньше обычного и после этого погаснет. Использовать искру можно только один раз за всё путешествие.',
+      description: 'Она снимет печать с этого момента раньше времени и после этого погаснет. Использовать искру можно только один раз за всё путешествие.',
       confirmLabel: 'Разжечь искру',
       onConfirm: () => {
         setProgress((current) => {
@@ -1722,16 +1722,16 @@ function App() {
               : { ...current.unlockedStops, [dayId]: [...unlocked, stopId] },
           }
         })
-        showKitsuReaction('Искра вспыхнула и сняла печать со сцены. Даже Кицу на секунду стал похож на хранителя костра.')
+        showKitsuReaction('Искра вспыхнула и сняла печать с будущего момента. Даже Кицу на секунду стал похож на хранителя костра.')
       },
     })
   }
 
   const isLetterUnlocked = (letter: (typeof sealedLetters)[number]) => {
     if (PREVIEW_MODE) return true
-    return 'fireCount' in letter.unlock
-      ? knownFoxFires.length >= letter.unlock.fireCount
-      : knownFoxFires.includes(letter.unlock.dayId)
+    if ('fireCount' in letter.unlock) return knownFoxFires.length >= letter.unlock.fireCount
+    if (letter.unlock.stopId) return (progress.checkedStops[letter.unlock.dayId] ?? []).includes(letter.unlock.stopId)
+    return knownFoxFires.includes(letter.unlock.dayId)
   }
 
   const findMagicSlot = (dayId: string) => tripDays.find((slot) => dayContentForDate(slot.date, progress.fujiDate).id === dayId)
@@ -1807,6 +1807,9 @@ function App() {
     })
     if (adding && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       setPawBurst({ id: `${dayId}:${stopId}`, path: pawPathForKey(`${dayId}:${stopId}`) })
+    }
+    if (adding && dayId === 'nara' && stopId === 'pokemon-osaka') {
+      showKitsuReaction('У Кицу появилась новая печать. За дверью Pokémon Café открылось личное письмо для Юльчоны.')
     }
   }
 
@@ -2049,7 +2052,7 @@ function App() {
           <span><strong>Chonchetrip</strong><small>Юльчона · Japan 2026</small></span>
         </button>
         <div className="topbar-actions">
-          <button className={`access-mode-token is-${cloudStatus}`} type="button" onClick={chooseAnotherMode} aria-label={accessMode === 'editor' ? 'Режим Юльчоны. Нажми, чтобы сменить режим.' : 'Режим зрителя. Нажми, чтобы сменить режим.'}><Icon name={accessMode === 'editor' ? 'fox' : 'eye'} size={16} /><span /></button>
+          <button className={`access-mode-token is-${cloudStatus}`} type="button" onClick={chooseAnotherMode} aria-label={accessMode === 'editor' ? 'Дневник открыт для Юльчоны. Нажми, чтобы выйти.' : 'Гостевой просмотр. Нажми, чтобы выйти.'}><Icon name={accessMode === 'editor' ? 'fox' : 'eye'} size={16} /><span /></button>
           <button className="progress-token" type="button" onClick={() => setView('collection')} aria-label={`${discoveredCount} из ${achievements.length} достижений`}><Icon name="collection" size={17} /><span>{discoveredCount}/{achievements.length}</span></button>
         </div>
       </header>
@@ -2062,7 +2065,7 @@ function App() {
               style={{ backgroundImage: `url(${selectedUnlocked ? selectedDay.cover : '/assets/chonchetrip-splash.webp'})` }}
               role={!selectedUnlocked && canEdit ? 'button' : undefined}
               tabIndex={!selectedUnlocked && canEdit ? 0 : undefined}
-              aria-label={selectedUnlocked ? undefined : canEdit ? `Глава ${selectedDay.dateLabel} закрыта. Для аварийного открытия удерживай пять секунд.` : `Глава ${selectedDay.dateLabel} закрыта.`}
+              aria-label={selectedUnlocked ? undefined : canEdit ? `Глава ${selectedDay.dateLabel} пока под печатью. Чтобы открыть её раньше, удерживай пять секунд.` : `Глава ${selectedDay.dateLabel} пока под печатью.`}
               {...(!selectedUnlocked && canEdit ? lockedHeroHold.holdProps : {})}
             >
               <div className="hero-shade" />
@@ -2091,7 +2094,7 @@ function App() {
               <div className={`screen-content day-content vibe-${selectedDay.vibe.tone}`}>
                 <section className="chapter-heading">
                   <div><span className="section-kicker">{selectedDay.dateLabel} · {selectedDay.city}</span><h2>Приключение дня</h2></div>
-                  <div className="day-progress"><strong>{selectedStops.length}/{selectedDay.timeline.length}</strong><small>сцен</small></div>
+                  <div className="day-progress"><strong>{selectedStops.length}/{selectedDay.timeline.length}</strong><small>моментов</small></div>
                 </section>
 
                 <DayVibeCard vibe={selectedDay.vibe} />
@@ -2193,7 +2196,7 @@ function App() {
                     <div className="claim-copy">
                       <span className="section-kicker">Награда главы</span>
                       <h3>{selectedClaimed ? selectedAchievement.title : 'Печать ждёт тебя'}</h3>
-                      <p>{selectedClaimed ? selectedAchievement.description : 'Когда реальная миссия выполнена, забери награду. Никаких проверок — Кицу тебе верит.'}</p>
+                      <p>{selectedClaimed ? selectedAchievement.description : 'Когда этот момент случится на самом деле, забери награду. Никаких проверок — Кицу тебе верит.'}</p>
                     </div>
                     <div className="claim-badge"><AchievementVisual achievement={selectedAchievement} locked={!selectedClaimed} /></div>
                     <button type="button" className={selectedClaimed ? 'claimed-button' : 'primary-button'} disabled={selectedClaimed || !canEdit} onClick={() => requestChapterClaim(selectedAchievement.id)}>
@@ -2305,7 +2308,7 @@ function App() {
 
             <section className="passport-section trip-counters-section">
               <div className="section-title"><div><span className="section-kicker">Секретный счёт Кицу</span><h2>Кицу, запомни!</h2></div><span className="trip-counters-seal"><Icon name="fox" size={19} /></span></div>
-              <p className="trip-counters-note">Нажми на нужную плитку после находки. Числа останутся тайной до самого финала.</p>
+              <p className="trip-counters-note">Нажми на нужную плитку после находки. Все числа Кицу покажет только в конце путешествия.</p>
               <div className="trip-counter-list">
                 {tripCounterDefinitions.map((definition) => (
                   <TripCounterCard key={definition.id} definition={definition} editable={canEdit} onAdd={() => recordTripCounter(definition.id)} />
@@ -2355,7 +2358,7 @@ function App() {
             <section className="paper-card side-quests">
               <div className="card-label"><Icon name="quest" size={18} /> Side quests</div>
               <h3>Случайные находки</h3>
-              <p className="side-quest-note">Никаких дедлайнов: сюда попадает только то, что само встретилось по дороге.</p>
+              <p className="side-quest-note">Здесь ничего не нужно успевать: остаётся только то, что само встретилось по дороге.</p>
               <p className="mini-label">Заглянуть в три разных konbini</p>
               <div className="konbini-grid">
                 {['7-Eleven', 'FamilyMart', 'Lawson'].map((shop) => <button key={shop} type="button" disabled={!canEdit} className={progress.konbini.includes(shop) ? 'is-active' : ''} onClick={() => toggleListValue('konbini', shop)}>{progress.konbini.includes(shop) && <Icon name="check" size={14} />}{shop}</button>)}
@@ -2439,7 +2442,7 @@ function App() {
             </section>
 
             <section id="kitsu-letters" className="kitsu-magic-section letter-section kitsu-anchor-section">
-              <div className="section-title"><div><span className="section-kicker">Запечатанные слова</span><h2>Пять писем по дороге</h2></div>{canEdit ? <strong>{progress.openedLetters.length}/{sealedLetters.length}</strong> : <Icon name="lock" size={18} />}</div>
+              <div className="section-title"><div><span className="section-kicker">Запечатанные слова</span><h2>Письма по дороге</h2></div>{canEdit ? <strong>{progress.openedLetters.length}/{sealedLetters.length}</strong> : <Icon name="lock" size={18} />}</div>
               {canEdit ? (
                 <>
                   <p className="kitsu-section-note">Нажми на конверт — бумага развернётся поверх страницы. Уже открытые письма можно перечитывать.</p>
@@ -2467,7 +2470,7 @@ function App() {
 
             <section id="kitsu-encounters" className="kitsu-magic-section night-stories-section kitsu-anchor-section">
               <div className="section-title"><div><span className="section-kicker">Редкие встречи</span><h2>Ночной след Кицу</h2></div><strong>{knownKitsuEncounters.length}/{nightMagicDays.length}</strong></div>
-              <p className="kitsu-section-note">В некоторые вечера Кицу появляется в главе после заката. Замеченная встреча навсегда открывает здесь маленькую историю этого дня.</p>
+              <p className="kitsu-section-note">В некоторые вечера Кицу заглядывает к вам после заката. Если заметить его, здесь навсегда останется маленькая история этого дня.</p>
               <div className="night-story-list">
                 {nightMagicDays.map((magic, index) => {
                   const encounter = magic.nightEncounter!
@@ -2513,12 +2516,12 @@ function App() {
                     <p>{progress.fromsoftRelic === 'dark-souls'
                       ? 'Среди ярких витрин нашлась вещь из мира Dark Souls. Кицу решил, что это не просто сувенир: если такая искра добралась до Японии вместе с вами, погаснуть ей уже нельзя.'
                       : progress.fromsoftRelic === 'elden-ring'
-                        ? 'Среди вывесок Tokyo мелькнул знак Elden Ring. Кицу поймал золотую искру хвостом и оставил её на случай, если дорога однажды упрётся в закрытую сцену.'
-                        : 'Кицу чувствует знакомое тепло где-то среди витрин Akihabara. Открой сцену большой охоты и проверь, какой мир оставил этот след.'}</p>
+                        ? 'Среди вывесок Tokyo мелькнул знак Elden Ring. Кицу поймал золотую искру хвостом и оставил её на случай, если одна из будущих печатей не захочет открываться.'
+                        : 'Кицу чувствует знакомое тепло где-то среди витрин Akihabara. Загляни в большую охоту этого дня и проверь, какой мир оставил этот след.'}</p>
                     {progress.fromsoftRelic ? (
                       <div className={progress.fromsoftEmberUsedAt ? 'fromsoft-power is-used' : 'fromsoft-power'}>
                         <span><Icon name="sparkles" size={16} /></span>
-                        <div><strong>{progress.fromsoftEmberUsedAt ? 'Искра уже разожжена' : 'Чит Кицу готов'}</strong><p>{progress.fromsoftEmberUsedAt ? 'Она уже сняла печать с одной закрытой сцены.' : 'У любой закрытой сцены появится кнопка для одного досрочного открытия.'}</p></div>
+                        <div><strong>{progress.fromsoftEmberUsedAt ? 'Искра уже разожжена' : 'Чит Кицу готов'}</strong><p>{progress.fromsoftEmberUsedAt ? 'Она уже сняла одну печать раньше времени.' : 'У любого будущего момента появится кнопка, которая один раз снимет печать раньше.'}</p></div>
                       </div>
                     ) : (
                       <button type="button" className="fromsoft-hunt-button" onClick={() => { setSelectedDate('2026-10-10'); setView('journey'); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>К скрытой охоте</button>
@@ -2530,16 +2533,16 @@ function App() {
 
             <section className={progress.finaleOpened ? 'kitsu-finale is-open' : 'kitsu-finale'}>
               <div className="finale-stars" aria-hidden="true"><i /><i /><i /><i /><i /><i /></div>
-              <span className="section-kicker">Финал созвездия</span>
+              <span className="section-kicker">Созвездие воспоминаний</span>
               {!finaleReady ? (
                 <><Icon name="lock" size={28} /><h2>Последняя страница спит</h2><p>Кицу откроет её 13 октября, когда дорога домой станет частью истории.</p></>
               ) : !progress.finaleOpened ? (
-                <><Icon name="sparkles" size={30} /><h2>Огни готовы собраться вместе</h2><p>Финал не требует идеального результата. Кицу сложит историю из того, что действительно случилось.</p><button type="button" className="finale-open-button" disabled={!canEdit} onClick={openFinale}>{canEdit ? 'Открыть коробку воспоминаний' : 'Финал откроет Юльчона'}</button></>
+                <><Icon name="sparkles" size={30} /><h2>Огни готовы собраться вместе</h2><p>Не нужно было собрать всё идеально. Кицу сложит историю из того, что действительно случилось.</p><button type="button" className="finale-open-button" disabled={!canEdit} onClick={openFinale}>{canEdit ? 'Открыть коробку воспоминаний' : 'Коробку откроет Юльчона'}</button></>
               ) : (
                 <>
                   <span className="finale-kanji">おかえり</span>
                   <h2>С возвращением из вашей Японии</h2>
-                  <p>Кицу собрал не идеальный отчёт, а живую историю — ровно такую, какой она случилась.</p>
+                  <p>Кицу собрал живую историю — ровно такую, какой она случилась.</p>
                   <div className="finale-stats">
                     <span><FinaleCount value={knownFoxFires.length} delay={80} /><small>лисьих огней</small></span>
                     <span><FinaleCount value={Object.keys(progress.photos).length} delay={170} /><small>кадров памяти</small></span>
