@@ -12,6 +12,7 @@ export type StoredProgress = {
   hints: string[]
   reveals: string[]
   solvedRiddles: string[]
+  riddleAnswers: Record<string, number>
   stamps: string[]
   sideQuests: string[]
   konbini: string[]

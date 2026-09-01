@@ -132,6 +132,7 @@ type Progress = {
   hints: string[]
   reveals: string[]
   solvedRiddles: string[]
+  riddleAnswers: Record<string, number>
   stamps: string[]
   sideQuests: string[]
   konbini: string[]
@@ -184,6 +185,7 @@ const emptyProgress: Progress = {
   hints: [],
   reveals: [],
   solvedRiddles: [],
+  riddleAnswers: {},
   stamps: [],
   sideQuests: [],
   konbini: [],
@@ -207,6 +209,11 @@ const normalizeProgress = (value: unknown): Progress => {
     : {}
   const storedCounters = parsed.tripCounters ?? emptyTripCounters
   const storedSteps = parsed.dailySteps ?? {}
+  const storedRiddleAnswers = parsed.riddleAnswers ?? {}
+  const storedFromsoftEmber = typeof parsed.fromsoftEmberUsedAt === 'string'
+    && parsed.fromsoftEmberUsedAt.endsWith(':riddle')
+    ? parsed.fromsoftEmberUsedAt
+    : null
   const dailySteps = Object.fromEntries(
     Object.entries(storedSteps).flatMap(([dayId, rawSteps]) => {
       const steps = typeof rawSteps === 'number' ? rawSteps : Number(rawSteps)
@@ -223,6 +230,12 @@ const normalizeProgress = (value: unknown): Progress => {
     unlockedStops: parsed.unlockedStops ?? {},
     unlockedDays: parsed.unlockedDays ?? [],
     solvedRiddles: parsed.solvedRiddles ?? [],
+    riddleAnswers: Object.fromEntries(
+      Object.entries(storedRiddleAnswers).flatMap(([dayId, rawAnswer]) => {
+        const answer = Number(rawAnswer)
+        return Number.isInteger(answer) && answer >= 0 && answer <= 20 ? [[dayId, answer]] : []
+      }),
+    ),
     sideQuests: (parsed.sideQuests ?? []).filter((id) => currentSideQuestIds.has(id)),
     ratings: parsed.ratings ?? {},
     dailySteps,
@@ -232,7 +245,7 @@ const normalizeProgress = (value: unknown): Progress => {
     openedLetters: parsed.openedLetters ?? [],
     finaleOpened: parsed.finaleOpened ?? false,
     fromsoftRelic: parsed.fromsoftRelic ?? null,
-    fromsoftEmberUsedAt: parsed.fromsoftEmberUsedAt ?? null,
+    fromsoftEmberUsedAt: storedFromsoftEmber,
     tripCounters: {
       ...emptyTripCounters,
       ...storedCounters,
@@ -442,8 +455,8 @@ function Icon({ name, size = 20 }: { name: string; size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name] ?? paths.sparkles}</svg>
 }
 
-function AchievementVisual({ achievement, locked = false }: { achievement: Achievement; locked?: boolean }) {
-  return <img className={locked ? 'badge-image is-locked' : 'badge-image'} src={achievement.image} alt="" loading="lazy" decoding="async" />
+function AchievementVisual({ achievement, locked = false, eager = false }: { achievement: Achievement; locked?: boolean; eager?: boolean }) {
+  return <img className={locked ? 'badge-image is-locked' : 'badge-image'} src={achievement.image} alt="" loading={eager ? 'eager' : 'lazy'} decoding="async" />
 }
 
 function useBodyScrollLock(active = true) {
@@ -566,7 +579,7 @@ function AchievementModal({ achievement, isNew, onClose }: { achievement: Achiev
         {theme && <AchievementThemeFlourish theme={theme} />}
         <div className="modal-rays" aria-hidden="true" />
         <p className="modal-kicker">{isNew ? 'Achievement unlocked' : 'Найденная реликвия'}</p>
-        <div className="modal-badge"><AchievementVisual achievement={achievement} /></div>
+        <div className="modal-badge"><AchievementVisual achievement={achievement} eager /></div>
         <h2>{achievement.title}</h2>
         <p>{achievement.description}</p>
         <button ref={closeRef} className="primary-button" type="button" onClick={onClose}>Продолжить путь</button>
@@ -917,8 +930,8 @@ function FromsoftQuestCard({ stage, relic, editable, onFind }: { stage: 'akihaba
           <small>Скрытая миссия · выполнено</small>
           <h3>{foundDarkSouls ? 'Костёр зажжён' : 'Благодать найдена'}</h3>
           <p>{foundDarkSouls
-            ? 'Реликвия Dark Souls найдена. Кицу сохранил её искру: теперь она сможет один раз снять печать с будущего момента.'
-            : 'Знак Elden Ring найден. Кицу сохранил золотую искру: теперь она сможет один раз снять печать с будущего момента.'}</p>
+            ? 'Реликвия Dark Souls найдена. Кицу сохранил её искру: теперь она позволит один раз изменить неверный ответ в загадке дня.'
+            : 'Знак Elden Ring найден. Кицу сохранил золотую искру: теперь она позволит один раз изменить неверный ответ в загадке дня.'}</p>
         </div>
         <span className="fromsoft-found"><Icon name="check" size={15} /> {foundDarkSouls ? 'Dark Souls' : 'Elden Ring'}</span>
       </div>
@@ -945,7 +958,7 @@ function FromsoftQuestCard({ stage, relic, editable, onFind }: { stage: 'akihaba
   )
 }
 
-function TimelineCard({ item, complete, locked, editable, fromsoftRelic, fromsoftEmberAvailable, onToggle, onForceUnlock, onUseFromsoftEmber, onFindFromsoftRelic }: { item: TimelineItem; complete: boolean; locked: boolean; editable: boolean; fromsoftRelic: FromsoftRelic | null; fromsoftEmberAvailable: boolean; onToggle: () => void; onForceUnlock: () => void; onUseFromsoftEmber: () => void; onFindFromsoftRelic: (relic: FromsoftRelic) => void }) {
+function TimelineCard({ item, complete, locked, editable, fromsoftRelic, onToggle, onForceUnlock, onFindFromsoftRelic }: { item: TimelineItem; complete: boolean; locked: boolean; editable: boolean; fromsoftRelic: FromsoftRelic | null; onToggle: () => void; onForceUnlock: () => void; onFindFromsoftRelic: (relic: FromsoftRelic) => void }) {
   const holdTimer = useRef<number | undefined>(undefined)
   const holdOrigin = useRef({ x: 0, y: 0 })
   const [holding, setHolding] = useState(false)
@@ -1011,18 +1024,6 @@ function TimelineCard({ item, complete, locked, editable, fromsoftRelic, fromsof
           </span>
           <span className="details-chevron"><Icon name="lock" size={15} /></span>
         </div>
-        {fromsoftEmberAvailable && (
-          <button
-            type="button"
-            className="fromsoft-ember-button"
-            onPointerDown={(event) => event.stopPropagation()}
-            onKeyDown={(event) => event.stopPropagation()}
-            onClick={(event) => { event.stopPropagation(); onUseFromsoftEmber() }}
-          >
-            <span><Icon name="sparkles" size={15} /></span>
-            <span><strong>Разжечь негорящую искру</strong><small>Один раз снять печать раньше</small></span>
-          </button>
-        )}
       </div>
     )
   }
@@ -1194,7 +1195,7 @@ function DayMapCard({ day, completedStops }: { day: TripDay; completedStops: str
         <div className="day-map-body">
           {day.mapNote && <p className="day-map-note"><Icon name="hint" size={16} /> {day.mapNote}</p>}
           <div className="day-map-frame"><iframe ref={frameRef} src={`${mapUrl}?embed=1&date=${mapDate}`} title={`Интерактивная карта · ${day.dateLabel}`} loading="lazy" allow="geolocation" onLoad={sendMapProgress} /></div>
-          <div className="day-map-footer"><span>Пройденные места становятся серыми после галочки в дневнике. Геолокация остаётся на этом устройстве.</span><a href={`${mapUrl}?date=${mapDate}&completed=${completedQuery}&routeScenes=${routeScenesQuery}&minimum=${minimumProgress}`} target="_blank" rel="noopener noreferrer">На весь экран →</a></div>
+          <div className="day-map-footer"><span>Серое — уже пройдено, золотое — текущая цель. Светится только последний участок к ней; будущие точки остаются цветными. GPS включается кнопкой 📍.</span><a href={`${mapUrl}?date=${mapDate}&completed=${completedQuery}&routeScenes=${routeScenesQuery}&minimum=${minimumProgress}`} target="_blank" rel="noopener noreferrer">На весь экран →</a></div>
         </div>
       )}
     </section>
@@ -1325,14 +1326,13 @@ function App() {
   const japanHour = useJapanHour()
   const [progress, setProgress] = useState<Progress>(loadProgress)
   const [accessMode, setAccessMode] = useState<AccessMode | null>(loadAccessMode)
-  const [accessChecking, setAccessChecking] = useState(() => loadAccessMode() === 'editor')
-  const [cloudStatus, setCloudStatus] = useState<CloudStatus>('checking')
+  const [accessChecking, setAccessChecking] = useState(() => !PREVIEW_MODE && loadAccessMode() === 'editor')
+  const [cloudStatus, setCloudStatus] = useState<CloudStatus>(() => PREVIEW_MODE ? 'offline' : 'checking')
   const [cloudInitialized, setCloudInitialized] = useState(false)
   const [cloudRetry, setCloudRetry] = useState(0)
   const [view, setView] = useState<ViewName>('journey')
   const latestUnlocked = [...tripDays].reverse().find((day) => day.date <= today)
   const [selectedDate, setSelectedDate] = useState(latestUnlocked?.date ?? tripDays[0].date)
-  const [riddleAnswers, setRiddleAnswers] = useState<Record<string, number>>({})
   const [modal, setModal] = useState<{ id: string; isNew: boolean; queue: string[] } | null>(null)
   const [magicModalDayId, setMagicModalDayId] = useState<string | null>(null)
   const [activeLetterId, setActiveLetterId] = useState<string | null>(null)
@@ -1366,13 +1366,23 @@ function App() {
   const selectedClaimed = selectedDay.achievementId
     ? progress.claimed.includes(selectedDay.achievementId)
     : false
+  const selectedSceneIds = [...new Set(selectedDay.timeline.map((item) => item.id))]
+  const selectedCompletedSceneCount = selectedSceneIds.filter((id) => selectedStops.includes(id)).length
+  const selectedRiddleUnlocked = selectedSceneIds.every((id) => selectedStops.includes(id))
   const solvedRiddles = progress.solvedRiddles ?? []
   const selectedRiddleSolved = solvedRiddles.includes(selectedDay.id)
   const selectedRiddleRevealed = progress.reveals.includes(selectedDay.id)
   const selectedHintUsed = progress.hints.includes(selectedDay.id)
-  const selectedAnswer = riddleAnswers[selectedDay.id]
+  const selectedAnswer = progress.riddleAnswers[selectedDay.id]
     ?? (selectedRiddleSolved ? selectedDay.riddle.answer : undefined)
   const isCorrect = selectedAnswer === selectedDay.riddle.answer
+  const selectedAnswerLocked = selectedAnswer !== undefined && !selectedRiddleSolved
+  const selectedEmberAvailable = canEdit
+    && selectedRiddleUnlocked
+    && selectedAnswerLocked
+    && !isCorrect
+    && Boolean(progress.fromsoftRelic)
+    && !progress.fromsoftEmberUsedAt
   const rating = progress.ratings[selectedDay.id]
   const selectedDaySteps = progress.dailySteps[selectedDay.id] ?? ''
   const discoveredCount = achievements.filter((achievement) => progress.claimed.includes(achievement.id)).length
@@ -1499,6 +1509,7 @@ function App() {
 
   useEffect(() => {
     if (accessMode !== 'editor') return
+    if (PREVIEW_MODE) return
 
     let cancelled = false
     void checkEditorSession()
@@ -1519,6 +1530,7 @@ function App() {
 
   useEffect(() => {
     if (!accessMode || accessChecking) return
+    if (PREVIEW_MODE) return
     let cancelled = false
     let interval: number | undefined
 
@@ -1639,7 +1651,7 @@ function App() {
   }, [progress, accessMode, accessChecking, cloudInitialized, cloudRetry])
 
   useEffect(() => {
-    if (accessMode !== 'editor' || accessChecking) return
+    if (PREVIEW_MODE || accessMode !== 'editor' || accessChecking) return
     const interval = window.setInterval(() => setCloudRetry((value) => value + 1), 30_000)
     return () => window.clearInterval(interval)
   }, [accessMode, accessChecking])
@@ -1704,25 +1716,38 @@ function App() {
     })
   }
 
-  const activateFromsoftEmber = (dayId: string, stopId: string) => {
-    if (!canEdit || !progress.fromsoftRelic || progress.fromsoftEmberUsedAt) return
+  const activateFromsoftEmber = (day: TripDay) => {
+    const previousAnswer = progress.riddleAnswers[day.id]
+    const allScenesComplete = day.timeline.every((item) => (progress.checkedStops[day.id] ?? []).includes(item.id))
+    if (!canEdit
+      || !allScenesComplete
+      || !progress.fromsoftRelic
+      || progress.fromsoftEmberUsedAt
+      || previousAnswer === undefined
+      || previousAnswer === day.riddle.answer
+      || (progress.solvedRiddles ?? []).includes(day.id)) return
     setConfirmation({
-      title: 'Разжечь негорящую искру?',
-      description: 'Она снимет печать с этого момента раньше времени и после этого погаснет. Использовать искру можно только один раз за всё путешествие.',
-      confirmLabel: 'Разжечь искру',
+      title: progress.fromsoftRelic === 'dark-souls' ? 'Разжечь костёр?' : 'Коснуться благодати?',
+      description: `Искра сотрёт ответ «${day.riddle.options[previousAnswer]}» и вернёт загадке варианты. После этого она погаснет — изменить выбор так можно только один раз за всё путешествие.`,
+      confirmLabel: 'Вернуть выбор',
       onConfirm: () => {
         setProgress((current) => {
-          if (!current.fromsoftRelic || current.fromsoftEmberUsedAt) return current
-          const unlocked = current.unlockedStops[dayId] ?? []
+          const answer = current.riddleAnswers[day.id]
+          if (!current.fromsoftRelic
+            || current.fromsoftEmberUsedAt
+            || answer === undefined
+            || answer === day.riddle.answer
+            || (current.solvedRiddles ?? []).includes(day.id)) return current
+          const riddleAnswers = { ...current.riddleAnswers }
+          delete riddleAnswers[day.id]
           return {
             ...current,
-            fromsoftEmberUsedAt: `${dayId}:${stopId}`,
-            unlockedStops: unlocked.includes(stopId)
-              ? current.unlockedStops
-              : { ...current.unlockedStops, [dayId]: [...unlocked, stopId] },
+            fromsoftEmberUsedAt: `${day.id}:riddle`,
+            riddleAnswers,
+            reveals: current.reveals.filter((dayId) => dayId !== day.id),
           }
         })
-        showKitsuReaction('Искра вспыхнула и сняла печать с будущего момента. Даже Кицу на секунду стал похож на хранителя костра.')
+        showKitsuReaction('Огонь прошёл по неверному ответу, не тронув сцену. Загадка снова ждёт твоего выбора.')
       },
     })
   }
@@ -1871,20 +1896,30 @@ function App() {
   }
 
   const revealAnswer = (day: TripDay) => {
-    if (!canEdit) return
+    const allScenesComplete = day.timeline.every((item) => (progress.checkedStops[day.id] ?? []).includes(item.id))
+    if (!canEdit || !allScenesComplete || progress.riddleAnswers[day.id] !== undefined || solvedRiddles.includes(day.id)) return
     setProgress((current) => current.reveals.includes(day.id) ? current : { ...current, reveals: [...current.reveals, day.id] })
-    setRiddleAnswers((current) => ({ ...current, [day.id]: day.riddle.answer }))
   }
 
   const answerRiddle = (day: TripDay, answer: number) => {
-    if (!canEdit) return
-    setRiddleAnswers((current) => ({ ...current, [day.id]: answer }))
-    if (answer !== day.riddle.answer || !day.riddle.location) return
+    const allScenesComplete = day.timeline.every((item) => (progress.checkedStops[day.id] ?? []).includes(item.id))
+    if (!canEdit || !allScenesComplete || progress.riddleAnswers[day.id] !== undefined || solvedRiddles.includes(day.id)) return
     setProgress((current) => {
+      if (current.riddleAnswers[day.id] !== undefined || (current.solvedRiddles ?? []).includes(day.id)) return current
       const solved = current.solvedRiddles ?? []
-      return solved.includes(day.id) ? current : { ...current, solvedRiddles: [...solved, day.id] }
+      return {
+        ...current,
+        riddleAnswers: { ...current.riddleAnswers, [day.id]: answer },
+        solvedRiddles: answer === day.riddle.answer && day.riddle.location
+          ? [...solved, day.id]
+          : solved,
+      }
     })
-    showKitsuReaction('Правильная улика! Кицу довольно щурится: ты заметила то, мимо чего легко пройти.')
+    if (answer === day.riddle.answer) {
+      showKitsuReaction(day.riddle.location
+        ? 'Правильная улика! Кицу довольно щурится: ты заметила то, мимо чего легко пройти.'
+        : 'Верно! Последняя печать дня вспыхнула и сохранила твой ответ.')
+    }
   }
 
   const handlePhoto = async (file: File | undefined, dayId: string) => {
@@ -1949,10 +1984,11 @@ function App() {
   }
 
   const requestRiddleAnswer = (day: TripDay, answer: number) => {
-    if (!canEdit || solvedRiddles.includes(day.id)) return
+    const allScenesComplete = day.timeline.every((item) => (progress.checkedStops[day.id] ?? []).includes(item.id))
+    if (!canEdit || !allScenesComplete || progress.riddleAnswers[day.id] !== undefined || solvedRiddles.includes(day.id)) return
     setConfirmation({
       title: 'Проверить этот вариант?',
-      description: `Выбран ответ «${day.riddle.options[answer]}». Если он верный, решение сохранится и сможет открыть ачивку.`,
+      description: `Выбран ответ «${day.riddle.options[answer]}». После проверки Кицу сохранит выбор. Если ответ окажется неверным, изменить его сможет только негорящая искра FromSoftware.`,
       confirmLabel: 'Проверить',
       onConfirm: () => answerRiddle(day, answer),
     })
@@ -2031,7 +2067,7 @@ function App() {
 
   const enterAccessMode = (mode: AccessMode) => {
     rememberAccessMode(mode)
-    setAccessChecking(mode === 'editor')
+    setAccessChecking(!PREVIEW_MODE && mode === 'editor')
     setAccessMode(mode)
   }
 
@@ -2105,7 +2141,7 @@ function App() {
               <div className={`screen-content day-content vibe-${selectedDay.vibe.tone}`}>
                 <section className="chapter-heading">
                   <div><span className="section-kicker">{selectedDay.dateLabel} · {selectedDay.city}</span><h2>Приключение дня</h2></div>
-                  <div className="day-progress"><strong>{selectedStops.length}/{selectedDay.timeline.length}</strong><small>моментов</small></div>
+                  <div className="day-progress"><strong>{selectedCompletedSceneCount}/{selectedSceneIds.length}</strong><small>моментов</small></div>
                 </section>
 
                 <DayVibeCard vibe={selectedDay.vibe} />
@@ -2147,10 +2183,8 @@ function App() {
                         locked={!complete && !accessible}
                         editable={canEdit}
                         fromsoftRelic={progress.fromsoftRelic}
-                        fromsoftEmberAvailable={canEdit && Boolean(progress.fromsoftRelic) && !progress.fromsoftEmberUsedAt}
                         onToggle={() => toggleStop(selectedDay.id, item.id, accessible)}
                         onForceUnlock={() => forceUnlockStop(selectedDay.id, item.id)}
-                        onUseFromsoftEmber={() => activateFromsoftEmber(selectedDay.id, item.id)}
                         onFindFromsoftRelic={findFromsoftRelic}
                       />
                     )
@@ -2175,31 +2209,61 @@ function App() {
                   )
                 )}
 
-                <section className="paper-card riddle-card">
-                  <div className="card-label"><Icon name="quest" size={18} /> Загадка дня</div>
-                  {selectedDay.riddle.location && (
-                    <div className="field-riddle-location">
-                      <span><Icon name="place" size={17} /></span>
-                      <div><strong>Найди на месте</strong><small>{selectedDay.riddle.location}</small></div>
+                <section className={`paper-card riddle-card${selectedRiddleUnlocked ? ' is-open' : ' is-sealed'}`}>
+                  {selectedRiddleUnlocked ? (
+                    <>
+                      <div className="riddle-opened-heading">
+                        <div className="card-label"><Icon name="quest" size={18} /> Загадка дня</div>
+                        <span><Icon name="check" size={14} /> Все сцены собраны</span>
+                      </div>
+                      {selectedDay.riddle.location && (
+                        <div className="field-riddle-location">
+                          <span><Icon name="place" size={17} /></span>
+                          <div><strong>Найди на месте</strong><small>{selectedDay.riddle.location}</small></div>
+                        </div>
+                      )}
+                      <h3>{selectedDay.riddle.question}</h3>
+                      <div className="answer-grid">
+                        {selectedDay.riddle.options.map((option, index) => {
+                          const chosen = selectedAnswer === index
+                          const revealed = selectedRiddleRevealed && selectedAnswer === undefined && index === selectedDay.riddle.answer
+                          const answerClass = chosen
+                            ? (index === selectedDay.riddle.answer ? ' is-correct' : ' is-wrong')
+                            : revealed ? ' is-revealed' : ''
+                          const answerLocked = selectedRiddleSolved || selectedAnswer !== undefined || !canEdit
+                          const revealLocked = selectedRiddleRevealed && index !== selectedDay.riddle.answer
+                          return <button key={option} type="button" className={`answer-button${answerClass}`} disabled={answerLocked || revealLocked} onClick={() => requestRiddleAnswer(selectedDay, index)}>{option}</button>
+                        })}
+                      </div>
+                      {selectedRiddleRevealed && selectedAnswer === undefined && <p className="reveal-note">Кицу подсветил верный след. Нажми на него, чтобы сохранить ответ.</p>}
+                      {isCorrect && <p className="answer-note"><Icon name="check" size={16} /> {selectedDay.riddle.explanation}</p>}
+                      {selectedAnswer !== undefined && !isCorrect && (
+                        <p className="try-again">Ответ сохранён. {progress.fromsoftEmberUsedAt ? 'Негорящая искра уже погасла.' : progress.fromsoftRelic ? 'Негорящая искра может один раз вернуть выбор.' : 'Изменить его сможет только найденная искра FromSoftware.'}</p>
+                      )}
+                      {selectedHintUsed && <p className="hint-text">Подсказка: {selectedDay.riddle.hint}</p>}
+                      {selectedEmberAvailable && (
+                        <button type="button" className="fromsoft-riddle-button" onClick={() => activateFromsoftEmber(selectedDay)}>
+                          <span><Icon name="sparkles" size={17} /></span>
+                          <span><strong>{progress.fromsoftRelic === 'dark-souls' ? 'Разжечь костёр' : 'Коснуться благодати'}</strong><small>Один раз стереть неверный ответ и выбрать снова</small></span>
+                          <Icon name="chevron" size={17} />
+                        </button>
+                      )}
+                      <div className="riddle-actions">
+                        <button type="button" className="text-button" disabled={!canEdit || selectedAnswer !== undefined || selectedHintUsed || selectedRiddleSolved || selectedRiddleRevealed} onClick={() => addHint(selectedDay.id)}><Icon name="hint" size={17} /> {selectedHintUsed ? 'Подсказка открыта' : selectedRiddleSolved || isCorrect ? 'Разгадано' : 'Подсказка'}</button>
+                        <button type="button" className="text-button muted" disabled={!canEdit || selectedAnswer !== undefined || selectedRiddleRevealed || selectedRiddleSolved} onClick={() => revealAnswer(selectedDay)}><Icon name="eye" size={17} /> {selectedRiddleRevealed ? 'Ответ подсвечен' : selectedRiddleSolved || isCorrect ? 'Разгадано' : 'Reveal answer'}</button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="riddle-seal" role="status" aria-label={`Загадка дня закрыта. Завершено ${selectedCompletedSceneCount} из ${selectedSceneIds.length} сцен.`}>
+                      <span className="riddle-seal-glow" aria-hidden="true"><i /><i /><i /></span>
+                      <span className="riddle-seal-lock"><Icon name="lock" size={23} /></span>
+                      <small>Финальная печать дня</small>
+                      <h3>Загадка пока спит</h3>
+                      <p>Закрой все сцены дня — после последней галочки Кицу зажжёт вопрос.</p>
+                      <div className="riddle-seal-progress"><span style={{ width: `${selectedSceneIds.length > 0 ? (selectedCompletedSceneCount / selectedSceneIds.length) * 100 : 0}%` }} /></div>
+                      <strong>{selectedCompletedSceneCount} / {selectedSceneIds.length} сцен</strong>
                     </div>
                   )}
-                  <h3>{selectedDay.riddle.question}</h3>
-                  <div className="answer-grid">
-                    {selectedDay.riddle.options.map((option, index) => {
-                      const chosen = selectedAnswer === index
-                      const answerClass = chosen ? (index === selectedDay.riddle.answer ? ' is-correct' : ' is-wrong') : ''
-                      const answerLocked = selectedRiddleSolved || !canEdit
-                      return <button key={option} type="button" className={`answer-button${answerClass}`} disabled={answerLocked} onClick={() => requestRiddleAnswer(selectedDay, index)}>{option}</button>
-                    })}
-                  </div>
-                  {selectedRiddleRevealed && !selectedRiddleSolved && <p className="reveal-note">Кицу подсветил ответ. Нажми на правильный вариант, чтобы засчитать загадку.</p>}
-                  {isCorrect && <p className="answer-note"><Icon name="check" size={16} /> {selectedDay.riddle.explanation}</p>}
-                  {selectedAnswer !== undefined && !isCorrect && <p className="try-again">Почти. Кицу разрешает попробовать ещё раз.</p>}
-                  {selectedHintUsed && <p className="hint-text">Подсказка: {selectedDay.riddle.hint}</p>}
-                  <div className="riddle-actions">
-                    <button type="button" className="text-button" disabled={!canEdit || selectedHintUsed || selectedRiddleSolved || selectedRiddleRevealed} onClick={() => addHint(selectedDay.id)}><Icon name="hint" size={17} /> {selectedHintUsed ? 'Подсказка открыта' : selectedRiddleSolved ? 'Разгадано' : 'Подсказка'}</button>
-                    <button type="button" className="text-button muted" disabled={!canEdit || selectedRiddleRevealed || selectedRiddleSolved} onClick={() => revealAnswer(selectedDay)}><Icon name="eye" size={17} /> {selectedRiddleRevealed ? 'Ответ открыт' : selectedRiddleSolved ? 'Разгадано' : 'Reveal answer'}</button>
-                  </div>
                 </section>
 
                 {selectedAchievement && (
@@ -2527,12 +2591,12 @@ function App() {
                     <p>{progress.fromsoftRelic === 'dark-souls'
                       ? 'Среди ярких витрин нашлась вещь из мира Dark Souls. Кицу решил, что в ней живёт настоящая искра: если она добралась до Японии вместе с вами, погаснуть ей уже нельзя.'
                       : progress.fromsoftRelic === 'elden-ring'
-                        ? 'Среди вывесок Tokyo мелькнул знак Elden Ring. Кицу поймал золотую искру хвостом и оставил её на случай, если одна из будущих печатей не захочет открываться.'
+                        ? 'Среди вывесок Tokyo мелькнул знак Elden Ring. Кицу поймал золотую искру хвостом и оставил её на случай неверного ответа в одной из загадок.'
                         : 'Кицу чувствует знакомое тепло где-то среди витрин Akihabara. Загляни в большую охоту этого дня и проверь, какой мир оставил этот след.'}</p>
                     {progress.fromsoftRelic ? (
                       <div className={progress.fromsoftEmberUsedAt ? 'fromsoft-power is-used' : 'fromsoft-power'}>
                         <span><Icon name="sparkles" size={16} /></span>
-                        <div><strong>{progress.fromsoftEmberUsedAt ? 'Искра уже разожжена' : 'Чит Кицу готов'}</strong><p>{progress.fromsoftEmberUsedAt ? 'Она уже сняла одну печать раньше времени.' : 'У любого будущего момента появится кнопка, которая один раз снимет печать раньше.'}</p></div>
+                        <div><strong>{progress.fromsoftEmberUsedAt ? 'Искра уже разожжена' : 'Второй ответ готов'}</strong><p>{progress.fromsoftEmberUsedAt ? 'Она уже вернула выбор в одной загадке.' : 'После неверного ответа в любой загадке появится кнопка, которая один раз вернёт выбор.'}</p></div>
                       </div>
                     ) : (
                       <button type="button" className="fromsoft-hunt-button" onClick={() => { setSelectedDate('2026-10-10'); setView('journey'); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>К скрытой охоте</button>

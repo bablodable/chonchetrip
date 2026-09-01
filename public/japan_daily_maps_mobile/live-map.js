@@ -65,6 +65,20 @@
   };
   locationControl.addTo(map);
 
+  const progressLegend = L.control({ position: 'topleft' });
+  progressLegend.onAdd = () => {
+    const legend = L.DomUtil.create('div', 'live-progress-legend');
+    legend.setAttribute('aria-label', 'Состояния маршрута');
+    legend.innerHTML = [
+      '<span><i class="is-passed"></i>Пройдено</span>',
+      '<span><i class="is-current"></i>Сейчас</span>',
+      '<span><i class="is-future"></i>Дальше</span>',
+    ].join('');
+    L.DomEvent.disableClickPropagation(legend);
+    return legend;
+  };
+  progressLegend.addTo(map);
+
   function sceneGroup(index) {
     const group = routeScenes[index];
     return Array.isArray(group) ? group.filter((value) => typeof value === 'string') : [];
@@ -87,11 +101,7 @@
   function targetRouteIndex() {
     const sceneId = activeSceneId();
     if (!sceneId) return -1;
-    let targetIndex = -1;
-    routeEntries.forEach((_, index) => {
-      if (sceneGroup(index).includes(sceneId)) targetIndex = index;
-    });
-    return targetIndex;
+    return routeEntries.findIndex((_, index) => index >= minimumSteps && sceneGroup(index).includes(sceneId));
   }
 
   function targetPoint() {
@@ -108,8 +118,12 @@
   }
 
   function pointStatus(pointNumber) {
-    if (targetPoint()?.n === pointNumber) return 'next';
+    const currentTargetIndex = targetRouteIndex();
     const occurrences = occurrenceIndexes(pointNumber);
+    if (currentTargetIndex >= 0) {
+      if (occurrences.includes(currentTargetIndex)) return 'next';
+      return occurrences.length > 0 && occurrences.every((index) => index < currentTargetIndex) ? 'passed' : 'future';
+    }
     return occurrences.length > 0 && occurrences.every(entryComplete) ? 'passed' : 'future';
   }
 
@@ -133,7 +147,7 @@
       marker.setIcon(liveMarkerIcon(point, status));
       marker.unbindTooltip();
       if (status === 'next') {
-        marker.bindTooltip(`Цель текущей сцены · ${point.n}`, {
+        marker.bindTooltip(`Текущая цель · ${point.n}`, {
           permanent: true,
           direction: 'top',
           className: 'live-next-tooltip',
@@ -153,23 +167,25 @@
 
   function renderRoutes() {
     routeLayer.clearLayers();
-    const currentScene = activeSceneId();
+    const currentTargetIndex = targetRouteIndex();
 
     routeLegs.forEach((leg, index) => {
       const destinationIndex = index + 1;
-      if (entryComplete(destinationIndex)) return;
-
       const from = pointByNumber.get(leg.from);
       const to = pointByNumber.get(leg.to);
       if (!from || !to) return;
 
-      const isCurrent = Boolean(currentScene && sceneGroup(destinationIndex).includes(currentScene));
+      const isPassed = currentTargetIndex >= 0
+        ? destinationIndex < currentTargetIndex
+        : entryComplete(destinationIndex);
+      const isCurrent = !isPassed && destinationIndex === currentTargetIndex;
+      const routeState = isPassed ? 'passed' : isCurrent ? 'current' : 'future';
       L.polyline([[from.lat, from.lng], [to.lat, to.lng]], {
-        color: isCurrent ? '#e89424' : leg.type === 'rail' ? '#6f7fba' : '#bb877e',
-        weight: isCurrent ? 7 : leg.type === 'rail' ? 3.5 : 4,
-        opacity: isCurrent ? 0.96 : 0.34,
-        dashArray: isCurrent ? '13 9' : leg.type === 'rail' ? '8 11' : null,
-        className: isCurrent ? 'live-route-current' : 'live-route-future',
+        color: isPassed ? '#8d9693' : isCurrent ? '#e89424' : leg.type === 'rail' ? '#6f7fba' : '#bb877e',
+        weight: isPassed ? 3 : isCurrent ? 7 : leg.type === 'rail' ? 3.5 : 4,
+        opacity: isPassed ? 0.3 : isCurrent ? 0.96 : 0.42,
+        dashArray: isPassed ? '3 8' : isCurrent ? '13 9' : leg.type === 'rail' ? '8 11' : null,
+        className: `live-route-${routeState}`,
       }).addTo(routeLayer);
     });
   }
@@ -306,6 +322,5 @@
   renderProgress();
   setTimeout(() => {
     map.invalidateSize();
-    startLocationWatch(false);
   }, 350);
 })();

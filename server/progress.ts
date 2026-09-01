@@ -17,6 +17,14 @@ const ratings = (value: unknown) => {
   }))
 }
 
+const riddleAnswers = (value: unknown) => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
+  return Object.fromEntries(Object.entries(value).slice(0, 100).flatMap(([key, item]) => {
+    const answer = Number(item)
+    return Number.isInteger(answer) && answer >= 0 && answer <= 20 ? [[key, answer]] : []
+  }))
+}
+
 const dailySteps = (value: unknown) => {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
   return Object.fromEntries(Object.entries(value).flatMap(([key, item]) => {
@@ -48,7 +56,9 @@ const tripCounters = (value: unknown) => {
 
 const fromsoftRelic = (value: unknown) => value === 'dark-souls' || value === 'elden-ring' ? value : null
 
-const fromsoftEmberUsedAt = (value: unknown) => typeof value === 'string' && value.length <= 160
+const fromsoftEmberUsedAt = (value: unknown) => typeof value === 'string'
+  && value.length <= 160
+  && value.endsWith(':riddle')
   ? value
   : null
 
@@ -63,6 +73,7 @@ export const sanitizeProgress = (value: unknown): StoredProgress | null => {
     hints: strings(source.hints),
     reveals: strings(source.reveals),
     solvedRiddles: strings(source.solvedRiddles),
+    riddleAnswers: riddleAnswers(source.riddleAnswers),
     stamps: strings(source.stamps),
     sideQuests: strings(source.sideQuests),
     konbini: strings(source.konbini),
