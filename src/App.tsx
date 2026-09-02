@@ -1195,7 +1195,7 @@ function DayMapCard({ day, completedStops }: { day: TripDay; completedStops: str
         <div className="day-map-body">
           {day.mapNote && <p className="day-map-note"><Icon name="hint" size={16} /> {day.mapNote}</p>}
           <div className="day-map-frame"><iframe ref={frameRef} src={`${mapUrl}?embed=1&date=${mapDate}`} title={`Карта пути · ${day.dateLabel}`} loading="lazy" allow="geolocation" onLoad={sendMapProgress} /></div>
-          <div className="day-map-footer"><span>Карту читает Кицу: серое уже позади, золотое ждёт сейчас, а цветное — дальше. Движется только дорожка к следующей точке. Кнопка 📍 покажет, где ты.</span><a href={`${mapUrl}?date=${mapDate}&completed=${completedQuery}&routeScenes=${routeScenesQuery}&minimum=${minimumProgress}`} target="_blank" rel="noopener noreferrer">Развернуть карту →</a></div>
+          <div className="day-map-footer"><span>Серое — пройденный путь, золотое — текущая цель. Светится только маршрут от последней точки к текущей; будущие точки остаются цветными. Кнопка 📍 покажет, где ты.</span><a href={`${mapUrl}?date=${mapDate}&completed=${completedQuery}&routeScenes=${routeScenesQuery}&minimum=${minimumProgress}`} target="_blank" rel="noopener noreferrer">Развернуть карту →</a></div>
         </div>
       )}
     </section>

@@ -70,9 +70,9 @@
     const legend = L.DomUtil.create('div', 'live-progress-legend');
     legend.setAttribute('aria-label', 'Что означают цвета');
     legend.innerHTML = [
-      '<span><i class="is-passed"></i>Позади</span>',
-      '<span><i class="is-current"></i>Сюда сейчас</span>',
-      '<span><i class="is-future"></i>Впереди</span>',
+      '<span><i class="is-passed"></i>Пройдено</span>',
+      '<span><i class="is-current"></i>Текущий маршрут</span>',
+      '<span><i class="is-future"></i>Дальше</span>',
     ].join('');
     L.DomEvent.disableClickPropagation(legend);
     return legend;
@@ -147,7 +147,7 @@
       marker.setIcon(liveMarkerIcon(point, status));
       marker.unbindTooltip();
       if (status === 'next') {
-        marker.bindTooltip(`Сюда сейчас · ${point.n}`, {
+        marker.bindTooltip(`Текущая цель · ${point.n}`, {
           permanent: true,
           direction: 'top',
           className: 'live-next-tooltip',
