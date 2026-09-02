@@ -50,7 +50,8 @@ const tripCounters = (value: unknown) => {
     gachapon: counterValue(source.gachapon),
     goshuin: counterValue(source.goshuin),
     vending: counterValue(source.vending),
-    sweets: counterValue(source.sweets),
+    figures: counterValue(source.figures ?? source.sweets),
+    train: counterValue(source.train),
   }
 }
 

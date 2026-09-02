@@ -31,6 +31,7 @@ export type StoredProgress = {
     gachapon: number
     goshuin: number
     vending: number
-    sweets: number
+    figures: number
+    train: number
   }
 }

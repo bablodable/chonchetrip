@@ -37,17 +37,27 @@ import { animeFrameGuides, type AnimeFrameGuide } from './animeFrameGuides'
 type ViewName = 'journey' | 'collection' | 'passport' | 'kitsu'
 type CloudStatus = 'checking' | 'synced' | 'offline' | 'error'
 type FromsoftRelic = 'dark-souls' | 'elden-ring'
-type TripCounterId = 'ramen' | 'onigiri' | 'gachapon' | 'goshuin' | 'vending' | 'sweets'
+type TripCounterId = 'ramen' | 'onigiri' | 'gachapon' | 'goshuin' | 'vending' | 'figures' | 'train'
 type TripCounters = Record<TripCounterId, number>
+type TripCounterDefinition = { id: TripCounterId; icon: string; title: string; actionLabel: string; finaleLabel: string; wide?: boolean }
 
-const tripCounterDefinitions: { id: TripCounterId; icon: string; title: string; actionLabel: string; finaleLabel: string }[] = [
+const regularTripCounterDefinitions: TripCounterDefinition[] = [
   { id: 'ramen', icon: '🍜', title: 'Ramen', actionLabel: 'Ещё миска!', finaleLabel: 'мисок ramen' },
   { id: 'onigiri', icon: '🍙', title: 'Onigiri', actionLabel: 'Ещё один!', finaleLabel: 'onigiri' },
   { id: 'gachapon', icon: '🎰', title: 'Gachapon', actionLabel: 'Новая капсула!', finaleLabel: 'капсул gachapon' },
   { id: 'goshuin', icon: '⛩️', title: 'Goshuin', actionLabel: 'Новая запись!', finaleLabel: 'goshuin' },
   { id: 'vending', icon: '🥤', title: 'Автомат', actionLabel: 'Ещё напиток!', finaleLabel: 'напитков из автоматов' },
-  { id: 'sweets', icon: '🍡', title: 'Сладость', actionLabel: 'Ещё одна!', finaleLabel: 'японских сладостей' },
+  { id: 'figures', icon: '🦸', title: 'Аниме-фигурка', actionLabel: 'Ещё одна в коллекцию!', finaleLabel: 'аниме-фигурок' },
 ]
+const trainTripCounterDefinition: TripCounterDefinition = {
+  id: 'train',
+  icon: '🚅',
+  title: 'Поездка на поезде',
+  actionLabel: 'Ещё одна поездка!',
+  finaleLabel: 'поездок на поезде',
+  wide: true,
+}
+const tripCounterDefinitions = [...regularTripCounterDefinitions, trainTripCounterDefinition]
 
 const emptyTripCounters: TripCounters = {
   ramen: 0,
@@ -55,7 +65,8 @@ const emptyTripCounters: TripCounters = {
   gachapon: 0,
   goshuin: 0,
   vending: 0,
-  sweets: 0,
+  figures: 0,
+  train: 0,
 }
 
 const currentSideQuestIds = new Set(sideQuests.map((quest) => quest.id))
@@ -206,6 +217,7 @@ const normalizeProgress = (value: unknown): Progress => {
     ? value as Partial<Progress>
     : {}
   const storedCounters = parsed.tripCounters ?? emptyTripCounters
+  const legacySweetsCount = (storedCounters as Partial<TripCounters> & { sweets?: number }).sweets
   const storedSteps = parsed.dailySteps ?? {}
   const storedRiddleAnswers = parsed.riddleAnswers ?? {}
   const storedFromsoftEmber = typeof parsed.fromsoftEmberUsedAt === 'string'
@@ -249,9 +261,13 @@ const normalizeProgress = (value: unknown): Progress => {
     fromsoftRelic: parsed.fromsoftRelic ?? null,
     fromsoftEmberUsedAt: storedFromsoftEmber,
     tripCounters: {
-      ...emptyTripCounters,
-      ...storedCounters,
       ramen: Math.max(0, storedCounters.ramen ?? (parsed.ramen ? 1 : 0)),
+      onigiri: Math.max(0, storedCounters.onigiri ?? 0),
+      gachapon: Math.max(0, storedCounters.gachapon ?? 0),
+      goshuin: Math.max(0, storedCounters.goshuin ?? 0),
+      vending: Math.max(0, storedCounters.vending ?? 0),
+      figures: Math.max(0, storedCounters.figures ?? legacySweetsCount ?? 0),
+      train: Math.max(0, storedCounters.train ?? 0),
     },
   }
 }
@@ -677,20 +693,22 @@ function KitsuReactionToast({ message }: { message: string }) {
   )
 }
 
-function TripCounterArt({ id }: { id: TripCounterId }) {
-  const drawings: Record<TripCounterId, React.ReactNode> = {
+type IllustratedTripCounterId = Exclude<TripCounterId, 'train'>
+
+function TripCounterArt({ id }: { id: IllustratedTripCounterId }) {
+  const drawings: Record<IllustratedTripCounterId, React.ReactNode> = {
     ramen: <><path d="M19 57h82c-3 22-17 31-41 31S22 79 19 57Z" /><path d="M27 57c6-8 18-12 33-12s27 4 33 12M42 42c-5-8 5-11 0-20M60 42c-5-8 5-11 0-20M78 42c-5-8 5-11 0-20M35 91h50" /><path d="m77 14 25 38M84 10l24 38" /></>,
     onigiri: <><path d="M60 15c8 0 34 38 37 51 3 14-10 23-37 23S20 80 23 66c3-13 29-51 37-51Z" /><path d="M43 64h34v25H43z" /><circle cx="44" cy="48" r="2" /><circle cx="73" cy="39" r="2" /><path d="M31 68c8 4 15 5 21 5M89 68c-8 4-15 5-21 5" /></>,
     gachapon: <><rect x="27" y="10" width="66" height="80" rx="13" /><circle cx="60" cy="40" r="25" /><circle cx="48" cy="31" r="7" /><circle cx="67" cy="27" r="7" /><circle cx="73" cy="47" r="7" /><circle cx="50" cy="50" r="7" /><path d="M48 68h24v13H48zM92 53h13M101 48v10M39 90v7M81 90v7" /></>,
     goshuin: <><rect x="46" y="28" width="50" height="62" rx="4" /><circle cx="71" cy="58" r="14" /><path d="M63 58h16M71 50v16M18 37h38M25 27h24M29 16h16M23 37v49M51 37v49M16 49h42" /></>,
     vending: <><rect x="30" y="8" width="61" height="86" rx="7" /><rect x="38" y="17" width="45" height="37" rx="3" /><path d="M42 25h37M42 36h37M42 47h37M51 20v31M69 20v31" /><rect x="40" y="64" width="26" height="15" rx="2" /><circle cx="79" cy="68" r="4" /><path d="M73 80h11M37 94v5M84 94v5" /></>,
-    sweets: <><path d="m24 86 66-66" /><circle cx="40" cy="70" r="13" /><circle cx="58" cy="52" r="13" /><circle cx="76" cy="34" r="13" /><path d="M78 75c13-2 22 4 24 16-13 2-22-4-24-16ZM22 28c10-7 20-5 27 5-10 7-20 5-27-5Z" /><path d="M82 82c-10-4-18-2-24 5" /></>,
+    figures: <><path d="m46 27 3-13 8 6 5-11 6 11 9-5-3 14" /><circle cx="61" cy="31" r="13" /><path d="M51 44 45 69h31l-6-25M48 49 35 65M73 49l13 16M52 69 43 86M69 69l10 17M34 88h54" /><ellipse cx="61" cy="92" rx="35" ry="7" /></>,
   }
 
   return <svg className="trip-counter-art" viewBox="0 0 120 105" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{drawings[id]}</svg>
 }
 
-function TripCounterCard({ definition, editable, onAdd }: { definition: (typeof tripCounterDefinitions)[number]; editable: boolean; onAdd: () => void }) {
+function TripCounterCard({ definition, editable, onAdd }: { definition: TripCounterDefinition; editable: boolean; onAdd: () => void }) {
   const [burst, setBurst] = useState(0)
 
   const addOne = () => {
@@ -700,8 +718,8 @@ function TripCounterCard({ definition, editable, onAdd }: { definition: (typeof 
   }
 
   return (
-    <button type="button" className={`trip-counter-card counter-${definition.id}`} disabled={!editable} onClick={addOne}>
-      <TripCounterArt id={definition.id} />
+    <button type="button" className={`trip-counter-card counter-${definition.id}${definition.wide ? ' is-shinkansen' : ''}`} disabled={!editable} onClick={addOne}>
+      {definition.id === 'train' ? <span className="shinkansen-windows" aria-hidden="true" /> : <TripCounterArt id={definition.id} />}
       <span className="trip-counter-copy"><strong>{definition.title}</strong><small>{editable ? definition.actionLabel : 'Юльчона ещё не здесь'}</small></span>
       <span className="trip-counter-add"><Icon name={editable ? 'sparkles' : 'lock'} size={17} /></span>
       {burst > 0 && <i key={burst} className="trip-counter-burst">Запомнил ✦</i>}
@@ -980,7 +998,7 @@ function TimelineCard({ item, complete, locked, editable, fromsoftRelic, onToggl
         className={`timeline-card is-locked${holding ? ' is-holding' : ''}`}
         role={editable ? 'button' : undefined}
         tabIndex={editable ? 0 : undefined}
-        aria-label={`${item.time}. ${item.title}. Этот момент пока под печатью.${editable ? ' Чтобы открыть его раньше, удерживай пять секунд.' : ''}`}
+        aria-label={`${item.time}. ${item.title}. Юльчона ещё не здесь. Этот момент пока под печатью.${editable ? ' Чтобы открыть его раньше, удерживай пять секунд.' : ''}`}
         onPointerDown={(event) => {
           if (!event.isPrimary || event.button !== 0) return
           holdOrigin.current = { x: event.clientX, y: event.clientY }
@@ -1009,7 +1027,7 @@ function TimelineCard({ item, complete, locked, editable, fromsoftRelic, onToggl
           <span className="timeline-title">
             <small>{item.time}</small>
             <strong>{item.title}</strong>
-            <span className="timeline-lock-note">{holding ? 'Не отпускай · Кицу снимает печать…' : 'Этот момент пока скрыт'}</span>
+            <span className="timeline-lock-note">{holding ? 'Не отпускай · Кицу снимает печать…' : 'Юльчона ещё не здесь'}</span>
           </span>
           <span className="details-chevron"><Icon name="lock" size={15} /></span>
         </div>
@@ -1177,7 +1195,7 @@ function DayMapCard({ day, completedStops }: { day: TripDay; completedStops: str
     <section className={open ? 'day-map-card is-open' : 'day-map-card'}>
       <button type="button" className="day-map-toggle" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
         <span className="day-map-icon"><Icon name="route" size={21} /></span>
-        <span><small>Маршрут дня</small><strong>Карта маршрута</strong></span>
+        <span><small>Маршрут дня</small><strong>Интерактивная карта</strong></span>
         <Icon name="chevron" size={19} />
       </button>
       {open && (
@@ -2372,10 +2390,11 @@ function App() {
               <div className="section-title"><div><span className="section-kicker">Секретный счёт Кицу</span><h2>Кицу, запомни!</h2></div><span className="trip-counters-seal"><Icon name="fox" size={19} /></span></div>
               <p className="trip-counters-note">{canEdit ? 'Когда встретится что-то из списка, коснись его. Все числа Кицу покажет только в конце путешествия.' : 'Секретный счёт пока молчит. Все числа Кицу покажет только в конце путешествия.'}</p>
               <div className="trip-counter-list">
-                {tripCounterDefinitions.map((definition) => (
+                {regularTripCounterDefinitions.map((definition) => (
                   <TripCounterCard key={definition.id} definition={definition} editable={canEdit} onAdd={() => recordTripCounter(definition.id)} />
                 ))}
               </div>
+              <TripCounterCard definition={trainTripCounterDefinition} editable={canEdit} onAdd={() => recordTripCounter(trainTripCounterDefinition.id)} />
             </section>
 
             <section className="passport-section">
