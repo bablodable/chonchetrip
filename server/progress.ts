@@ -80,7 +80,6 @@ export const sanitizeProgress = (value: unknown): StoredProgress | null => {
     ramen: source.ramen === true,
     ratings: ratings(source.ratings),
     dailySteps: dailySteps(source.dailySteps),
-    fujiDate: source.fujiDate === '2026-10-11' ? '2026-10-11' : '2026-10-09',
     foxFires: strings(source.foxFires),
     kitsuEncounters: strings(source.kitsuEncounters),
     openedLetters: strings(source.openedLetters),

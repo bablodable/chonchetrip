@@ -140,7 +140,6 @@ type Progress = {
   ratings: Record<string, number>
   dailySteps: Record<string, number>
   photos: Record<string, string>
-  fujiDate: '2026-10-09' | '2026-10-11'
   foxFires: string[]
   kitsuEncounters: string[]
   openedLetters: string[]
@@ -193,7 +192,6 @@ const emptyProgress: Progress = {
   ratings: {},
   dailySteps: {},
   photos: {},
-  fujiDate: '2026-10-09',
   foxFires: [],
   kitsuEncounters: [],
   openedLetters: [],
@@ -224,11 +222,12 @@ const normalizeProgress = (value: unknown): Progress => {
   ) as Record<string, number>
   return {
     ...emptyProgress,
-    ...parsed,
     claimed: (parsed.claimed ?? []).filter((id) => currentAchievementIds.has(id)),
     checkedStops: parsed.checkedStops ?? {},
     unlockedStops: parsed.unlockedStops ?? {},
     unlockedDays: parsed.unlockedDays ?? [],
+    hints: parsed.hints ?? [],
+    reveals: parsed.reveals ?? [],
     solvedRiddles: parsed.solvedRiddles ?? [],
     riddleAnswers: Object.fromEntries(
       Object.entries(storedRiddleAnswers).flatMap(([dayId, rawAnswer]) => {
@@ -236,7 +235,10 @@ const normalizeProgress = (value: unknown): Progress => {
         return Number.isInteger(answer) && answer >= 0 && answer <= 20 ? [[dayId, answer]] : []
       }),
     ),
+    stamps: parsed.stamps ?? [],
     sideQuests: (parsed.sideQuests ?? []).filter((id) => currentSideQuestIds.has(id)),
+    konbini: parsed.konbini ?? [],
+    ramen: parsed.ramen ?? false,
     ratings: parsed.ratings ?? {},
     dailySteps,
     photos: parsed.photos ?? {},
@@ -380,21 +382,8 @@ function useJapanHour(): number {
   return hour
 }
 
-function dayContentForDate(date: string, fujiDate: Progress['fujiDate']): TripDay {
-  const regularDay = tripDays.find((day) => day.date === date) ?? tripDays[0]
-  if (fujiDate === '2026-10-09') return regularDay
-
-  if (date === '2026-10-09') {
-    const tokyoDay = tripDays.find((day) => day.id === 'asakusa-nakano') ?? regularDay
-    return { ...tokyoDay, date, dateLabel: '9 октября' }
-  }
-
-  if (date === '2026-10-11') {
-    const fujiDay = tripDays.find((day) => day.id === 'fuji') ?? regularDay
-    return { ...fujiDay, date, dateLabel: '11 октября' }
-  }
-
-  return regularDay
+function dayContentForDate(date: string): TripDay {
+  return tripDays.find((day) => day.date === date) ?? tripDays[0]
 }
 
 function daysUntil(date: string): number {
@@ -1352,7 +1341,7 @@ function App() {
     dragging: dayRailDragging,
     dragProps: dayRailDragProps,
   } = useHorizontalDragScroll(selectedDate, view === 'journey' && Boolean(accessMode) && !accessChecking)
-  const selectedDay = dayContentForDate(selectedDate, progress.fujiDate)
+  const selectedDay = dayContentForDate(selectedDate)
   const selectedMagic = kitsuMagicByDay[selectedDay.id]
   const selectedUnlocked = selectedDate <= today || progress.unlockedDays.includes(selectedDate)
   const selectedAchievement = selectedDay.achievementId
@@ -1414,7 +1403,7 @@ function App() {
   const finaleReady = PREVIEW_MODE || today >= '2026-10-13' || progress.unlockedDays.includes('2026-10-13')
   const fromsoftQuestAvailable = PREVIEW_MODE || today >= '2026-10-10' || progress.unlockedDays.includes('2026-10-10')
   const bestRatingEntry = Object.entries(progress.ratings).sort(([, a], [, b]) => b - a)[0]
-  const bestRatedDay = bestRatingEntry ? tripDays.find((slot) => dayContentForDate(slot.date, progress.fujiDate).id === bestRatingEntry[0]) : undefined
+  const bestRatedDay = bestRatingEntry ? tripDays.find((slot) => dayContentForDate(slot.date).id === bestRatingEntry[0]) : undefined
   const tripRatingValues = Object.values(progress.ratings).filter((value) => Number.isFinite(value) && value >= 1 && value <= 10)
   const tripRatingDaysLabel = tripRatingValues.length === 1
     ? 'по одному прожитому дню'
@@ -1763,7 +1752,7 @@ function App() {
     return knownFoxFires.includes(letter.unlock.dayId)
   }
 
-  const findMagicSlot = (dayId: string) => tripDays.find((slot) => dayContentForDate(slot.date, progress.fujiDate).id === dayId)
+  const findMagicSlot = (dayId: string) => tripDays.find((slot) => dayContentForDate(slot.date).id === dayId)
 
   const discoverFoxFire = (magic: KitsuMagicDay) => {
     if (!canEdit || progress.foxFires.includes(magic.dayId)) return
@@ -2132,7 +2121,7 @@ function App() {
             <section className="day-rail-section" aria-label="Дни путешествия">
               <div ref={dayRailRef} className={dayRailDragging ? 'day-rail is-dragging' : 'day-rail'} aria-label="Лента дней" {...dayRailDragProps}>
                 {tripDays.map((slot, index) => {
-                  const content = dayContentForDate(slot.date, progress.fujiDate)
+                  const content = dayContentForDate(slot.date)
                   const unlocked = slot.date <= today || progress.unlockedDays.includes(slot.date)
                   const active = slot.date === selectedDate
                   const claimed = content.achievementId ? progress.claimed.includes(content.achievementId) : false
@@ -2149,12 +2138,6 @@ function App() {
                 </section>
 
                 <DayVibeCard vibe={selectedDay.vibe} />
-
-                <section className="paper-card fact-card">
-                  <div className="card-label"><Icon name="hint" size={18} /> Перед маршрутом</div>
-                  <img src="/assets/kitsune-guide.webp" alt="" />
-                  <p>{selectedDay.fact}</p>
-                </section>
 
                 {selectedMagic && (
                   <section className={selectedFoxFireFound ? 'paper-card kitsu-whisper-card is-found' : 'paper-card kitsu-whisper-card'} style={{ '--flame-color': selectedMagic.flameColor } as React.CSSProperties}>
@@ -2199,6 +2182,12 @@ function App() {
                       />
                     )
                   })}
+                </section>
+
+                <section className="paper-card fact-card">
+                  <div className="card-label"><Icon name="fox" size={18} /> Шёпот Кицу</div>
+                  <img src="/assets/kitsune-guide.webp" alt="" />
+                  <p>{selectedDay.fact}</p>
                 </section>
 
                 {selectedMagic?.nightEncounter && (
@@ -2348,13 +2337,7 @@ function App() {
                     <div className="badge-grid">
                       {groupAchievements.map((achievement) => {
                         const unlocked = progress.claimed.includes(achievement.id)
-                        const effectiveUnlockDate = progress.fujiDate === '2026-10-11'
-                          ? achievement.id === 'fuji-found'
-                            ? '2026-10-11'
-                            : achievement.id === 'lost-in-tokyo'
-                              ? '2026-10-09'
-                              : achievement.unlockDate
-                          : achievement.unlockDate
+                        const effectiveUnlockDate = achievement.unlockDate
                         const futureStory = achievement.type === 'story' && effectiveUnlockDate && effectiveUnlockDate > today
                         return (
                           <button key={achievement.id} type="button" className={unlocked ? 'badge-tile is-unlocked' : 'badge-tile'} disabled={!unlocked} onClick={() => setModal({ id: achievement.id, isNew: false, queue: [] })}>
@@ -2392,16 +2375,6 @@ function App() {
                 {tripCounterDefinitions.map((definition) => (
                   <TripCounterCard key={definition.id} definition={definition} editable={canEdit} onAdd={() => recordTripCounter(definition.id)} />
                 ))}
-              </div>
-            </section>
-
-            <section className="paper-card fuji-switcher">
-              <div className="card-label"><Icon name="place" size={18} /> План Fuji</div>
-              <h3>Если гора спрячется в облаках</h3>
-              <p>Выбери дату, и вся глава Fuji переедет вместе с картой и наградой.</p>
-              <div className="segmented-control">
-                <button type="button" disabled={!canEdit} className={progress.fujiDate === '2026-10-09' ? 'is-active' : ''} onClick={() => setProgress((current) => ({ ...current, fujiDate: '2026-10-09' }))}>9 окт</button>
-                <button type="button" disabled={!canEdit} className={progress.fujiDate === '2026-10-11' ? 'is-active' : ''} onClick={() => setProgress((current) => ({ ...current, fujiDate: '2026-10-11' }))}>11 окт</button>
               </div>
             </section>
 
@@ -2462,7 +2435,7 @@ function App() {
             <section className="passport-section photo-journal">
               <div className="section-title"><div><span className="section-kicker">Кадры по дороге</span><h2>Плёнка памяти</h2></div><strong>{Object.keys(progress.photos).length}</strong></div>
               {Object.keys(progress.photos).length > 0 ? (
-                <div className="photo-strip">{tripDays.map((slot) => dayContentForDate(slot.date, progress.fujiDate)).filter((day) => progress.photos[day.id]).map((day) => <button key={`${day.date}-${day.id}`} type="button" onClick={() => { setSelectedDate(day.date); setView('journey'); window.scrollTo({ top: 0 }) }}><img src={progress.photos[day.id]} alt={day.dateLabel} /><span>{day.dateLabel}</span></button>)}</div>
+                <div className="photo-strip">{tripDays.map((slot) => dayContentForDate(slot.date)).filter((day) => progress.photos[day.id]).map((day) => <button key={`${day.date}-${day.id}`} type="button" onClick={() => { setSelectedDate(day.date); setView('journey'); window.scrollTo({ top: 0 }) }}><img src={progress.photos[day.id]} alt={day.dateLabel} /><span>{day.dateLabel}</span></button>)}</div>
               ) : <div className="empty-journal"><Icon name="camera" size={25} /></div>}
             </section>
           </div>

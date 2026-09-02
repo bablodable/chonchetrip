@@ -19,7 +19,6 @@ export type StoredProgress = {
   ramen: boolean
   ratings: Record<string, number>
   dailySteps: Record<string, number>
-  fujiDate: '2026-10-09' | '2026-10-11'
   foxFires: string[]
   kitsuEncounters: string[]
   openedLetters: string[]

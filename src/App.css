@@ -1554,7 +1554,6 @@ button {
 .riddle-card h3,
 .claim-card h3,
 .side-quests h3,
-.fuji-switcher h3,
 .memory-card h3 {
   font-size: 24px;
   line-height: 1.08;
@@ -1923,8 +1922,7 @@ button {
     #fff7e8;
 }
 
-.claim-copy p,
-.fuji-switcher > p {
+.claim-copy p {
   margin: 10px 0 0;
   color: var(--muted-dark);
   font-size: 12px;
@@ -2011,7 +2009,6 @@ button {
 
 .is-viewer .stop-check:disabled,
 .is-viewer .rating-option:disabled,
-.is-viewer .segmented-control button:disabled,
 .is-viewer .stamp-card:disabled,
 .is-viewer .quest-toggle:disabled,
 .is-viewer .konbini-grid button:disabled {
@@ -2511,42 +2508,8 @@ button {
 .passport-overview strong { color: var(--ink); font-family: var(--display); font-size: 16px; }
 .passport-overview small { grid-column: 1 / -1; color: var(--muted); font-size: 10px; line-height: 1.15; }
 
-.fuji-switcher h3,
 .side-quests h3 {
   margin-top: 0;
-}
-
-.fuji-switcher {
-  border-color: rgba(86, 111, 111, 0.13);
-  background:
-    radial-gradient(circle at 95% 0, rgba(117, 157, 154, 0.12), transparent 29%),
-    #fff9ed;
-}
-
-.segmented-control {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 5px;
-  margin-top: 16px;
-  padding: 4px;
-  border-radius: 15px;
-  background: #eadcc7;
-}
-
-.segmented-control button {
-  min-height: 44px;
-  border: 0;
-  border-radius: 11px;
-  color: var(--muted-dark);
-  background: transparent;
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.segmented-control button.is-active {
-  color: #fff8eb;
-  background: var(--red);
-  box-shadow: 0 4px 10px rgba(133, 51, 40, 0.22);
 }
 
 .passport-section {
