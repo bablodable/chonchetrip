@@ -140,7 +140,7 @@ export const tripDays: TripDay[] = [
     cover: cover.intro,
     mapFile: '2026-09-30-arrival-osaka.html',
     mapNote: 'На общей карте 29–30 сентября путь по городу начинается после прилёта в KIX.',
-    fact: 'DXB Terminal 3 разделён на несколько concourse, поэтому дорога между Transit и нужным gate может занять заметное время.',
+    fact: 'KIX построен целиком на искусственном острове в Osaka Bay — самолёт садится буквально на созданную людьми землю посреди моря.',
     riddle: {
       question: 'Из какого терминала DXB отправляется рейс в Osaka?',
       hint: 'Ответ есть в билете на второй перелёт и на экранах Transit.',
@@ -329,7 +329,7 @@ export const tripDays: TripDay[] = [
     achievementId: 'another-world',
     achievementTitle: 'Another World',
     claimLabel: 'Главная миссия USJ выполнена',
-    fact: 'За один день USJ проведёт через совсем разные миры: от Hogsmeade и Frieren до Jurassic Park и Halloween Horror Nights.',
+    fact: 'Universal Studios Japan открылся в Osaka 31 марта 2001 года и стал первым парком Universal за пределами США.',
     riddle: {
       question: 'Сколько мётел нужно найти на вывеске Three Broomsticks?',
       hint: 'Не переводи название, найди саму вывеску в деревне волшебников.',
@@ -540,7 +540,7 @@ export const tripDays: TripDay[] = [
     achievementId: 'into-the-storybook',
     achievementTitle: 'Into the Storybook',
     claimLabel: 'Я прошла от леса до ночных огней',
-    fact: 'Сегодня маршрут специально меняет настроение: тишина лесной дороги Meiji Jingu постепенно превращается в неон Kabukicho.',
+    fact: 'Лес Meiji Jingu кажется древним, но его создали в 1920 году из деревьев, подаренных со всей Japan, и заранее рассчитали на столетия роста.',
     riddle: {
       question: 'Бочки с каким напитком стоят напротив японских sake barrels?',
       hint: 'Найди две стены бочек на лесной дороге к святилищу.',
@@ -612,7 +612,7 @@ export const tripDays: TripDay[] = [
     achievementId: 'tokyo-explorer',
     achievementTitle: 'Tokyo Explorer',
     claimLabel: 'Tokyo открыл свои тайны',
-    fact: 'За один день Tokyo меняется от рыбного рынка Tsukiji и витрин Ginza до неона и игровых этажей Akihabara.',
+    fact: 'Название Tsukiji означает «насыпная земля»: этот район Edo создавали, отвоёвывая участок у воды.',
     riddle: {
       question: 'Какой цвет ведёт по указателям к поездам JR Yamanote?',
       hint: 'Не угадывай по памяти. Найди полосу на платформе или схеме.',
@@ -691,7 +691,7 @@ export const tripDays: TripDay[] = [
     achievementId: 'one-more-night',
     achievementTitle: 'One More Night',
     claimLabel: 'Последний вечер сохранён',
-    fact: 'Последний день соединяет кирпичный фасад Tokyo Station, острова Tokyo Bay и ночной Haneda — три совсем разных лица города.',
+    fact: 'Краснокирпичный корпус Tokyo Station открылся в 1914 году, а в 2012-м ему вернули исторический третий этаж и купола.',
     riddle: {
       question: 'Сколько животных японского зодиака спрятано под куполом Tokyo Station?',
       hint: 'Зайди со стороны Marunouchi и медленно обведи глазами весь купол.',
@@ -728,7 +728,7 @@ export const tripDays: TripDay[] = [
     achievementId: 'japan-complete',
     achievementTitle: 'Our Japan',
     claimLabel: 'Сохранить нашу Японию',
-    fact: 'Последняя глава ничего не просит. Она просто собирает маршрут, фотографии и найденные награды в одну историю.',
+    fact: 'Omiyage в Japan — не просто сувенир: чаще это местное угощение или маленькая вещь, которой делятся с теми, кто ждал дома.',
     riddle: {
       question: 'Как называется японский подарок, который привозят из путешествия?',
       hint: 'Обычно это красиво упакованная местная вкусность для близких.',

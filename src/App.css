@@ -4867,9 +4867,11 @@ button.night-story > svg { color: var(--muted); transform: rotate(-90deg); trans
 .ambient-eye-dim {
   position: fixed;
   z-index: 34;
-  inset-block: 0;
-  right: max(0px, calc((100vw - var(--app-width)) / 2));
-  left: max(0px, calc((100vw - var(--app-width)) / 2));
+  inset: 0;
+  width: 100vw;
+  width: 100dvw;
+  min-height: 100svh;
+  min-height: 100dvh;
   pointer-events: none;
   background: rgba(24, 25, 26, 0.24);
   -webkit-backdrop-filter: brightness(0.88) saturate(0.82);

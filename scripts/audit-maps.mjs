@@ -254,6 +254,9 @@ for (const fileName of [...mapFilesInData].sort()) {
 
   if (!html.includes('/japan_daily_maps_mobile/live-map.css')) recordError(`${fileName}: не подключён live-map.css`)
   if (!html.includes('/japan_daily_maps_mobile/live-map.js')) recordError(`${fileName}: не подключён live-map.js`)
+  if (fileName === '2026-10-09-fuji.html' && /перенос\S*\s+на\s+11\.10/i.test(html)) {
+    recordError(`${fileName}: Fuji закреплена за 09.10 и не должна предлагать перенос на 11.10`)
+  }
   if (uniqueNumbers.size !== points.length) recordError(`${fileName}: номера точек повторяются`)
   pointNumbers.forEach((number, index) => {
     if (number !== index + 1) recordError(`${fileName}: точки должны идти подряд; на позиции ${index + 1} стоит №${number}`)

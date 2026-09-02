@@ -1,54 +1,78 @@
 # Chonchetrip
 
-Chonchetrip is an open-source interactive travel companion designed to turn a trip into a personal story rather than just a list of places to visit.
+Chonchetrip started as a travel app I built for my wife for our trip to Japan. I wanted something warmer than a spreadsheet or a long list of saved places: every day should feel like a small chapter, with its own route, discoveries and memories.
 
-The project started as a custom application for a real trip to Japan, combining an itinerary, interactive maps, photos, achievements, puzzles, memories, live progress and small personal details into a single experience.
+The repository contains the working Japan prototype and the beginning of a reusable travel engine. It is mobile-first and designed around the phone we will actually use during the trip: an iPhone 17 Pro Max.
 
-The long-term goal is to evolve Chonchetrip into a reusable travel platform that can adapt to different travelers.
+## What it does
 
-Instead of giving everyone the same generic itinerary, the application should eventually be able to shape the travel experience around a person's interests, preferences and travel style — for example:
+- presents the itinerary as a day-by-day story with times, tickets and important notes;
+- shows interactive daily maps with completed stops, the current destination and the road ahead;
+- keeps shared progress for the traveler and a read-only viewer mode;
+- unlocks chapters according to Japan time;
+- adds puzzles, hidden fox fires, letters and collectible achievements;
+- saves daily photos, ratings, step counts and small trip statistics;
+- brings everything together in a final travel recap.
 
-- food, nature, anime, culture, shopping or photography interests;
-- preferred travel pace and amount of walking;
-- budget and accommodation preferences;
-- planned activities and reservations;
-- places the traveler has already visited;
-- personal goals, collections and achievements;
-- spontaneous discoveries during the trip.
+The current trip covers 15 days, 121 scenes, 13 daily maps and 37 achievements.
 
-The idea is to make every generated trip feel personal.
+## Why I built it
 
-A traveler could describe who they are, where they are going and what they enjoy, and Chonchetrip would help turn that information into an interactive journey with a personalized itinerary, maps, recommendations, challenges, memories and progression.
+Most trip planners are good at storing bookings and lists. Chonchetrip is more interested in what the trip feels like while it is happening.
 
-## Current prototype
+A completed stop changes the map. A finished day opens a puzzle. Small discoveries become achievements, and photos gradually turn the itinerary into a personal journal. The practical information is still there, but it lives inside the story instead of replacing it.
 
-The current version is built around a Japan trip and serves as the first real-world implementation of the concept.
+## How it works
 
-It currently includes:
+The frontend is built with React, TypeScript and Vite. A Cloudflare Worker provides the API, while Cloudflare D1 stores shared progress. The browser keeps a local copy as well, so the diary remains usable when the connection is unreliable and synchronizes again later.
 
-- a day-by-day itinerary with times, tickets and reservations;
-- interactive daily maps;
-- trip progress shared between travelers and viewers;
-- photos and a travel diary;
-- achievements and collectible progress;
-- puzzles and hidden content;
-- offline-friendly local state with cloud synchronization;
-- time-based chapter unlocking;
-- a final trip summary with collected statistics.
+The Japan content currently lives alongside the engine. The next major step is to separate them cleanly, so a new journey can be created without rebuilding the application itself.
 
-## Vision
+## Run locally
 
-The goal is to separate the reusable travel engine from trip-specific content so that Chonchetrip can eventually be used to create personalized travel experiences for anyone.
+```bash
+npm ci
+npm run dev -- --host 0.0.0.0
+```
 
-Future versions may include:
+Vite will print the local and network addresses. A development-only preview can open the trip on a specific date without changing real progress:
 
-- traveler profiles and preference-based personalization;
-- reusable trip templates;
-- AI-assisted itinerary generation;
-- adaptive recommendations during a trip;
-- collaborative trips for couples, friends and families;
-- automatic travel journals and trip summaries;
-- customizable achievements, challenges and collections;
-- self-hosted and hosted versions of the platform.
+```text
+http://localhost:5173/?preview=2026-10-05
+```
 
-Chonchetrip is currently an early-stage project and is being actively developed.
+For the complete local version with the Worker and D1, copy `.dev.vars.example` to `.dev.vars`, replace the example values and run:
+
+```bash
+npm run cloudflare:migrate:local
+npm run cloudflare:dev
+```
+
+The Worker version will be available at `http://localhost:8788`.
+
+## Check the project
+
+```bash
+npm run check
+```
+
+This runs linting, TypeScript checks, content validation, all map progress scenarios and the production build.
+
+## Project structure
+
+- `src/tripData.ts` — days, scenes, riddles and achievements;
+- `src/sceneGuides.ts` — practical notes attached to individual scenes;
+- `src/kitsuMagic.ts` — fox fires, discoveries and private letters;
+- `src/App.tsx` — application state and interaction logic;
+- `src/App.css` and `src/index.css` — the visual system and animations;
+- `public/japan_daily_maps_mobile` — interactive maps and their shared runtime;
+- `worker` and `server` — Cloudflare Worker, API and synchronization;
+- `scripts` — automated content and map audits.
+
+## Project status
+
+Chonchetrip is an active prototype built for a real journey. The Japan version comes first because it is the best way to find out which ideas are genuinely useful on the road.
+
+The longer-term direction is a reusable, self-hostable travel platform where people can bring their own route and turn it into an interactive journey without losing the personal details that made this project worth building in the first place.
+
+Eventually, I want to add an AI-assisted journey builder. A traveler would describe the destination, interests, pace, budget and the kind of experience they enjoy, and Chonchetrip would turn that into a personal game-like trip: a practical route wrapped in chapters, discoveries, challenges, achievements and memories. The goal is not to generate another generic itinerary, but to make each journey feel as though it was created for the person taking it.

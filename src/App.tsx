@@ -1448,7 +1448,7 @@ function App() {
 
     let visitTimer: number | undefined
     let hideTimer: number | undefined
-    let previewVisitIndex = 0
+    let visitIndex = PREVIEW_MODE ? 0 : Math.floor(Math.random() * 3)
 
     const clearTimers = () => {
       if (visitTimer !== undefined) window.clearTimeout(visitTimer)
@@ -1457,31 +1457,30 @@ function App() {
       hideTimer = undefined
     }
 
-    const scheduleVisit = () => {
+    const scheduleVisit = (soon = false) => {
       const delay = PREVIEW_MODE
         ? 7_000 + Math.random() * 3_000
-        : 120_000 + Math.random() * 120_000
+        : soon
+          ? 12_000 + Math.random() * 6_000
+          : 55_000 + Math.random() * 35_000
       visitTimer = window.setTimeout(() => {
         if (document.visibilityState !== 'visible') return
         const hour = getJapanHour()
         const night = hour >= 19 || hour < 5
-        const randomVisit = Math.random()
-        const previewKinds: AmbientVisit['kind'][] = ['paws', 'eyes', 'tail']
-        const visitKind: AmbientVisit['kind'] = PREVIEW_MODE
-          ? previewKinds[previewVisitIndex % previewKinds.length]
-          : night && randomVisit < 0.3
-            ? 'eyes'
-            : randomVisit < (night ? 0.48 : 0.2)
-              ? 'paws'
-              : 'tail'
+        const visitKinds: AmbientVisit['kind'][] = PREVIEW_MODE
+          ? ['paws', 'eyes', 'tail']
+          : night
+            ? ['eyes', 'tail', 'paws']
+            : ['tail', 'paws', 'eyes']
+        const visitKind = visitKinds[visitIndex % visitKinds.length]
         const visitSide = PREVIEW_MODE
-          ? previewVisitIndex % 2 === 0 ? 'right' : 'left'
+          ? visitIndex % 2 === 0 ? 'right' : 'left'
           : Math.random() < 0.5 ? 'left' : 'right'
         const pawPath = PREVIEW_MODE
-          ? pawPathOrder[previewVisitIndex % pawPathOrder.length]
+          ? pawPathOrder[visitIndex % pawPathOrder.length]
           : pawPathOrder[Math.floor(Math.random() * pawPathOrder.length)]
         const visitId = Date.now()
-        previewVisitIndex += 1
+        visitIndex += 1
         setAmbientVisit({
           id: visitId,
           kind: visitKind,
@@ -1499,10 +1498,10 @@ function App() {
       clearTimers()
       setAmbientVisit(null)
       setPawBurst(null)
-      if (document.visibilityState === 'visible') scheduleVisit()
+      if (document.visibilityState === 'visible') scheduleVisit(true)
     }
 
-    if (document.visibilityState === 'visible') scheduleVisit()
+    if (document.visibilityState === 'visible') scheduleVisit(true)
     document.addEventListener('visibilitychange', syncVisibility)
     return () => {
       clearTimers()
