@@ -1,75 +1,54 @@
 # Chonchetrip
 
-Это наш маленький дневник поездки в Японию. Я собираю его для Юльчоны, чтобы маршрут был под рукой, а сама поездка постепенно превращалась в историю: со сценами, загадками, печатями, Кицу и вещами, которые хочется запомнить.
+Chonchetrip is an open-source interactive travel companion designed to turn a trip into a personal story rather than just a list of places to visit.
 
-Делаю всё в первую очередь под iPhone 17 Pro Max. На остальных экранах приложение тоже не должно разваливаться, но главный телефон здесь именно он.
+The project started as a custom application for a real trip to Japan, combining an itinerary, interactive maps, photos, achievements, puzzles, memories, live progress and small personal details into a single experience.
 
-## Что здесь есть
+The long-term goal is to evolve Chonchetrip into a reusable travel platform that can adapt to different travelers.
 
-- маршрут по дням с нужным временем, билетами, бронями и короткими подсказками;
-- интерактивные карты, где видно пройденное, текущую цель и дорогу дальше;
-- загадки дня, лисьи огоньки, письма и достижения;
-- дневник с фотографиями, станционными печатями и маленькими находками;
-- секретные счётчики еды, автоматов, gachapon, аниме-фигурок и поездок на поезде;
-- финал со всей статистикой путешествия — раньше времени числа не показываются.
+Instead of giving everyone the same generic itinerary, the application should eventually be able to shape the travel experience around a person's interests, preferences and travel style — for example:
 
-Главы открываются в полночь по японскому времени. Зритель может спокойно смотреть уже открытые части, но личные штуки и будущие дни остаются запечатанными до нужного момента.
+- food, nature, anime, culture, shopping or photography interests;
+- preferred travel pace and amount of walking;
+- budget and accommodation preferences;
+- planned activities and reservations;
+- places the traveler has already visited;
+- personal goals, collections and achievements;
+- spontaneous discoveries during the trip.
 
-Фудзи пока точно стоит на 9 октября. Когда окончательно решу с датой, просто поменяю сам день без всяких переключателей внутри приложения.
+The idea is to make every generated trip feel personal.
 
-## Как запустить у себя
+A traveler could describe who they are, where they are going and what they enjoy, and Chonchetrip would help turn that information into an interactive journey with a personalized itinerary, maps, recommendations, challenges, memories and progression.
 
-```bash
-npm ci
-npm run dev -- --host 0.0.0.0
-```
+## Current prototype
 
-Если нужно заранее открыть конкретный день, в локальной версии есть `preview`:
+The current version is built around a Japan trip and serves as the first real-world implementation of the concept.
 
-```text
-http://localhost:5173/?preview=2026-10-05
-```
+It currently includes:
 
-Настоящий и тестовый прогресс лежат отдельно, поэтому проверками рабочую поездку не испортишь. В собранной версии `preview` не работает.
+- a day-by-day itinerary with times, tickets and reservations;
+- interactive daily maps;
+- trip progress shared between travelers and viewers;
+- photos and a travel diary;
+- achievements and collectible progress;
+- puzzles and hidden content;
+- offline-friendly local state with cloud synchronization;
+- time-based chapter unlocking;
+- a final trip summary with collected statistics.
 
-## Как проверить перед отправкой
+## Vision
 
-```bash
-npm run check
-```
+The goal is to separate the reusable travel engine from trip-specific content so that Chonchetrip can eventually be used to create personalized travel experiences for anyone.
 
-Эта команда проверяет код, серверную часть, все карты и потом собирает готовую версию. Если она прошла целиком — можно пушить.
+Future versions may include:
 
-## Где что менять
+- traveler profiles and preference-based personalization;
+- reusable trip templates;
+- AI-assisted itinerary generation;
+- adaptive recommendations during a trip;
+- collaborative trips for couples, friends and families;
+- automatic travel journals and trip summaries;
+- customizable achievements, challenges and collections;
+- self-hosted and hosted versions of the platform.
 
-- `src/tripData.ts` — дни, сцены, еда, загадки и достижения;
-- `src/sceneGuides.ts` — действительно важные подсказки внутри сцен;
-- `src/kitsuMagic.ts` — огоньки, факты Кицу и письма;
-- `src/App.tsx` — вся логика дневника;
-- `src/App.css` и `src/index.css` — внешний вид и анимации;
-- `public/japan_daily_maps_mobile` — интерактивные карты по дням.
-
-Картинки достижений лежат в `public/assets/achivments`. Это финальные WebP 640×640, их лучше не пересохранять без причины.
-
-## Облако и сохранения
-
-Общий прогресс и сжатые фотографии хранятся в Cloudflare D1. Если связь пропала, Safari продолжает писать всё в локальную копию и синхронизирует её, когда интернет вернётся. Зрители получают свежий прогресс при открытии страницы и дальше обновляют его примерно раз в 15 секунд.
-
-Для полной локальной версии с Worker нужно скопировать `.dev.vars.example` в `.dev.vars`, поставить свой длинный `SESSION_SECRET`, а потом выполнить:
-
-```bash
-npm run cloudflare:migrate:local
-npm run cloudflare:dev
-```
-
-Она откроется на `http://localhost:8788`. Обычный `npm run dev` тоже работает — просто без облака.
-
-Для Cloudflare остаются такие настройки:
-
-- Framework preset: `Vite`
-- Build command: `npm run build`
-- Deploy command: `npx wrangler deploy`
-- Root directory: `/`
-- D1 binding: `DB` → `chonchetrip`
-
-`wrangler.jsonc` уже знает про `dist`, API и базу. Node зафиксирован на версии 22, а новый push в основную ветку запускает следующий deploy.
+Chonchetrip is currently an early-stage project and is being actively developed.
