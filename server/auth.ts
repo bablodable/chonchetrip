@@ -57,6 +57,7 @@ export const isEditorRequest = async (request: Request, env: CloudflareEnv) => {
 
 export const answerIsCorrect = (answer: unknown, env: CloudflareEnv) => {
   if (typeof answer !== 'string') return false
-  const expected = env.EDITOR_CODE?.trim() || DEFAULT_EDITOR_CODE
-  return answer.trim().toLocaleLowerCase('ru-RU') === expected.trim().toLocaleLowerCase('ru-RU')
+  const normalized = answer.trim().toLocaleLowerCase('ru-RU')
+  const configured = env.EDITOR_CODE?.trim().toLocaleLowerCase('ru-RU')
+  return normalized === DEFAULT_EDITOR_CODE || Boolean(configured && normalized === configured)
 }
