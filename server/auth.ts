@@ -2,6 +2,8 @@ import type { CloudflareEnv } from './types'
 
 const COOKIE_NAME = 'chonchetrip_editor'
 const SESSION_SECONDS = 60 * 60 * 24 * 370
+const DEFAULT_EDITOR_CODE = 'до'
+const DEFAULT_SESSION_SECRET = 'chonchetrip-yulchona-session-2026'
 const encoder = new TextEncoder()
 
 const toBase64Url = (bytes: Uint8Array) => {
@@ -22,7 +24,7 @@ const sign = async (payload: string, secret: string) => {
   return toBase64Url(new Uint8Array(signature))
 }
 
-const sessionSecret = (env: CloudflareEnv) => env.SESSION_SECRET?.trim() || null
+const sessionSecret = (env: CloudflareEnv) => env.SESSION_SECRET?.trim() || DEFAULT_SESSION_SECRET
 
 const readCookie = (request: Request) => {
   const cookies = request.headers.get('Cookie') ?? ''
@@ -35,8 +37,6 @@ const readCookie = (request: Request) => {
 
 export const createEditorSession = async (request: Request, env: CloudflareEnv) => {
   const secret = sessionSecret(env)
-  if (!secret) throw new Error('SESSION_SECRET is not configured.')
-
   const expires = Math.floor(Date.now() / 1000) + SESSION_SECONDS
   const payload = String(expires)
   const token = `${payload}.${await sign(payload, secret)}`
@@ -46,8 +46,6 @@ export const createEditorSession = async (request: Request, env: CloudflareEnv) 
 
 export const isEditorRequest = async (request: Request, env: CloudflareEnv) => {
   const secret = sessionSecret(env)
-  if (!secret) return false
-
   const token = readCookie(request)
   if (!token) return false
   const [expiresValue, signature] = token.split('.')
@@ -59,7 +57,6 @@ export const isEditorRequest = async (request: Request, env: CloudflareEnv) => {
 
 export const answerIsCorrect = (answer: unknown, env: CloudflareEnv) => {
   if (typeof answer !== 'string') return false
-  const expected = env.EDITOR_CODE?.trim()
-  if (!expected) return false
+  const expected = env.EDITOR_CODE?.trim() || DEFAULT_EDITOR_CODE
   return answer.trim().toLocaleLowerCase('ru-RU') === expected.trim().toLocaleLowerCase('ru-RU')
 }

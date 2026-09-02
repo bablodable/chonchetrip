@@ -50,7 +50,7 @@ npm run cloudflare:dev
 
 The Worker version will be available at `http://localhost:8788`.
 
-Production deliberately fails closed unless both Worker secrets are configured:
+The built-in personal editor code is `до`, so the app works immediately after deployment without additional Cloudflare setup. A private deployment can optionally override the editor code and session key:
 
 ```bash
 npx wrangler secret put EDITOR_CODE
