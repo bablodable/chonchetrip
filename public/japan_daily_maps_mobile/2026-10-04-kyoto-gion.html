@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>04.10 · Kyoto / Kiyomizu + Gion</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="/japan_daily_maps_mobile/vendor/leaflet/leaflet.css"/>
   <link rel="stylesheet" href="/japan_daily_maps_mobile/live-map.css"/>
   <style>
 html, body {
@@ -408,7 +408,7 @@ h1 {
   </div>
 </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/japan_daily_maps_mobile/vendor/leaflet/leaflet.js"></script>
 <script>
 const points = [{"n": 1, "emoji": "🚇", "name": "Nagahoribashi", "time": "утро", "desc": "Старт из Osaka", "lat": 34.67486, "lng": 135.50635}, {"n": 2, "emoji": "🚆", "name": "Kitahama", "time": "утро", "desc": "Пересадка на Keihan", "lat": 34.69186, "lng": 135.50713}, {"n": 3, "emoji": "📕", "name": "Gion-Shijo Station", "time": "~11:00", "desc": "Прибытие + stamp", "lat": 35.0037, "lng": 135.77354}, {"n": 4, "emoji": "🏠", "name": "Tazuru", "time": "~11:00", "desc": "Оставить вещи / check-in позже", "lat": 35.00118, "lng": 135.77239}, {"n": 5, "emoji": "🏯", "name": "Kiyomizu-dera", "time": "~11:30–12:45", "desc": "Храм на склоне", "lat": 34.99485, "lng": 135.78498}, {"n": 6, "emoji": "🏘️", "name": "Sannenzaka", "time": "днём", "desc": "Историческая улица", "lat": 34.99724, "lng": 135.78174}, {"n": 7, "emoji": "🏘️", "name": "Ninenzaka", "time": "днём", "desc": "Историческая улица", "lat": 34.99793, "lng": 135.78079}, {"n": 8, "emoji": "🗼", "name": "Yasaka Pagoda", "time": "днём", "desc": "Пагода", "lat": 34.99859, "lng": 135.78016}, {"n": 9, "emoji": "🐉", "name": "Kennin-ji", "time": "~15:40–16:40", "desc": "Дзен-храм / драконы", "lat": 35.00066, "lng": 135.77348}, {"n": 10, "emoji": "🛎️", "name": "Tazuru", "time": "~17:00", "desc": "Check-in / забрать вещи", "lat": 35.00118, "lng": 135.77239}, {"n": 11, "emoji": "🌙", "name": "Hanamikoji", "time": "вечер", "desc": "Старинная улица Gion", "lat": 35.0034, "lng": 135.77602}, {"n": 12, "emoji": "⛩️", "name": "Yasaka Shrine", "time": "вечер", "desc": "Святилище", "lat": 35.00366, "lng": 135.77878}, {"n": 13, "emoji": "🌊", "name": "Gion Shirakawa", "time": "вечер", "desc": "Канал и старые дома", "lat": 35.00608, "lng": 135.77518}, {"n": 14, "emoji": "🍽️", "name": "Mamaya", "time": "~18:30", "desc": "Наш выбор: домашняя Kyoto-кухня и obanzai", "lat": 35.004713, "lng": 135.771113}];
 const segments = [{"type": "rail", "path": [1, 2, 3, 4]}, {"type": "local", "path": [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]}];

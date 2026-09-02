@@ -1,0 +1,21 @@
+{
+  "name": "Chonchetrip · Japan 2026",
+  "short_name": "Chonchetrip",
+  "description": "Персональное путешествие по Японии — маршрут, загадки и воспоминания.",
+  "lang": "ru",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f8efdf",
+  "theme_color": "#f8efdf",
+  "categories": ["travel", "lifestyle"],
+  "icons": [
+    {
+      "src": "/assets/chonchetrip-icon.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

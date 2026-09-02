@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>07.10 · Kyoto → Tokyo + Tokyo Tower</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="/japan_daily_maps_mobile/vendor/leaflet/leaflet.css"/>
   <link rel="stylesheet" href="/japan_daily_maps_mobile/live-map.css"/>
   <style>
 html, body {
@@ -343,7 +343,7 @@ h1 {
   </div>
 </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/japan_daily_maps_mobile/vendor/leaflet/leaflet.js"></script>
 <script>
 const points = [{"n": 1, "emoji": "🏠", "name": "Tazuru", "time": "08:50", "desc": "Старт / 7-Eleven", "lat": 35.00118, "lng": 135.77239}, {"n": 2, "emoji": "🚆", "name": "Kyoto Station", "time": "~10:15", "desc": "Nakamura Tokichi + ekiben", "lat": 34.98552, "lng": 135.75856}, {"n": 3, "emoji": "🍵", "name": "Nakamura Tokichi Kyoto Station", "time": "~10:15–11:15", "desc": "Матча / dessert", "lat": 34.98572, "lng": 135.75825}, {"n": 4, "emoji": "🚄", "name": "Shinagawa", "time": "~14:40", "desc": "Прибытие на Nozomi", "lat": 35.62847, "lng": 139.73876}, {"n": 5, "emoji": "🏠", "name": "Airbnb Shiba 2-9-9", "time": "~15:00", "desc": "Check-in", "lat": 35.655, "lng": 139.7505}, {"n": 6, "emoji": "🌳", "name": "Shiba Park", "time": "~16:30", "desc": "Парк / anime spot", "lat": 35.65534, "lng": 139.7489}, {"n": 7, "emoji": "⛩️", "name": "Zojo-ji", "time": "поздний день", "desc": "Храм", "lat": 35.65868, "lng": 139.74827}, {"n": 8, "emoji": "🗼", "name": "Tokyo Tower", "time": "~18:00", "desc": "Смотровая / anime spot", "lat": 35.65858, "lng": 139.74543}, {"n": 9, "emoji": "🍜", "name": "MEN Cry", "time": "~19:30", "desc": "Наш выбор: фирменная толстая лапша", "lat": 35.6525698, "lng": 139.7550363}];
 const segments = [{"type": "rail", "path": [1, 2, 3, 4, 5]}, {"type": "local", "path": [5, 6, 7, 8, 9]}];

@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>12.10 · Last Day / Tokyo → Haneda</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="/japan_daily_maps_mobile/vendor/leaflet/leaflet.css"/>
   <link rel="stylesheet" href="/japan_daily_maps_mobile/live-map.css"/>
   <style>
 html, body {
@@ -395,7 +395,7 @@ h1 {
   </div>
 </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/japan_daily_maps_mobile/vendor/leaflet/leaflet.js"></script>
 <script>
 const points = [{"n": 1, "emoji": "🏠", "name": "Airbnb Shiba 2-9-9", "time": "08:45", "desc": "Старт / 7-Eleven", "lat": 35.655, "lng": 139.7505}, {"n": 2, "emoji": "🧳", "name": "Hamamatsucho", "time": "~09:50", "desc": "Coin Locker / оставить багаж", "lat": 35.65565, "lng": 139.75715}, {"n": 3, "emoji": "🏙️", "name": "Tokyo Station Marunouchi", "time": "~10:15–11:30", "desc": "Красный вокзал / Marunouchi", "lat": 35.681, "lng": 139.76493}, {"n": 4, "emoji": "🌳", "name": "Kokyo Gaien", "time": "~11:30–12:30", "desc": "Императорский парк", "lat": 35.68192, "lng": 139.75803}, {"n": 5, "emoji": "橋", "name": "Nijubashi", "time": "днём", "desc": "Каменный мост", "lat": 35.6798, "lng": 139.75891}, {"n": 6, "emoji": "🍜", "name": "Rokurinsha Tokyo Ramen Street", "time": "~12:45–13:45", "desc": "Обед: tsukemen", "lat": 35.68137, "lng": 139.76693}, {"n": 7, "emoji": "🛍️", "name": "Tokyo Character Street", "time": "если хочется", "desc": "Магазины персонажей", "lat": 35.68098, "lng": 139.7666}, {"n": 8, "emoji": "🌊", "name": "Odaiba Seaside Park", "time": "~15:00–17:00", "desc": "Набережная", "lat": 35.63172, "lng": 139.776}, {"n": 9, "emoji": "🗽", "name": "Statue of Liberty", "time": "днём", "desc": "Копия статуи", "lat": 35.63048, "lng": 139.77674}, {"n": 10, "emoji": "🛍️", "name": "Aqua City", "time": "~17:00", "desc": "Шопинг / последние покупки", "lat": 35.62779, "lng": 139.77376}, {"n": 11, "emoji": "🛍️", "name": "DiverCity", "time": "~17:30", "desc": "Последние покупки", "lat": 35.62476, "lng": 139.77506}, {"n": 12, "emoji": "🧳", "name": "Hamamatsucho", "time": "~19:45", "desc": "Забрать багаж", "lat": 35.65565, "lng": 139.75715}, {"n": 13, "emoji": "✈️", "name": "Haneda Terminal 3", "time": "~20:30", "desc": "Аэропорт / EK313 в 00:05", "lat": 35.54413, "lng": 139.76871}];
 const segments = [{"type": "local", "path": [1, 2]}, {"type": "rail", "path": [2, 3]}, {"type": "local", "path": [3, 4, 5, 6, 7]}, {"type": "rail", "path": [7, 8]}, {"type": "local", "path": [8, 9, 10, 11]}, {"type": "rail", "path": [11, 12, 13]}];

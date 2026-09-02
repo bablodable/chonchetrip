@@ -98,6 +98,8 @@ function createLiveMapRuntime(points, segments) {
   }
   const document = {
     documentElement: { classList: classList() },
+    body: { appendChild: () => {} },
+    createElement,
     querySelectorAll: (selector) => selector === '#stops .stop' ? stops : [],
   }
 
@@ -109,7 +111,7 @@ function createLiveMapRuntime(points, segments) {
     markerMap,
     window,
     document,
-    navigator: {},
+    navigator: { onLine: true },
     URLSearchParams,
     JSON,
     Math,
@@ -254,6 +256,9 @@ for (const fileName of [...mapFilesInData].sort()) {
 
   if (!html.includes('/japan_daily_maps_mobile/live-map.css')) recordError(`${fileName}: не подключён live-map.css`)
   if (!html.includes('/japan_daily_maps_mobile/live-map.js')) recordError(`${fileName}: не подключён live-map.js`)
+  if (!html.includes('/japan_daily_maps_mobile/vendor/leaflet/leaflet.css')) recordError(`${fileName}: Leaflet CSS не сохранён локально`)
+  if (!html.includes('/japan_daily_maps_mobile/vendor/leaflet/leaflet.js')) recordError(`${fileName}: Leaflet JS не сохранён локально`)
+  if (html.includes('unpkg.com/leaflet')) recordError(`${fileName}: карта всё ещё зависит от внешнего Leaflet CDN`)
   if (fileName === '2026-10-09-fuji.html' && /перенос\S*\s+на\s+11\.10/i.test(html)) {
     recordError(`${fileName}: Fuji закреплена за 09.10 и не должна предлагать перенос на 11.10`)
   }

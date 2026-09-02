@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>03.10 · Nara + Osaka</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="/japan_daily_maps_mobile/vendor/leaflet/leaflet.css"/>
   <link rel="stylesheet" href="/japan_daily_maps_mobile/live-map.css"/>
   <style>
 html, body {
@@ -369,7 +369,7 @@ h1 {
   </div>
 </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/japan_daily_maps_mobile/vendor/leaflet/leaflet.js"></script>
 <script>
 const points = [{"n": 1, "emoji": "🚇", "name": "Nagahoribashi", "time": "07:35", "desc": "Старт / 7-Eleven", "lat": 34.67486, "lng": 135.50635}, {"n": 2, "emoji": "🚆", "name": "Kintetsu-Nara Station", "time": "~08:50", "desc": "Прибытие в Nara", "lat": 34.68347, "lng": 135.82706}, {"n": 3, "emoji": "🦌", "name": "Nara Park", "time": "~09:00", "desc": "Олени", "lat": 34.68515, "lng": 135.84332}, {"n": 4, "emoji": "🏯", "name": "Tōdai-ji", "time": "~09:30–11:00", "desc": "Большой Будда", "lat": 34.68905, "lng": 135.83985}, {"n": 5, "emoji": "⛩️", "name": "Kasuga Taisha", "time": "~11:00–12:00", "desc": "Святилище и фонари", "lat": 34.68197, "lng": 135.84898}, {"n": 6, "emoji": "🍜", "name": "Mizuya Chaya", "time": "~12:00–13:00", "desc": "Обед: чайный домик", "lat": 34.68457, "lng": 135.84622}, {"n": 7, "emoji": "🍡", "name": "Nakatanidou", "time": "после обеда", "desc": "Перекус: yomogi mochi", "lat": 34.68414, "lng": 135.82761}, {"n": 8, "emoji": "🏘️", "name": "Naramachi", "time": "~13:30–15:30", "desc": "Старый район", "lat": 34.68034, "lng": 135.82864}, {"n": 9, "emoji": "🍽️", "name": "Pokémon Café Osaka", "time": "18:00–19:30", "desc": "Бронь на двоих · Daimaru Shinsaibashi 9F", "lat": 34.67379, "lng": 135.50182}, {"n": 10, "emoji": "🥪", "name": "Shinsekai Kawachiya Honten", "time": "~20:00", "desc": "Наш выбор: kushikatsu и Osaka-specialties", "lat": 34.651478, "lng": 135.5060006}, {"n": 11, "emoji": "🌃", "name": "Tsutenkaku / Shinsekai", "time": "после ужина", "desc": "Вечерний ретро-район после еды", "lat": 34.65253, "lng": 135.5063}];
 const segments = [{"type": "rail", "path": [1, 2]}, {"type": "local", "path": [2, 3, 4, 5, 6, 7, 8]}, {"type": "rail", "path": [8, 9]}, {"type": "local", "path": [9, 10, 11]}];

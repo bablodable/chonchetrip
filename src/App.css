@@ -193,7 +193,8 @@ button {
   gap: 2px;
 }
 
-.access-mode-token {
+.access-mode-token,
+.offline-token {
   position: relative;
   display: grid;
   width: 44px;
@@ -204,6 +205,32 @@ button {
   border-radius: 12px;
   color: var(--muted-dark);
   background: transparent;
+}
+
+.offline-token {
+  color: #466f68;
+}
+
+.offline-token.is-ready {
+  color: #2f725d;
+  background: rgba(63, 126, 103, 0.08);
+}
+
+.offline-token.is-offline {
+  color: #a85443;
+  background: rgba(168, 84, 67, 0.08);
+}
+
+.offline-token.has-pending > span {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 7px;
+  height: 7px;
+  border: 1px solid #f9f0e0;
+  border-radius: 50%;
+  background: #d98b32;
+  box-shadow: 0 0 0 2px rgba(217, 139, 50, 0.12);
 }
 
 .access-mode-token > span {
@@ -701,6 +728,48 @@ button {
 }
 
 .day-vibe-meter i.is-on { background: var(--day-accent); }
+
+.journey-time-guide {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  padding: 13px;
+  border: 1px solid rgba(54, 92, 113, 0.2);
+  border-radius: 17px;
+  background: linear-gradient(135deg, rgba(234, 244, 247, 0.94), rgba(255, 252, 244, 0.94));
+  box-shadow: 0 8px 20px rgba(45, 75, 90, 0.045);
+}
+
+.journey-time-icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 14px;
+  color: #315f75;
+  background: rgba(75, 129, 153, 0.13);
+}
+
+.journey-time-guide .section-kicker { color: #426f83; }
+
+.journey-time-guide h3 {
+  margin: 4px 0 3px;
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 18px;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.journey-time-guide p {
+  margin: 0;
+  color: var(--muted-dark);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+}
 
 .chapter-heading,
 .section-title,
@@ -2596,10 +2665,10 @@ button {
   border-radius: 0;
   color: #2e7099;
   background:
-    radial-gradient(ellipse at 85% 48%, rgba(255, 255, 255, 0.96), transparent 36%),
+    radial-gradient(ellipse at 16% 48%, rgba(255, 255, 255, 0.98), transparent 34%),
     linear-gradient(180deg, #fbfeff, #dcecf4);
   box-shadow: none;
-  clip-path: polygon(0 8%, 70% 8%, 81% 14%, 90% 27%, 100% 50%, 91% 70%, 82% 84%, 70% 92%, 0 92%);
+  clip-path: polygon(0 50%, 9% 29%, 19% 15%, 31% 8%, 100% 8%, 100% 92%, 31% 92%, 19% 85%, 9% 71%);
   filter: drop-shadow(0 6px 8px rgba(40, 91, 124, 0.18));
 }
 
@@ -2613,16 +2682,16 @@ button {
 
 .trip-counter-card.counter-train::before {
   top: 29px;
-  right: 18px;
-  left: 0;
+  right: 0;
+  left: 18px;
   height: 5px;
-  background: linear-gradient(90deg, #4b9ac4, #236d98 70%, rgba(35, 109, 152, 0));
+  background: linear-gradient(90deg, rgba(35, 109, 152, 0), #236d98 30%, #4b9ac4);
 }
 
 .trip-counter-card.counter-train::after {
-  right: 48px;
+  right: 12px;
   bottom: 3px;
-  left: 12px;
+  left: 48px;
   height: 2px;
   border-radius: 999px;
   background: rgba(45, 83, 105, 0.34);
@@ -2630,21 +2699,21 @@ button {
 }
 
 .trip-counter-card.counter-train:not(:disabled):active {
-  transform: translateX(2px) scale(0.986);
+  transform: translateX(-2px) scale(0.986);
 }
 
 .shinkansen-windows {
   position: absolute;
   z-index: 1;
   top: 11px;
-  left: 15px;
-  width: 148px;
+  left: 76px;
+  width: clamp(122px, 41%, 158px);
   height: 12px;
   border: 1px solid rgba(27, 81, 111, 0.2);
-  border-radius: 4px 7px 4px 4px;
+  border-radius: 7px 4px 4px 4px;
   background: repeating-linear-gradient(90deg, #285f79 0 17px, #d9eef6 17px 23px);
   box-shadow: inset 0 2px 3px rgba(255, 255, 255, 0.2);
-  clip-path: polygon(0 0, 92% 0, 100% 100%, 0 100%);
+  clip-path: polygon(8% 0, 100% 0, 100% 100%, 0 100%);
   pointer-events: none;
 }
 
@@ -2672,10 +2741,10 @@ button {
 .counter-train .trip-counter-copy {
   position: absolute;
   bottom: 9px;
-  left: 15px;
+  left: 76px;
   display: flex;
   width: auto;
-  max-width: calc(100% - 76px);
+  max-width: calc(100% - 142px);
   align-items: baseline;
   gap: 8px;
   padding: 0;
@@ -2685,7 +2754,7 @@ button {
 }
 
 .counter-train .trip-counter-copy strong { font-size: 13px; }
-.counter-train .trip-counter-copy small { overflow: hidden; margin-top: 0; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.counter-train .trip-counter-copy small { overflow: hidden; margin-top: 0; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
 
 .trip-counter-add {
   position: absolute;
@@ -2707,7 +2776,7 @@ button {
 
 .counter-train .trip-counter-add {
   top: 17px;
-  right: 25px;
+  right: 13px;
   width: 34px;
   height: 30px;
   border-color: rgba(39, 91, 120, 0.18);
@@ -2716,7 +2785,7 @@ button {
   box-shadow: inset 0 2px 3px rgba(255, 255, 255, 0.18);
 }
 
-.counter-train .trip-counter-burst { top: 17px; right: 58px; }
+.counter-train .trip-counter-burst { top: 17px; right: 50px; }
 
 .trip-counter-burst {
   position: absolute;
@@ -4394,6 +4463,185 @@ button.night-story > svg { color: var(--muted); transform: rotate(-90deg); trans
   -webkit-text-fill-color: #fffdf7;
 }
 
+.offline-dialog {
+  position: fixed;
+  z-index: 120;
+  inset: 0;
+  display: grid;
+  align-items: end;
+  justify-items: center;
+  padding: 18px 14px calc(18px + env(safe-area-inset-bottom));
+  background: rgba(28, 30, 28, 0.6);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  animation: modal-fade 180ms ease-out;
+}
+
+.offline-card {
+  position: relative;
+  display: grid;
+  width: min(100%, 430px);
+  max-height: calc(100dvh - 36px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  overflow-y: auto;
+  justify-items: center;
+  padding: 24px 18px 18px;
+  border: 1px solid rgba(79, 119, 104, 0.18);
+  border-radius: 27px;
+  color: var(--ink);
+  text-align: center;
+  background:
+    radial-gradient(circle at 50% 0, rgba(98, 155, 132, 0.15), transparent 38%),
+    #fff9ee;
+  box-shadow: 0 24px 70px rgba(38, 42, 38, 0.3);
+  animation: modal-rise 240ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.offline-close {
+  position: absolute;
+  top: 9px;
+  right: 10px;
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  color: var(--muted-dark);
+  background: transparent;
+  font-size: 25px;
+}
+
+.offline-close:disabled { opacity: 0.35; }
+
+.offline-kicker {
+  color: #4f7c6d;
+  font-size: 10.5px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.offline-emblem {
+  display: grid;
+  width: 66px;
+  height: 58px;
+  margin: 13px 0 7px;
+  place-items: center;
+  border: 1px solid rgba(80, 125, 107, 0.16);
+  border-radius: 22px;
+  color: #fffdf7;
+  background: linear-gradient(145deg, #6c9482, #3f6e61);
+  box-shadow: 0 10px 24px rgba(58, 106, 89, 0.22);
+}
+
+.offline-emblem.is-ready { background: linear-gradient(145deg, #70a087, #2f725d); }
+
+.offline-card h2 {
+  margin: 7px 0 9px;
+  font-family: var(--display);
+  font-size: 27px;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.offline-card > p:not(.offline-error, .offline-note) {
+  max-width: 350px;
+  margin: 0;
+  color: var(--muted-dark);
+  font-size: 12.5px;
+  line-height: 1.52;
+}
+
+.offline-status-list {
+  display: grid;
+  width: 100%;
+  gap: 1px;
+  margin-top: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(94, 88, 72, 0.1);
+  border-radius: 17px;
+  background: rgba(104, 91, 72, 0.08);
+}
+
+.offline-status-list > span {
+  display: grid;
+  min-height: 44px;
+  grid-template-columns: 9px 1fr auto;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 12px;
+  color: var(--muted-dark);
+  text-align: left;
+  background: rgba(255, 252, 245, 0.92);
+  font-size: 11.5px;
+  font-weight: 800;
+}
+
+.offline-status-list i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d79542;
+}
+
+.offline-status-list i.is-ok { background: #4d896f; }
+.offline-status-list strong { color: var(--ink); font-size: 11px; text-align: right; }
+
+.offline-progress {
+  width: 100%;
+  height: 6px;
+  margin-top: 13px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(67, 111, 95, 0.12);
+}
+
+.offline-progress i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #d8a14f, #4f8a72);
+  transition: width 160ms ease;
+}
+
+.offline-download {
+  width: 100%;
+  min-height: 49px;
+  margin-top: 14px;
+  padding: 10px 15px;
+  border: 0;
+  border-radius: 16px;
+  color: #fffdf7;
+  background: linear-gradient(145deg, #598b76, #356959);
+  box-shadow: 0 8px 20px rgba(49, 104, 84, 0.2);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.offline-download:disabled { opacity: 0.5; box-shadow: none; }
+
+.offline-card > small {
+  margin-top: 11px;
+  color: var(--muted);
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+.offline-error,
+.offline-note {
+  width: 100%;
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 13px;
+  color: #984b3e;
+  background: rgba(174, 76, 58, 0.08);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.offline-note { color: #5d6d65; background: rgba(73, 116, 100, 0.08); }
+
 .achievement-modal {
   position: fixed;
   z-index: 100;
@@ -5142,6 +5390,12 @@ button.night-story > svg { color: var(--muted); transform: rotate(-90deg); trans
 }
 
 @media (max-width: 360px) {
+  .topbar { padding-inline: 14px; }
+  .brand strong { font-size: 17px; }
+  .brand small { display: none; }
+  .access-mode-token,
+  .offline-token { width: 40px; }
+  .progress-token { padding-inline: 5px; }
   .screen-content { padding-inline: 14px; }
   .hero-content { right: 18px; left: 18px; }
   .passport-intro { min-height: 154px; padding-right: 116px; }
@@ -5150,7 +5404,8 @@ button.night-story > svg { color: var(--muted); transform: rotate(-90deg); trans
   .trip-counters-section { padding: 12px; }
   .trip-counter-card { min-height: 106px; padding: 9px; }
   .trip-counter-card.counter-train { min-height: 64px; padding: 0; }
-  .shinkansen-windows { width: 125px; }
+  .shinkansen-windows { left: 64px; width: 118px; }
+  .counter-train .trip-counter-copy { left: 64px; max-width: calc(100% - 124px); gap: 6px; }
   .counter-train .trip-counter-copy strong { font-size: 12px; }
   .trip-counter-add { top: 9px; right: 9px; }
   .answer-grid { grid-template-columns: 1fr; }

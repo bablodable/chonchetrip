@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type SetStateAction } from 'react'
 import './App.css'
 import {
+  CloudSessionExpiredError,
   CloudUnavailableError,
   checkEditorSession,
   forgetAccessMode,
@@ -8,10 +9,18 @@ import {
   loadSharedProgress,
   rememberAccessMode,
   saveSharedProgress,
+  shouldKeepLocalProgress,
   startEditorSession,
   uploadSharedPhoto,
   type AccessMode,
 } from './cloudSync'
+import {
+  downloadOfflinePack,
+  readOfflinePackStatus,
+  requestPersistentOfflineStorage,
+  type OfflinePackStatus,
+} from './offline'
+import { loadPendingPhotos, removePendingPhoto, savePendingPhoto } from './offlineStorage'
 import {
   achievements,
   passportStamps,
@@ -33,6 +42,12 @@ import {
 } from './kitsuMagic'
 import { sceneGuides } from './sceneGuides'
 import { animeFrameGuides, type AnimeFrameGuide } from './animeFrameGuides'
+import {
+  JAPAN_TIME_ZONE,
+  chapterUnlockTime,
+  getJourneyClock,
+  hourInTimeZone,
+} from './journeyClock'
 
 type ViewName = 'journey' | 'collection' | 'passport' | 'kitsu'
 type CloudStatus = 'checking' | 'synced' | 'offline' | 'error'
@@ -53,7 +68,7 @@ const trainTripCounterDefinition: TripCounterDefinition = {
   id: 'train',
   icon: '🚅',
   title: 'Поездка на поезде',
-  actionLabel: 'Ещё одна поездка!',
+  actionLabel: 'Ещё поездка!',
   finaleLabel: 'поездок на поезде',
   wide: true,
 }
@@ -186,6 +201,7 @@ const STORAGE_KEY = PREVIEW_MODE
   ? 'chonchetrip-preview-progress-v1'
   : 'chonchetrip-live-progress-v1'
 const CLOUD_SNAPSHOT_KEY = `${STORAGE_KEY}-cloud-snapshot-v1`
+const CLOUD_PENDING_KEY = `${STORAGE_KEY}-cloud-pending-v1`
 
 const emptyProgress: Progress = {
   claimed: [],
@@ -310,82 +326,40 @@ function saveCloudSnapshot(snapshot: string) {
   }
 }
 
-function getJapanToday(): string {
-  if (PREVIEW_DATE && /^2026-\d{2}-\d{2}$/.test(PREVIEW_DATE)) return PREVIEW_DATE
-
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Tokyo',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).formatToParts(new Date())
-
-  const value = (type: Intl.DateTimeFormatPartTypes) =>
-    parts.find((part) => part.type === type)?.value ?? ''
-
-  return `${value('year')}-${value('month')}-${value('day')}`
+function loadCloudPending(): boolean {
+  try {
+    return localStorage.getItem(CLOUD_PENDING_KEY) === '1'
+  } catch {
+    return false
+  }
 }
 
-function useJapanToday(): string {
-  const [today, setToday] = useState(getJapanToday)
-
-  useEffect(() => {
-    if (PREVIEW_MODE) return
-
-    let midnightTimer: number | undefined
-    const syncDate = () => {
-      const japanToday = getJapanToday()
-      setToday(japanToday)
-      const [year, month, day] = japanToday.split('-').map(Number)
-      const nextTokyoMidnight = Date.UTC(year, month - 1, day + 1, -9, 0, 0)
-      midnightTimer = window.setTimeout(syncDate, Math.max(1_000, nextTokyoMidnight - Date.now() + 250))
-    }
-    const syncWhenVisible = () => {
-      if (document.visibilityState !== 'visible') return
-      if (midnightTimer) window.clearTimeout(midnightTimer)
-      syncDate()
-    }
-
-    syncDate()
-    document.addEventListener('visibilitychange', syncWhenVisible)
-    window.addEventListener('pageshow', syncWhenVisible)
-    return () => {
-      if (midnightTimer) window.clearTimeout(midnightTimer)
-      document.removeEventListener('visibilitychange', syncWhenVisible)
-      window.removeEventListener('pageshow', syncWhenVisible)
-    }
-  }, [])
-
-  return today
+function saveCloudPending(pending: boolean) {
+  try {
+    if (pending) localStorage.setItem(CLOUD_PENDING_KEY, '1')
+    else localStorage.removeItem(CLOUD_PENDING_KEY)
+  } catch {
+    // The in-memory marker still protects changes made during this session.
+  }
 }
 
-function getJapanHour(): number {
-  const hour = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'Asia/Tokyo',
-    hour: '2-digit',
-    hourCycle: 'h23',
-  }).formatToParts(new Date()).find((part) => part.type === 'hour')?.value
-
-  return Number(hour ?? 0)
-}
-
-function useJapanHour(): number {
-  const [hour, setHour] = useState(getJapanHour)
+function useJourneyClock() {
+  const [clock, setClock] = useState(getJourneyClock)
 
   useEffect(() => {
     let minuteTimer: number | undefined
-    const syncHour = () => {
-      setHour(getJapanHour())
+    const syncClock = () => {
+      setClock(getJourneyClock())
       const nextMinute = 60_000 - (Date.now() % 60_000) + 100
-      minuteTimer = window.setTimeout(syncHour, nextMinute)
+      minuteTimer = window.setTimeout(syncClock, nextMinute)
     }
     const syncWhenVisible = () => {
       if (document.visibilityState !== 'visible') return
       if (minuteTimer) window.clearTimeout(minuteTimer)
-      syncHour()
+      syncClock()
     }
 
-    syncHour()
+    syncClock()
     document.addEventListener('visibilitychange', syncWhenVisible)
     window.addEventListener('pageshow', syncWhenVisible)
     return () => {
@@ -395,7 +369,7 @@ function useJapanHour(): number {
     }
   }, [])
 
-  return hour
+  return clock
 }
 
 function dayContentForDate(date: string): TripDay {
@@ -403,9 +377,7 @@ function dayContentForDate(date: string): TripDay {
 }
 
 function daysUntil(date: string): number {
-  const [year, month, day] = date.split('-').map(Number)
-  const tokyoMidnight = Date.UTC(year, month - 1, day, -9, 0, 0)
-  return Math.max(0, Math.ceil((tokyoMidnight - Date.now()) / 86_400_000))
+  return Math.max(0, Math.ceil((chapterUnlockTime(date) - Date.now()) / 86_400_000))
 }
 
 function compressPhoto(file: File): Promise<string> {
@@ -452,6 +424,8 @@ function Icon({ name, size = 20 }: { name: string; size?: number }) {
     hint: <><path d="M9 18h6M10 22h4M8.5 14.5a6 6 0 1 1 7 0c-.9.7-1.5 1.6-1.5 2.5h-4c0-.9-.6-1.8-1.5-2.5Z"/></>,
     eye: <><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></>,
     camera: <><path d="M4 7h4l1.5-2h5L16 7h4v12H4V7Z"/><circle cx="12" cy="13" r="3"/></>,
+    clock: <><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></>,
+    download: <><path d="M12 3v11M8 10l4 4 4-4"/><path d="M5 17v3h14v-3"/></>,
     stamp: <><path d="M7 20h10M8 17h8l-1-5H9l-1 5ZM9 12c0-2 1-3 1-5a2 2 0 0 1 4 0c0 2 1 3 1 5"/></>,
     bowl: <><path d="M4 11h16c0 5-3 8-8 8s-8-3-8-8ZM8 22h8M7 7c0-2 2-2 2-4M12 7c0-2 2-2 2-4M17 7c0-2 2-2 2-4"/></>,
     fox: <><path d="M5 9 3 3l6 3h6l6-3-2 6v5c0 4-3 7-7 7s-7-3-7-7V9Z"/><path d="m9 15 3 2 3-2M9 11h.01M15 11h.01"/></>,
@@ -926,6 +900,19 @@ function DayVibeCard({ vibe }: { vibe: DayVibe }) {
   )
 }
 
+function JourneyTimeGuide({ guide }: { guide: NonNullable<TripDay['timeGuide']> }) {
+  return (
+    <section className="journey-time-guide" aria-label={guide.label}>
+      <span className="journey-time-icon"><Icon name="clock" size={21} /></span>
+      <div>
+        <span className="section-kicker">{guide.label}</span>
+        <h3>{guide.title}</h3>
+        <p>{guide.description}</p>
+      </div>
+    </section>
+  )
+}
+
 function FromsoftQuestCard({ stage, relic, editable, onFind }: { stage: 'akihabara' | 'nakano'; relic: FromsoftRelic | null; editable: boolean; onFind: (relic: FromsoftRelic) => void }) {
   const foundDarkSouls = relic === 'dark-souls'
 
@@ -1209,7 +1196,7 @@ function DayMapCard({ day, completedStops }: { day: TripDay; completedStops: str
   )
 }
 
-function LockedDayContent({ editable, onForceUnlock }: { editable: boolean; onForceUnlock: () => void }) {
+function LockedDayContent({ editable, timingLabel, timingDescription, onForceUnlock }: { editable: boolean; timingLabel: string; timingDescription: string; onForceUnlock: () => void }) {
   const holdTimer = useRef<number | undefined>(undefined)
   const holdOrigin = useRef({ x: 0, y: 0 })
   const [holding, setHolding] = useState(false)
@@ -1263,10 +1250,85 @@ function LockedDayContent({ editable, onForceUnlock }: { editable: boolean; onFo
       }}
     >
       <img src="/assets/kitsune-guide.webp" alt="Кицу, проводник путешествия" draggable="false" />
-      <span className="section-kicker">Время Японии</span>
+      <span className="section-kicker">{timingLabel}</span>
       <h2>{holding ? 'Кицу снимает печать…' : 'Кицу хранит секрет'}</h2>
-      <p>{holding ? 'Не отпускай. Печать исчезнет через пять секунд.' : 'Каждая глава просыпается в полночь по японскому времени. До этого маршрут и награда остаются под печатью.'}</p>
+      <p>{holding ? 'Не отпускай. Печать исчезнет через пять секунд.' : timingDescription}</p>
       <div className="locked-note"><Icon name="sparkles" size={18} /><span>Коллекцию можно листать заранее, но будущие награды всё равно останутся тайной.</span></div>
+    </div>
+  )
+}
+
+type OfflineTravelDialogProps = {
+  networkOnline: boolean
+  standaloneApp: boolean
+  packStatus: OfflinePackStatus
+  completed: number
+  total: number
+  pendingChanges: boolean
+  pendingPhotos: number
+  error: string
+  onDownload: () => void
+  onClose: () => void
+}
+
+function OfflineTravelDialog({
+  networkOnline,
+  standaloneApp,
+  packStatus,
+  completed,
+  total,
+  pendingChanges,
+  pendingPhotos,
+  error,
+  onDownload,
+  onClose,
+}: OfflineTravelDialogProps) {
+  const closeRef = useRef<HTMLButtonElement>(null)
+  const downloading = packStatus === 'downloading'
+  const ready = packStatus === 'ready'
+  const progress = total > 0 ? Math.round((completed / total) * 100) : 0
+  useBodyScrollLock()
+
+  useEffect(() => {
+    closeRef.current?.focus()
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !downloading) onClose()
+    }
+    document.addEventListener('keydown', closeOnEscape)
+    return () => document.removeEventListener('keydown', closeOnEscape)
+  }, [downloading, onClose])
+
+  return (
+    <div className="offline-dialog" role="dialog" aria-modal="true" aria-labelledby="offline-dialog-title" onClick={() => { if (!downloading) onClose() }}>
+      <section className="offline-card" onClick={(event) => event.stopPropagation()}>
+        <button ref={closeRef} className="offline-close" type="button" aria-label="Закрыть" disabled={downloading} onClick={onClose}>×</button>
+        <span className="offline-kicker">Дорога без сигнала</span>
+        <div className={ready ? 'offline-emblem is-ready' : 'offline-emblem'}><Icon name={ready ? 'check' : 'download'} size={27} /></div>
+        <h2 id="offline-dialog-title">{ready ? 'Поездка сохранена на iPhone' : 'Скачать поездку офлайн'}</h2>
+        <p>{ready
+          ? 'Главы, иллюстрации и маршруты откроются без интернета. Просмотренные фрагменты карты тоже останутся в памяти телефона.'
+          : 'Один раз скачай пакет по Wi‑Fi. После этого дневник продолжит работать в метро, поезде и при слабой связи.'}</p>
+
+        <div className="offline-status-list">
+          <span><i className={networkOnline ? 'is-ok' : 'is-waiting'} />Сеть<strong>{networkOnline ? 'есть' : 'нет сигнала'}</strong></span>
+          <span><i className={ready ? 'is-ok' : 'is-waiting'} />Офлайн-пакет<strong>{ready ? 'готов' : downloading ? `${progress}%` : 'не скачан'}</strong></span>
+          <span><i className={!pendingChanges && pendingPhotos === 0 ? 'is-ok' : 'is-waiting'} />Синхронизация<strong>{pendingChanges || pendingPhotos > 0 ? `ждут: ${Number(pendingChanges) + pendingPhotos}` : 'всё сохранено'}</strong></span>
+        </div>
+
+        {downloading && <div className="offline-progress" aria-label={`Скачано ${progress}%`}><i style={{ width: `${progress}%` }} /></div>}
+        {error && <p className="offline-error" role="alert">{error}</p>}
+        {!standaloneApp && packStatus !== 'unsupported' && (
+          <p className="offline-note">Для надёжности на iPhone сначала выбери «Поделиться» → «На экран Домой», открой Chonchetrip с новой иконки и скачай пакет уже там.</p>
+        )}
+        {packStatus === 'unsupported' ? (
+          <p className="offline-note">Офлайн-установка появится в опубликованной HTTPS-версии. На iPhone сначала добавь её на экран «Домой», затем открой с иконки.</p>
+        ) : (
+          <button className="offline-download" type="button" disabled={downloading || !networkOnline} onClick={onDownload}>
+            {downloading ? `Сохраняю поездку · ${progress}%` : ready ? 'Обновить офлайн-пакет' : 'Скачать по Wi‑Fi'}
+          </button>
+        )}
+        <small>Офлайн-отметки и фото отправятся в облако сами, когда приложение снова откроется с интернетом.</small>
+      </section>
     </div>
   )
 }
@@ -1286,11 +1348,9 @@ function AccessGate({ onEnter }: { onEnter: (mode: AccessMode) => void }) {
       await startEditorSession(answer)
       onEnter('editor')
     } catch (caught) {
-      if (caught instanceof CloudUnavailableError && answer.trim().toLocaleLowerCase('ru-RU') === 'до') {
-        onEnter('editor')
-      } else {
-        setError(caught instanceof CloudUnavailableError ? 'Сейчас нет связи с дневником. Попробуй ещё раз.' : 'Кицу не узнал ответ. Попробуй ещё раз.')
-      }
+      setError(caught instanceof CloudUnavailableError
+        ? 'Без связи первый вход невозможен. Один раз открой дневник онлайн — дальше он будет работать офлайн.'
+        : 'Кицу не узнал ответ. Попробуй ещё раз.')
     } finally {
       setChecking(false)
     }
@@ -1309,9 +1369,9 @@ function AccessGate({ onEnter }: { onEnter: (mode: AccessMode) => void }) {
               <Icon name="eye" size={21} />
               <span><strong>Смотреть путешествие</strong><small>История Юльчоны и Эдюши</small></span>
             </button>
-            <button type="button" className="editor-choice" onClick={() => setStep('editor')}>
+            <button type="button" className="editor-choice" onClick={() => { if (PREVIEW_MODE) onEnter('editor'); else setStep('editor') }}>
               <Icon name="fox" size={21} />
-              <span><strong>Я Юльчона</strong><small>Открыть мой полевой дневник</small></span>
+              <span><strong>{PREVIEW_MODE ? 'Тестировать как Юльчона' : 'Я Юльчона'}</strong><small>{PREVIEW_MODE ? 'Изменения останутся только в preview' : 'Открыть мой полевой дневник'}</small></span>
             </button>
           </div>
         ) : (
@@ -1329,14 +1389,28 @@ function AccessGate({ onEnter }: { onEnter: (mode: AccessMode) => void }) {
 }
 
 function App() {
-  const today = useJapanToday()
-  const japanHour = useJapanHour()
-  const [progress, setProgress] = useState<Progress>(loadProgress)
+  const journeyClock = useJourneyClock()
+  const today = PREVIEW_DATE && /^2026-\d{2}-\d{2}$/.test(PREVIEW_DATE)
+    ? PREVIEW_DATE
+    : journeyClock.date
+  const journeyHour = PREVIEW_MODE
+    ? hourInTimeZone(JAPAN_TIME_ZONE)
+    : journeyClock.hour
+  const [progress, setProgressState] = useState<Progress>(loadProgress)
   const [accessMode, setAccessMode] = useState<AccessMode | null>(loadAccessMode)
-  const [accessChecking, setAccessChecking] = useState(() => !PREVIEW_MODE && loadAccessMode() === 'editor')
-  const [cloudStatus, setCloudStatus] = useState<CloudStatus>(() => PREVIEW_MODE ? 'offline' : 'checking')
+  const [accessChecking, setAccessChecking] = useState(() => !PREVIEW_MODE && navigator.onLine && loadAccessMode() === 'editor')
+  const [cloudStatus, setCloudStatus] = useState<CloudStatus>(() => PREVIEW_MODE || !navigator.onLine ? 'offline' : 'checking')
   const [cloudInitialized, setCloudInitialized] = useState(false)
   const [cloudRetry, setCloudRetry] = useState(0)
+  const [syncPending, setSyncPending] = useState(loadCloudPending)
+  const [offlinePhotosReady, setOfflinePhotosReady] = useState(false)
+  const [networkOnline, setNetworkOnline] = useState(() => navigator.onLine)
+  const [standaloneApp] = useState(() => window.matchMedia('(display-mode: standalone)').matches
+    || Boolean((navigator as Navigator & { standalone?: boolean }).standalone))
+  const [offlinePanelOpen, setOfflinePanelOpen] = useState(false)
+  const [offlinePackStatus, setOfflinePackStatus] = useState<OfflinePackStatus>('checking')
+  const [offlinePackProgress, setOfflinePackProgress] = useState({ completed: 0, total: 0 })
+  const [offlinePackError, setOfflinePackError] = useState('')
   const [view, setView] = useState<ViewName>('journey')
   const latestUnlocked = [...tripDays].reverse().find((day) => day.date <= today)
   const [selectedDate, setSelectedDate] = useState(latestUnlocked?.date ?? tripDays[0].date)
@@ -1351,15 +1425,53 @@ function App() {
   const [photoError, setPhotoError] = useState('')
   const progressRef = useRef(progress)
   const lastCloudSnapshot = useRef(loadCloudSnapshot())
+  const pendingSyncRef = useRef(syncPending)
   const activePhotoUploads = useRef(new Set<string>())
+  const durablePendingPhotoIds = useRef(new Set<string>())
+
+  const markCloudPending = useCallback(() => {
+    if (PREVIEW_MODE) return
+    pendingSyncRef.current = true
+    setSyncPending(true)
+    saveCloudPending(true)
+  }, [])
+
+  const clearCloudPending = useCallback(() => {
+    pendingSyncRef.current = false
+    setSyncPending(false)
+    saveCloudPending(false)
+  }, [])
+
+  const setProgress = useCallback((action: SetStateAction<Progress>) => {
+    if (accessMode === 'editor') markCloudPending()
+    setProgressState(action)
+  }, [accessMode, markCloudPending])
 
   const canEdit = accessMode === 'editor'
+  const pendingPhotoCount = Object.values(progress.photos).filter((photo) => photo.startsWith('data:image/')).length
   const {
     railRef: dayRailRef,
     dragging: dayRailDragging,
     dragProps: dayRailDragProps,
   } = useHorizontalDragScroll(selectedDate, view === 'journey' && Boolean(accessMode) && !accessChecking)
   const selectedDay = dayContentForDate(selectedDate)
+  const selectedUnlockTiming = selectedDay.id === 'belgrade-dubai'
+    ? {
+        label: 'Время Сербии',
+        hero: 'в 00:00 по Сербии',
+        description: 'Пролог просыпается 29 сентября в полночь по Сербии. До вылета в Osaka приложение остаётся на домашних часах.',
+      }
+    : selectedDay.id === 'arrival-osaka'
+      ? {
+          label: 'Переход на время Японии',
+          hero: 'при переводе часов на Японию',
+          description: 'Глава Osaka откроется при вылете из Dubai: 01:00 по Сербии и 03:00 по Dubai превращаются в 08:00 по Японии.',
+        }
+      : {
+          label: 'Время Японии',
+          hero: 'в 00:00 по Японии',
+          description: 'После перелёта каждая глава просыпается в полночь по японскому времени. До этого маршрут и награда остаются под печатью.',
+        }
   const selectedMagic = kitsuMagicByDay[selectedDay.id]
   const selectedUnlocked = selectedDate <= today || progress.unlockedDays.includes(selectedDate)
   const selectedAchievement = selectedDay.achievementId
@@ -1368,8 +1480,8 @@ function App() {
   const modalAchievement = modal ? achievements.find((item) => item.id === modal.id) : undefined
   const selectedStops = progress.checkedStops[selectedDay.id] ?? []
   const selectedUnlockedStops = progress.unlockedStops[selectedDay.id] ?? []
-  const selectedAfternoonUnlocked = selectedDate < today || (selectedDate === today && japanHour >= 13)
-  const selectedEveningUnlocked = selectedDate < today || (selectedDate === today && japanHour >= 19)
+  const selectedAfternoonUnlocked = selectedDate < today || (selectedDate === today && journeyHour >= 13)
+  const selectedEveningUnlocked = selectedDate < today || (selectedDate === today && journeyHour >= 19)
   const selectedClaimed = selectedDay.achievementId
     ? progress.claimed.includes(selectedDay.achievementId)
     : false
@@ -1402,11 +1514,11 @@ function App() {
   const tripCounters = progress.tripCounters ?? emptyTripCounters
   const selectedFoxFireFound = selectedMagic ? knownFoxFires.includes(selectedMagic.dayId) : false
   const selectedEncounterFound = selectedMagic ? progress.kitsuEncounters.includes(selectedMagic.dayId) : false
-  const selectedNightMagicUnlocked = PREVIEW_MODE || selectedDate < today || (selectedDate === today && japanHour >= 19)
+  const selectedNightMagicUnlocked = PREVIEW_MODE || selectedDate < today || (selectedDate === today && journeyHour >= 19)
   const magicModal = magicModalDayId ? kitsuMagicByDay[magicModalDayId] : undefined
   const activeLetter = activeLetterId ? sealedLetters.find((letter) => letter.id === activeLetterId) : undefined
-  const ambientEffectsPaused = Boolean(modal || magicModal || activeLetter || confirmation)
-  const kitsuMood = japanHour < 10 ? 'sleepy' : japanHour < 18 ? 'adventurous' : 'cozy'
+  const ambientEffectsPaused = Boolean(modal || magicModal || activeLetter || confirmation || offlinePanelOpen)
+  const kitsuMood = journeyHour < 10 ? 'sleepy' : journeyHour < 18 ? 'adventurous' : 'cozy'
   const kitsuMoodLabel = kitsuMood === 'sleepy' ? 'сонная проводница' : kitsuMood === 'adventurous' ? 'охотница за знаками' : 'хранительница вечерних огней'
   const kitsuStages = [
     { min: 0, title: 'Спящий дух', subtitle: 'Первый огонь ещё ждёт впереди' },
@@ -1438,6 +1550,61 @@ function App() {
   }, [progress])
 
   useEffect(() => {
+    let cancelled = false
+    const hydratePendingPhotos = async () => {
+      try {
+        const legacyPhotos = Object.entries(progressRef.current.photos)
+          .filter(([, photo]) => photo.startsWith('data:image/'))
+        await Promise.all(legacyPhotos.map(async ([dayId, photo]) => {
+          await savePendingPhoto(dayId, photo)
+          durablePendingPhotoIds.current.add(dayId)
+        }))
+        const pendingPhotos = await loadPendingPhotos()
+        if (cancelled) return
+        Object.keys(pendingPhotos).forEach((dayId) => durablePendingPhotoIds.current.add(dayId))
+        if (Object.keys(pendingPhotos).length > 0) {
+          setProgressState((current) => ({ ...current, photos: { ...current.photos, ...pendingPhotos } }))
+        }
+      } catch {
+        // Legacy localStorage photos remain available if IndexedDB is blocked.
+      } finally {
+        if (!cancelled) setOfflinePhotosReady(true)
+      }
+    }
+    void hydratePendingPhotos()
+    return () => { cancelled = true }
+  }, [])
+
+  useEffect(() => {
+    const updateNetworkState = () => {
+      const online = navigator.onLine
+      setNetworkOnline(online)
+      if (!online && !PREVIEW_MODE && accessMode) setCloudStatus('offline')
+      if (online) setCloudRetry((value) => value + 1)
+    }
+    window.addEventListener('online', updateNetworkState)
+    window.addEventListener('offline', updateNetworkState)
+    return () => {
+      window.removeEventListener('online', updateNetworkState)
+      window.removeEventListener('offline', updateNetworkState)
+    }
+  }, [accessMode])
+
+  useEffect(() => {
+    let cancelled = false
+    void readOfflinePackStatus()
+      .then((status) => {
+        if (cancelled) return
+        setOfflinePackProgress({ completed: status.completed, total: status.total })
+        setOfflinePackStatus(status.supported ? status.ready ? 'ready' : 'available' : 'unsupported')
+      })
+      .catch(() => {
+        if (!cancelled) setOfflinePackStatus('error')
+      })
+    return () => { cancelled = true }
+  }, [])
+
+  useEffect(() => {
     if (!kitsuReaction) return
     const timer = window.setTimeout(() => setKitsuReaction((current) => current?.id === kitsuReaction.id ? null : current), 4_800)
     return () => window.clearTimeout(timer)
@@ -1465,7 +1632,7 @@ function App() {
           : 55_000 + Math.random() * 35_000
       visitTimer = window.setTimeout(() => {
         if (document.visibilityState !== 'visible') return
-        const hour = getJapanHour()
+        const hour = getJourneyClock().hour
         const night = hour >= 19 || hour < 5
         const visitKinds: AmbientVisit['kind'][] = PREVIEW_MODE
           ? ['paws', 'eyes', 'tail']
@@ -1511,7 +1678,13 @@ function App() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(progress))
+      const localProgress = {
+        ...progress,
+        photos: Object.fromEntries(Object.entries(progress.photos).filter(([dayId, photo]) => (
+          !photo.startsWith('data:image/') || !durablePendingPhotoIds.current.has(dayId)
+        ))),
+      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(localProgress))
     } catch {
       // The photo handler surfaces storage errors where the user can act on them.
     }
@@ -1520,6 +1693,7 @@ function App() {
   useEffect(() => {
     if (accessMode !== 'editor') return
     if (PREVIEW_MODE) return
+    if (!networkOnline) return
 
     let cancelled = false
     void checkEditorSession()
@@ -1529,17 +1703,18 @@ function App() {
         setAccessMode(null)
       })
       .catch((error: unknown) => {
-        if (!cancelled && error instanceof CloudUnavailableError) setCloudStatus('offline')
+        if (cancelled) return
+        setCloudStatus(error instanceof CloudUnavailableError ? 'offline' : 'error')
       })
       .finally(() => {
         if (!cancelled) setAccessChecking(false)
       })
 
     return () => { cancelled = true }
-  }, [accessMode])
+  }, [accessMode, cloudRetry, networkOnline])
 
   useEffect(() => {
-    if (!accessMode || accessChecking) return
+    if (!accessMode || accessChecking || !offlinePhotosReady) return
     if (PREVIEW_MODE) return
     let cancelled = false
     let interval: number | undefined
@@ -1562,12 +1737,16 @@ function App() {
           if (accessMode === 'viewer') {
             rememberCloudSnapshot(remoteSnapshot)
             progressRef.current = remoteProgress
-            setProgress(remoteProgress)
+            setProgressState(remoteProgress)
           } else if (initial) {
             const localProgress = progressRef.current
             const localSnapshot = JSON.stringify(progressForCloud(localProgress))
-            const hasPendingLocalChanges = lastCloudSnapshot.current !== ''
-              && localSnapshot !== lastCloudSnapshot.current
+            const hasPendingLocalChanges = shouldKeepLocalProgress(
+              localSnapshot,
+              lastCloudSnapshot.current,
+              JSON.stringify(progressForCloud(emptyProgress)),
+              pendingSyncRef.current,
+            )
             const pendingPhotos = Object.fromEntries(
               Object.entries(localProgress.photos).filter(([, photo]) => photo.startsWith('data:image/')),
             )
@@ -1577,7 +1756,7 @@ function App() {
 
             if (!hasPendingLocalChanges) rememberCloudSnapshot(remoteSnapshot)
             progressRef.current = nextProgress
-            setProgress(nextProgress)
+            setProgressState(nextProgress)
           }
         } else if (accessMode === 'editor' && initial) {
           const localProgress = progressRef.current
@@ -1585,12 +1764,13 @@ function App() {
           await saveSharedProgress(progressForCloud(localProgress))
           if (cancelled) return
           rememberCloudSnapshot(snapshot)
+          clearCloudPending()
         } else if (accessMode === 'viewer') {
           const remoteProgress = normalizeProgress(null)
           const snapshot = JSON.stringify(progressForCloud(remoteProgress))
           rememberCloudSnapshot(snapshot)
           progressRef.current = remoteProgress
-          setProgress(remoteProgress)
+          setProgressState(remoteProgress)
         }
         setCloudStatus('synced')
         setCloudInitialized(true)
@@ -1611,7 +1791,9 @@ function App() {
       interval = window.setInterval(() => void pullProgress(false), 15_000)
     }
     const syncWhenVisible = () => {
-      if (document.visibilityState === 'visible' && accessMode === 'viewer') void pullProgress(false)
+      if (document.visibilityState !== 'visible') return
+      if (accessMode === 'viewer') void pullProgress(false)
+      else setCloudRetry((value) => value + 1)
     }
     document.addEventListener('visibilitychange', syncWhenVisible)
     return () => {
@@ -1619,7 +1801,7 @@ function App() {
       if (interval) window.clearInterval(interval)
       document.removeEventListener('visibilitychange', syncWhenVisible)
     }
-  }, [accessMode, accessChecking])
+  }, [accessMode, accessChecking, clearCloudPending, cloudRetry, offlinePhotosReady])
 
   useEffect(() => {
     if (accessMode !== 'editor' || accessChecking || !cloudInitialized) return
@@ -1628,7 +1810,10 @@ function App() {
       const cloudProgress = progressForCloud(current)
       const snapshot = JSON.stringify(cloudProgress)
       const pendingPhotos = Object.entries(current.photos).filter(([, photo]) => photo.startsWith('data:image/'))
-      if (snapshot === lastCloudSnapshot.current && pendingPhotos.length === 0) return
+      if (snapshot === lastCloudSnapshot.current && pendingPhotos.length === 0) {
+        if (pendingSyncRef.current) clearCloudPending()
+        return
+      }
 
       const sync = async () => {
         setCloudStatus('checking')
@@ -1637,34 +1822,49 @@ function App() {
             await saveSharedProgress(cloudProgress)
             lastCloudSnapshot.current = snapshot
             saveCloudSnapshot(snapshot)
+            if (JSON.stringify(progressForCloud(progressRef.current)) === snapshot) clearCloudPending()
           }
           for (const [dayId, photo] of pendingPhotos) {
             if (activePhotoUploads.current.has(dayId)) continue
             activePhotoUploads.current.add(dayId)
             try {
               const url = await uploadSharedPhoto(dayId, photo)
-              setProgress((latest) => latest.photos[dayId] === photo
-                ? { ...latest, photos: { ...latest.photos, [dayId]: url } }
-                : latest)
+              const latest = progressRef.current
+              if (latest.photos[dayId] === photo) {
+                const next = { ...latest, photos: { ...latest.photos, [dayId]: url } }
+                progressRef.current = next
+                setProgressState(next)
+                durablePendingPhotoIds.current.delete(dayId)
+                await removePendingPhoto(dayId)
+              }
             } finally {
               activePhotoUploads.current.delete(dayId)
             }
           }
           setCloudStatus('synced')
         } catch (error) {
+          if (error instanceof CloudSessionExpiredError) {
+            forgetAccessMode()
+            setAccessMode(null)
+            setAccessChecking(false)
+            setCloudInitialized(false)
+            setCloudStatus('error')
+            return
+          }
           setCloudStatus(error instanceof CloudUnavailableError ? 'offline' : 'error')
         }
       }
       void sync()
     }, 900)
     return () => window.clearTimeout(timer)
-  }, [progress, accessMode, accessChecking, cloudInitialized, cloudRetry])
+  }, [progress, accessMode, accessChecking, clearCloudPending, cloudInitialized, syncPending])
 
   useEffect(() => {
     if (PREVIEW_MODE || accessMode !== 'editor' || accessChecking) return
-    const interval = window.setInterval(() => setCloudRetry((value) => value + 1), 30_000)
+    if (cloudStatus === 'synced' && !syncPending && pendingPhotoCount === 0) return
+    const interval = window.setInterval(() => setCloudRetry((value) => value + 1), 20_000)
     return () => window.clearInterval(interval)
-  }, [accessMode, accessChecking])
+  }, [accessMode, accessChecking, cloudStatus, pendingPhotoCount, syncPending])
 
   useEffect(() => {
     if (!canEdit) return
@@ -1706,7 +1906,7 @@ function App() {
       }, 0)
       return () => window.clearTimeout(timer)
     }
-  }, [progress, canEdit, tripCounters.gachapon])
+  }, [progress, canEdit, setProgress, tripCounters.gachapon])
 
   const showKitsuReaction = (message: string) => setKitsuReaction((current) => ({ id: (current?.id ?? 0) + 1, message }))
 
@@ -1937,10 +2137,14 @@ function App() {
     setPhotoError('')
     try {
       const photo = await compressPhoto(file)
+      await savePendingPhoto(dayId, photo)
+      durablePendingPhotoIds.current.add(dayId)
       setProgress((current) => ({ ...current, photos: { ...current.photos, [dayId]: photo } }))
       showKitsuReaction('Этот кадр пахнет сегодняшним днём. Кицу спрятал его в плёнку памяти.')
     } catch (error) {
-      setPhotoError(error instanceof Error ? error.message : 'Не удалось сохранить снимок. Попробуй ещё раз')
+      setPhotoError(error instanceof Error && error.message.startsWith('Этот формат')
+        ? error.message
+        : 'Телефон не разрешил сохранить фото офлайн. Освободи немного памяти и попробуй ещё раз.')
     }
   }
 
@@ -2075,6 +2279,34 @@ function App() {
     void handlePhoto(file, dayId)
   }
 
+  const openOfflinePanel = () => {
+    setOfflinePanelOpen(true)
+    setOfflinePackError('')
+    if (offlinePackStatus === 'downloading') return
+    setOfflinePackStatus('checking')
+    void readOfflinePackStatus()
+      .then((status) => {
+        setOfflinePackProgress({ completed: status.completed, total: status.total })
+        setOfflinePackStatus(status.supported ? status.ready ? 'ready' : 'available' : 'unsupported')
+      })
+      .catch(() => setOfflinePackStatus('error'))
+  }
+
+  const prepareOfflineTrip = async () => {
+    if (!networkOnline || offlinePackStatus === 'downloading') return
+    setOfflinePackError('')
+    setOfflinePackStatus('downloading')
+    try {
+      await requestPersistentOfflineStorage()
+      const result = await downloadOfflinePack((completed, total) => setOfflinePackProgress({ completed, total }))
+      setOfflinePackProgress(result)
+      setOfflinePackStatus('ready')
+    } catch {
+      setOfflinePackStatus('error')
+      setOfflinePackError('Не всё удалось скачать. Проверь Wi‑Fi и нажми ещё раз — уже сохранённые файлы повторно качаться не будут.')
+    }
+  }
+
   const enterAccessMode = (mode: AccessMode) => {
     rememberAccessMode(mode)
     setAccessChecking(!PREVIEW_MODE && mode === 'editor')
@@ -2109,6 +2341,19 @@ function App() {
           <span><strong>Chonchetrip</strong><small>Юльчона · Japan 2026</small></span>
         </button>
         <div className="topbar-actions">
+          <button
+            className={`offline-token is-${offlinePackStatus}${!networkOnline ? ' is-offline' : ''}${syncPending || pendingPhotoCount > 0 ? ' has-pending' : ''}`}
+            type="button"
+            onClick={openOfflinePanel}
+            aria-label={!networkOnline
+              ? 'Нет сети. Изменения сохраняются на телефоне.'
+              : offlinePackStatus === 'ready'
+                ? 'Поездка доступна офлайн.'
+                : 'Скачать поездку офлайн.'}
+          >
+            <Icon name={offlinePackStatus === 'ready' ? 'check' : 'download'} size={17} />
+            {(syncPending || pendingPhotoCount > 0) && <span />}
+          </button>
           <button className={`access-mode-token is-${cloudStatus}`} type="button" onClick={chooseAnotherMode} aria-label={accessMode === 'editor' ? 'Это дневник Юльчоны. Нажми, чтобы вернуться ко входу.' : 'Ты смотришь путешествие со стороны. Нажми, чтобы вернуться ко входу.'}><Icon name={accessMode === 'editor' ? 'fox' : 'eye'} size={16} /><span /></button>
           <button className="progress-token" type="button" onClick={() => setView('collection')} aria-label={`${discoveredCount} из ${achievements.length} печатей пути`}><Icon name="collection" size={17} /><span>{discoveredCount}/{achievements.length}</span></button>
         </div>
@@ -2131,7 +2376,7 @@ function App() {
                 {!selectedUnlocked && <span className="hero-lock"><Icon name="lock" size={18} /> До открытия главы</span>}
                 <p>{selectedUnlocked ? selectedDay.eyebrow : 'История ещё спит'}</p>
                 <h1>{selectedUnlocked ? selectedDay.title : lockedHeroHold.holding ? 'Открываю…' : `${daysUntil(selectedDate)} дн.`}</h1>
-                <span>{selectedUnlocked ? selectedDay.subtitle : lockedHeroHold.holding ? 'Не отпускай · Кицу снимает печать' : `Глава откроется ${selectedDay.dateLabel} по времени Японии`}</span>
+                <span>{selectedUnlocked ? selectedDay.subtitle : lockedHeroHold.holding ? 'Не отпускай · Кицу снимает печать' : `Глава откроется ${selectedDay.dateLabel} · ${selectedUnlockTiming.hero}`}</span>
               </div>
             </section>
 
@@ -2155,6 +2400,8 @@ function App() {
                 </section>
 
                 <DayVibeCard vibe={selectedDay.vibe} />
+
+                {selectedDay.timeGuide && <JourneyTimeGuide guide={selectedDay.timeGuide} />}
 
                 {selectedMagic && (
                   <section className={selectedFoxFireFound ? 'paper-card kitsu-whisper-card is-found' : 'paper-card kitsu-whisper-card'} style={{ '--flame-color': selectedMagic.flameColor } as React.CSSProperties}>
@@ -2330,7 +2577,12 @@ function App() {
                 </section>
               </div>
             ) : (
-              <LockedDayContent editable={canEdit} onForceUnlock={() => forceUnlockDay(selectedDate)} />
+              <LockedDayContent
+                editable={canEdit}
+                timingLabel={selectedUnlockTiming.label}
+                timingDescription={selectedUnlockTiming.description}
+                onForceUnlock={() => forceUnlockDay(selectedDate)}
+              />
             )}
           </>
         )}
@@ -2546,7 +2798,7 @@ function App() {
                   const encounter = magic.nightEncounter!
                   const found = knownKitsuEncounters.includes(magic.dayId)
                   const slot = findMagicSlot(magic.dayId)
-                  const available = PREVIEW_MODE || Boolean(slot && (slot.date < today || (slot.date === today && japanHour >= 19)))
+                  const available = PREVIEW_MODE || Boolean(slot && (slot.date < today || (slot.date === today && journeyHour >= 19)))
 
                   if (found) {
                     return (
@@ -2689,6 +2941,20 @@ function App() {
       {magicModal && <MagicDiscoveryModal magic={magicModal} onClose={closeMagicDiscovery} />}
       {activeLetter && canEdit && <LetterModal letter={activeLetter} onClose={() => setActiveLetterId(null)} />}
       {confirmation && <ConfirmationDialog request={confirmation} onCancel={() => setConfirmation(null)} />}
+      {offlinePanelOpen && (
+        <OfflineTravelDialog
+          networkOnline={networkOnline}
+          standaloneApp={standaloneApp}
+          packStatus={offlinePackStatus}
+          completed={offlinePackProgress.completed}
+          total={offlinePackProgress.total}
+          pendingChanges={syncPending}
+          pendingPhotos={pendingPhotoCount}
+          error={offlinePackError}
+          onDownload={() => void prepareOfflineTrip()}
+          onClose={() => setOfflinePanelOpen(false)}
+        />
+      )}
       {kitsuReaction && <KitsuReactionToast key={kitsuReaction.id} message={kitsuReaction.message} />}
     </div>
   )

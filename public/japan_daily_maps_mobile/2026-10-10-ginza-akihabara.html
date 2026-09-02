@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>10.10 · Tsukiji + Ginza + Akihabara</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="/japan_daily_maps_mobile/vendor/leaflet/leaflet.css"/>
   <link rel="stylesheet" href="/japan_daily_maps_mobile/live-map.css"/>
   <style>
 html, body {
@@ -432,7 +432,7 @@ h1 {
   </div>
 </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/japan_daily_maps_mobile/vendor/leaflet/leaflet.js"></script>
 <script>
 const points = [{"n": 1, "emoji": "🏠", "name": "Airbnb Shiba 2-9-9", "time": "07:40", "desc": "Старт", "lat": 35.655, "lng": 139.7505}, {"n": 2, "emoji": "🍳", "name": "Tsukiji Nippon Fish Port Market Restaurant", "time": "~08:00", "desc": "Наш выбор: японский рыбный завтрак", "lat": 35.6650108, "lng": 139.7698276}, {"n": 3, "emoji": "👓", "name": "JINS Ginza", "time": "10:00 + ~12:20", "desc": "Оправы и проверка зрения; вернуться за готовыми очками после UNIQLO", "lat": 35.67106, "lng": 139.76476}, {"n": 4, "emoji": "🍎", "name": "Apple Ginza", "time": "~10:50–11:20", "desc": "Заглянуть в флагман", "lat": 35.6722, "lng": 139.76494}, {"n": 5, "emoji": "👕", "name": "UNIQLO Ginza", "time": "~11:30–12:20", "desc": "12 этажей", "lat": 35.67129, "lng": 139.76464}, {"n": 6, "emoji": "🍣", "name": "Ginza Bairin Honten", "time": "~12:45–13:45", "desc": "Наш выбор: tonkatsu", "lat": 35.6693749, "lng": 139.7621434}, {"n": 7, "emoji": "📕", "name": "Akihabara Station", "time": "после обеда", "desc": "Stamp у JR", "lat": 35.6984, "lng": 139.77306}, {"n": 8, "emoji": "⛩️", "name": "Kanda Myojin", "time": "~14:30–15:00", "desc": "Anime spot: Love Live! / Steins;Gate", "lat": 35.70242, "lng": 139.7678}, {"n": 9, "emoji": "⚠️", "name": "Radio Kaikan", "time": "после Kanda Myojin", "desc": "Anime spot: Steins;Gate", "lat": 35.6976, "lng": 139.77302}, {"n": 10, "emoji": "⚠️", "name": "Manseibashi Bridge", "time": "по пути", "desc": "Anime spot: Steins;Gate", "lat": 35.69852, "lng": 139.77018}, {"n": 11, "emoji": "🎮", "name": "Mandarake Complex", "time": "день", "desc": "Used-мерч", "lat": 35.69962, "lng": 139.7715}, {"n": 12, "emoji": "🕹️", "name": "Super Potato", "time": "день", "desc": "Ретро-игры", "lat": 35.699, "lng": 139.77177}, {"n": 13, "emoji": "📚", "name": "animate Akihabara", "time": "день", "desc": "Аниме-магазин", "lat": 35.70055, "lng": 139.77068}, {"n": 14, "emoji": "🎯", "name": "GiGO Akihabara", "time": "вечер", "desc": "Аркады", "lat": 35.6997, "lng": 139.77113}, {"n": 15, "emoji": "🍜", "name": "Sushi & Shabu-shabu Yuzu-an Akihabara", "time": "~19:30", "desc": "Наш выбор: sushi и shabu-shabu", "lat": 35.6987602, "lng": 139.772301}, {"n": 16, "emoji": "🏠", "name": "Hamamatsucho / Airbnb", "time": "после 21:00", "desc": "Возвращение домой по Yamanote или Keihin-Tohoku Line", "lat": 35.655, "lng": 139.7505}];
 const segments = [{"type": "rail", "path": [1, 2, 3]}, {"type": "local", "path": [3, 4, 5, 3, 6]}, {"type": "rail", "path": [6, 7]}, {"type": "local", "path": [7, 8, 9, 10, 11, 12, 13, 14, 15]}, {"type": "rail", "path": [15, 16]}];

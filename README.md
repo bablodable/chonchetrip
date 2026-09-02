@@ -9,7 +9,7 @@ The repository contains the working Japan prototype and the beginning of a reusa
 - presents the itinerary as a day-by-day story with times, tickets and important notes;
 - shows interactive daily maps with completed stops, the current destination and the road ahead;
 - keeps shared progress for the traveler and a read-only viewer mode;
-- unlocks chapters according to Japan time;
+- unlocks the prologue by Serbia time, switches to Japan time at the planned DXB departure, and keeps every later chapter on JST;
 - adds puzzles, hidden fox fires, letters and collectible achievements;
 - saves daily photos, ratings, step counts and small trip statistics;
 - brings everything together in a final travel recap.
@@ -24,7 +24,7 @@ A completed stop changes the map. A finished day opens a puzzle. Small discoveri
 
 ## How it works
 
-The frontend is built with React, TypeScript and Vite. A Cloudflare Worker provides the API, while Cloudflare D1 stores shared progress. The browser keeps a local copy as well, so the diary remains usable when the connection is unreliable and synchronizes again later.
+The frontend is built with React, TypeScript and Vite. A Cloudflare Worker provides the API, while Cloudflare D1 stores shared progress. An installable offline pack caches the application, illustrations and all daily routes. Progress stays on the device during weak or missing connectivity and synchronizes automatically when the app is opened online again; pending photos are kept separately in IndexedDB until their upload succeeds.
 
 The Japan content currently lives alongside the engine. The next major step is to separate them cleanly, so a new journey can be created without rebuilding the application itself.
 
@@ -49,6 +49,19 @@ npm run cloudflare:dev
 ```
 
 The Worker version will be available at `http://localhost:8788`.
+
+Production deliberately fails closed unless both Worker secrets are configured:
+
+```bash
+npx wrangler secret put EDITOR_CODE
+npx wrangler secret put SESSION_SECRET
+```
+
+## Use offline
+
+Offline mode requires the deployed HTTPS version. On iPhone, first use **Share → Add to Home Screen**, keep **Open as Web App** enabled, and launch Chonchetrip from its new icon while still online. Sign in there once, open the download button in the application header and choose **Download over Wi-Fi**. Installing first matters because iOS can keep a Home Screen web app's storage separate from its ordinary Safari tab.
+
+The full offline pack is about 8 MB and includes every chapter, illustration and daily route. Previously viewed OpenStreetMap tiles are cached opportunistically; without them the route line, stops and practical notes still remain available. Changes and photos made offline are uploaded the next time the editor opens the application with a connection.
 
 ## Check the project
 

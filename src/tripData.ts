@@ -66,6 +66,11 @@ export type TripDay = {
   mapRouteScenes?: string[][]
   mapStartProgress?: number
   mapNonRouteScenes?: string[]
+  timeGuide?: {
+    label: string
+    title: string
+    description: string
+  }
   achievementId?: string
   achievementTitle?: string
   claimLabel?: string
@@ -140,6 +145,11 @@ export const tripDays: TripDay[] = [
     cover: cover.intro,
     mapFile: '2026-09-30-arrival-osaka.html',
     mapNote: 'На общей карте 29–30 сентября путь по городу начинается после прилёта в KIX.',
+    timeGuide: {
+      label: 'До вылета · время Сербии',
+      title: 'Сначала живём по домашним часам',
+      description: 'Основное время в этой главе указано по Сербии. В Dubai рядом стоит местное время аэропорта. При вылете в Osaka переводим часы: 01:00 Сербия · 03:00 Dubai → 08:00 Япония.',
+    },
     fact: 'KIX построен целиком на искусственном острове в Osaka Bay — самолёт садится буквально на созданную людьми землю посреди моря.',
     riddle: {
       question: 'Из какого терминала DXB отправляется рейс в Osaka?',
@@ -152,14 +162,14 @@ export const tripDays: TripDay[] = [
     timeline: [
       {
         id: 'beg-departure',
-        time: '13:55',
+        time: '13:55 · Сербия',
         title: 'Поднять первый самолёт истории',
         kind: 'route',
         details: ['Belgrade BEG Terminal 2 → Dubai. Документы под рукой, впереди ночная пересадка и ещё один большой перелёт.'],
       },
       {
         id: 'dubai-arrival',
-        time: '21:25',
+        time: '19:25 Сербия · 21:25 Dubai',
         title: 'Приземлиться между двумя мирами',
         kind: 'route',
         details: ['Dubai DXB Terminal 3 → пройти Transit и сразу проверить gate рейса в Kansai.'],
@@ -173,10 +183,10 @@ export const tripDays: TripDay[] = [
       },
       {
         id: 'dubai-reset',
-        time: 'До посадки',
-        title: 'Перевести дыхание перед Японией',
+        time: '01:00 Сербия · 03:00 Dubai → 08:00 Япония',
+        title: 'Перевести часы на Японию',
         kind: 'rest',
-        details: ['Найти воду, зарядку и место рядом с gate. В 03:00 начинается перелёт к Osaka.'],
+        details: ['Найти воду, зарядку и место рядом с gate. В момент вылета поставить на телефоне время Японии: уже 08:00 JST. С этой точки все следующие часы в приложении — японские.'],
       },
     ],
   },
@@ -191,6 +201,11 @@ export const tripDays: TripDay[] = [
     vibe: dayVibe('steady', 'Мягкий старт', 'Мягкое приземление', 'Первый вечер не марафон. Япония уже началась, даже если получится только неон и тёплый ужин.', 'Главное: билет, заселение, еда. Бонусы только по силам.', '🏮'),
     cover: cover.osaka,
     mapFile: '2026-09-30-arrival-osaka.html',
+    timeGuide: {
+      label: 'С 08:00 · время Японии',
+      title: 'Теперь весь маршрут живёт по JST',
+      description: 'Вылет в 03:00 по Dubai совпадает с 08:00 в Японии. Прилёт в KIX — 17:15 JST; дальше все времена и открытия глав указаны только по Японии.',
+    },
     mapRouteScenes: [['kix-arrival'], ['kuroshio-ticket', 'stamp-kix'], ['to-hotel-osaka'], ['osaka-checkin'], ['dotonbori'], ['dotonbori-snack'], ['osaka-dinner'], ['travel-passport'], ['shinsaibashi-night'], ['shinsaibashi-night']],
     achievementId: 'welcome-to-japan',
     achievementTitle: 'Welcome to Japan',
@@ -207,7 +222,7 @@ export const tripDays: TripDay[] = [
     timeline: [
       {
         id: 'kix-arrival',
-        time: '17:15',
+        time: '17:15 · Япония',
         title: 'Шагнуть в Японию',
         kind: 'route',
         details: ['KIX Terminal 1 → Immigration: паспорт и Visit Japan Web QR.', 'Затем Baggage → Customs → Arrivals.'],
@@ -684,7 +699,7 @@ export const tripDays: TripDay[] = [
     eyebrow: 'Глава 13 · Последний фонарь',
     title: 'Ещё один вечер',
     subtitle: 'Tokyo Station, Odaiba и дорога к Haneda',
-    vibe: dayVibe('steady', 'Свободный', 'Последний мягкий день', 'Здесь специально много воздуха: один хороший обед, набережная, свободный ужин и дорога домой.', 'Самолёт важнее последнего бонуса. В Haneda едем без спешки.', '🌙'),
+    vibe: dayVibe('steady', 'Свободный', 'Последний мягкий день', 'Здесь специально много воздуха: один хороший обед, набережная, свободный ужин и дорога домой.', '12 октября — Sports Day: людей может быть больше обычного. Самолёт важнее последнего бонуса.', '🌙'),
     cover: cover.tokyo,
     mapFile: '2026-10-12-last-day.html',
     mapRouteScenes: [['checkout-locker'], ['checkout-locker'], ['marunouchi'], ['marunouchi'], ['marunouchi'], ['rokurinsha'], ['rokurinsha'], ['odaiba'], ['odaiba'], ['odaiba'], ['odaiba', 'odaiba-dinner'], ['bags-haneda'], ['bags-haneda', 'haneda']],
@@ -701,10 +716,10 @@ export const tripDays: TripDay[] = [
       location: 'Tokyo Station · северный или южный купол Marunouchi',
     },
     timeline: [
-      { id: 'checkout-locker', time: 'Утром', title: 'Спрятать чемоданы и украсть ещё один день', kind: 'route', details: ['Coin locker на Hamamatsucho освободит руки до самого вечера.'] },
+      { id: 'checkout-locker', time: 'Утром', title: 'Спрятать чемоданы и украсть ещё один день', kind: 'route', details: ['Coin locker на Hamamatsucho освободит руки до самого вечера.', 'Сегодня в Японии национальный праздник Sports Day, поэтому locker лучше занять утром и оставить дополнительный запас на людей в поездах и Odaiba.'] },
       { id: 'marunouchi', time: 'До обеда', title: 'Увидеть Tokyo из старой открытки', kind: 'place', details: ['Красный вокзал, Marunouchi и каменный мост Nijubashi.', 'Если хочется ещё один ракурс без переезда: на 6F KITTE зайти в KITTE Garden. Это бесплатная крыша прямо напротив Tokyo Station; 10 минут на вид сверху вполне достаточно.'] },
       { id: 'rokurinsha', time: 'В обед', title: 'Научиться правильно есть tsukemen', kind: 'food', food: primaryFood('Обед', 'Rokurinsha Tokyo Ramen Street', 'Tsukemen: лапша отдельно, густой бульон отдельно. Встречаются они только перед укусом.', undefined, 'Если очередь огромная, выбери другое место на Tokyo Ramen Street.'), details: [] },
-      { id: 'odaiba', time: 'Последний длинный вечер', title: 'Уехать на остров будущего', kind: 'place', details: ['Tokyo Bay, Rainbow Bridge, маленькая Liberty и последние спонтанные покупки.', 'Если в день поездки официальный календарь подтверждает шоу, посмотреть Tokyo Aqua Symphony у Odaiba Seaside Park. Это бесплатный светомузыкальный фонтан примерно на 10 минут; по текущему обычному расписанию удобны 17:15, 18:00 или 18:45, но именно 12 октября обязательно свериться с расписанием. Его меняют из-за событий и обслуживания.'] },
+      { id: 'odaiba', time: 'Последний длинный вечер', title: 'Уехать на остров будущего', kind: 'place', details: ['Tokyo Bay, Rainbow Bridge, маленькая Liberty и последние спонтанные покупки.', 'Если в день поездки официальный календарь подтверждает шоу, посмотреть Tokyo Aqua Symphony у Odaiba Seaside Park. Это бесплатный светомузыкальный фонтан примерно на 10 минут; по текущему расписанию удобны 17:00 или 18:00. Перед поездкой обязательно свериться ещё раз: сеанс могут изменить или отменить из-за погоды и обслуживания.'] },
       { id: 'odaiba-dinner', time: 'До отъезда', title: 'Оставить ужин свободным', kind: 'food', food: freeFood('Ужин', 'Здесь специально оставляем свободу перед аэропортом. Выбери то, что хочется и удобно по времени.', 'Odaiba'), details: [] },
       { id: 'bags-haneda', time: 'После 19:00', title: 'Забрать чемоданы и ехать за последним билетом', kind: 'route', details: ['Monorail от Hamamatsucho довезёт прямо к Haneda Terminal 3.'] },
       { id: 'haneda', time: 'Около 20:30', title: 'Зажечь последний фонарь', kind: 'quest', details: ['Всё формальное позади. Дальше только gate, тишина и воспоминания.'] },

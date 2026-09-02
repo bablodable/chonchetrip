@@ -6,6 +6,16 @@
   const params = new URLSearchParams(window.location.search);
   if (params.get('embed') === '1') document.documentElement.classList.add('live-map-embedded');
 
+  const offlineNotice = document.createElement('div');
+  offlineNotice.className = 'live-offline-notice';
+  offlineNotice.textContent = 'Офлайн-карта · маршрут работает, фон доступен для уже просмотренных районов';
+  document.body.appendChild(offlineNotice);
+
+  const syncNetworkState = () => document.documentElement.classList.toggle('live-map-offline', !navigator.onLine);
+  syncNetworkState();
+  window.addEventListener('online', syncNetworkState);
+  window.addEventListener('offline', syncNetworkState);
+
   function readArrayParam(name) {
     try {
       const value = JSON.parse(params.get(name) ?? '[]');

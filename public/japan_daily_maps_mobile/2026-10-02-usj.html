@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>02.10 · Universal Studios Japan</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="/japan_daily_maps_mobile/vendor/leaflet/leaflet.css"/>
   <link rel="stylesheet" href="/japan_daily_maps_mobile/live-map.css"/>
   <style>
 html, body {
@@ -356,7 +356,7 @@ h1 {
   </div>
 </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/japan_daily_maps_mobile/vendor/leaflet/leaflet.js"></script>
 <script>
 const points = [{"n": 1, "emoji": "🚇", "name": "Nagahoribashi", "time": "рано утром", "desc": "Старт / 7-Eleven по пути", "lat": 34.67486, "lng": 135.50635}, {"n": 2, "emoji": "🚆", "name": "Taisho Station", "time": "утро", "desc": "Пересадка на JR", "lat": 34.6552, "lng": 135.47228}, {"n": 3, "emoji": "🎟️", "name": "USJ Entrance", "time": "до открытия", "desc": "Вход в парк / Studio Pass / Express Pass", "lat": 34.66555, "lng": 135.43227}, {"n": 4, "emoji": "🪄", "name": "Wizarding World / Forbidden Journey", "time": "утро", "desc": "Сначала мир Harry Potter", "lat": 34.66508, "lng": 135.42985}, {"n": 5, "emoji": "⚔️", "name": "Frieren Story Walk / Hollywood Dream", "time": "до обеда", "desc": "Frieren eTicket + ride", "lat": 34.66571, "lng": 135.43158}, {"n": 6, "emoji": "🍜", "name": "Restaurant of Memories", "time": "~12:30–14:00", "desc": "Обед: Frieren-ресторан", "lat": 34.66636, "lng": 135.43235}, {"n": 7, "emoji": "🪚", "name": "Chainsaw Man 4-D", "time": "после обеда", "desc": "Express Pass", "lat": 34.66598, "lng": 135.43288}, {"n": 8, "emoji": "🎃", "name": "Halloween Horror Nights", "time": "с 18:00", "desc": "Street Zombies / Halloween зоны", "lat": 34.6655, "lng": 135.43227}, {"n": 9, "emoji": "🦖", "name": "Jurassic Park: The Ride in the Dark", "time": "20:00–20:30", "desc": "Express Pass", "lat": 34.66722, "lng": 135.42998}, {"n": 10, "emoji": "🏠", "name": "Nagahoribashi / Grand Hostel", "time": "после 21:00", "desc": "Возвращение домой после USJ", "lat": 34.67486, "lng": 135.50635}];
 const segments = [{"type": "rail", "path": [1, 2, 3]}, {"type": "local", "path": [3, 4, 5, 6, 7, 8, 9]}, {"type": "rail", "path": [9, 10]}];
