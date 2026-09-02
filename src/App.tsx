@@ -702,7 +702,7 @@ function TripCounterCard({ definition, editable, onAdd }: { definition: (typeof 
   return (
     <button type="button" className={`trip-counter-card counter-${definition.id}`} disabled={!editable} onClick={addOne}>
       <TripCounterArt id={definition.id} />
-      <span className="trip-counter-copy"><strong>{definition.title}</strong><small>{editable ? definition.actionLabel : 'Заполняет Юльчона'}</small></span>
+      <span className="trip-counter-copy"><strong>{definition.title}</strong><small>{editable ? definition.actionLabel : 'Юльчона ещё не здесь'}</small></span>
       <span className="trip-counter-add"><Icon name={editable ? 'sparkles' : 'lock'} size={17} /></span>
       {burst > 0 && <i key={burst} className="trip-counter-burst">Запомнил ✦</i>}
     </button>
@@ -940,8 +940,8 @@ function FromsoftQuestCard({ stage, relic, editable, onFind }: { stage: 'akihaba
         <p className="fromsoft-rule">Подойдёт фигурка, артбук, брелок, коробка игры или просто редкая вещь в витрине. Покупать необязательно. Фотография тоже считается.</p>
       </div>
       <div className="fromsoft-actions" aria-label="Отметить найденную реликвию">
-        <button type="button" disabled={!editable} onClick={() => onFind('dark-souls')}>Нашла Dark Souls</button>
-        <button type="button" disabled={!editable} onClick={() => onFind('elden-ring')}>Нашла Elden Ring</button>
+        <button type="button" disabled={!editable} onClick={() => onFind('dark-souls')}>{editable ? 'Нашла Dark Souls' : 'Dark Souls ещё не найден'}</button>
+        <button type="button" disabled={!editable} onClick={() => onFind('elden-ring')}>{editable ? 'Нашла Elden Ring' : 'Elden Ring ещё не найден'}</button>
       </div>
     </div>
   )
@@ -1289,7 +1289,7 @@ function AccessGate({ onEnter }: { onEnter: (mode: AccessMode) => void }) {
           <div className="access-choices">
             <button type="button" className="viewer-choice" onClick={enterViewer}>
               <Icon name="eye" size={21} />
-              <span><strong>Я просто посмотреть</strong><small>Невероятное приключение Юльчоны и Эдюши</small></span>
+              <span><strong>Смотреть путешествие</strong><small>История Юльчоны и Эдюши</small></span>
             </button>
             <button type="button" className="editor-choice" onClick={() => setStep('editor')}>
               <Icon name="fox" size={21} />
@@ -2092,7 +2092,7 @@ function App() {
           <span><strong>Chonchetrip</strong><small>Юльчона · Japan 2026</small></span>
         </button>
         <div className="topbar-actions">
-          <button className={`access-mode-token is-${cloudStatus}`} type="button" onClick={chooseAnotherMode} aria-label={accessMode === 'editor' ? 'Это дневник Юльчоны. Нажми, чтобы вернуться ко входу.' : 'Ты листаешь историю как гость. Нажми, чтобы вернуться ко входу.'}><Icon name={accessMode === 'editor' ? 'fox' : 'eye'} size={16} /><span /></button>
+          <button className={`access-mode-token is-${cloudStatus}`} type="button" onClick={chooseAnotherMode} aria-label={accessMode === 'editor' ? 'Это дневник Юльчоны. Нажми, чтобы вернуться ко входу.' : 'Ты смотришь путешествие со стороны. Нажми, чтобы вернуться ко входу.'}><Icon name={accessMode === 'editor' ? 'fox' : 'eye'} size={16} /><span /></button>
           <button className="progress-token" type="button" onClick={() => setView('collection')} aria-label={`${discoveredCount} из ${achievements.length} печатей пути`}><Icon name="collection" size={17} /><span>{discoveredCount}/{achievements.length}</span></button>
         </div>
       </header>
@@ -2149,7 +2149,7 @@ function App() {
                     <blockquote>«{selectedMagic.whisper}»</blockquote>
                     <div className="magic-clue"><Icon name="sparkles" size={18} /><div><strong>{selectedFoxFireFound ? selectedMagic.flameTitle : 'Маленькая миссия'}</strong><p>{selectedFoxFireFound ? selectedMagic.discovery : selectedMagic.clue}</p></div></div>
                     <button type="button" className={selectedFoxFireFound ? 'magic-found-button' : 'magic-find-button'} disabled={selectedFoxFireFound || !canEdit} onClick={() => discoverFoxFire(selectedMagic)}>
-                      {selectedFoxFireFound ? <><Icon name="check" size={17} /> Огонёк найден</> : canEdit ? selectedMagic.actionLabel : 'Найти сможет Юльчона'}
+                      {selectedFoxFireFound ? <><Icon name="check" size={17} /> Огонёк найден</> : canEdit ? selectedMagic.actionLabel : 'Огонёк ещё не найден'}
                     </button>
                   </section>
                 )}
@@ -2194,7 +2194,7 @@ function App() {
                   selectedNightMagicUnlocked ? (
                     <button type="button" className={selectedEncounterFound ? 'kitsu-night-encounter is-found' : 'kitsu-night-encounter'} disabled={selectedEncounterFound || !canEdit} onClick={() => findNightEncounter(selectedMagic)}>
                       <span className="night-peek"><img src="/assets/kitsune-guide.webp" alt="" /><i /></span>
-                      <span><small>{selectedEncounterFound ? 'История осталась с тобой' : 'Кто-то прячется рядом…'}</small><strong>{selectedEncounterFound ? selectedMagic.nightEncounter.title : selectedMagic.nightEncounter.actionLabel}</strong><em>{selectedEncounterFound ? selectedMagic.nightEncounter.message : 'Лови момент, пока рыжий хвост снова не исчез.'}</em></span>
+                      <span><small>{selectedEncounterFound ? 'История осталась с тобой' : canEdit ? 'Кто-то прячется рядом…' : 'Встреча ещё не случилась'}</small><strong>{selectedEncounterFound ? selectedMagic.nightEncounter.title : canEdit ? selectedMagic.nightEncounter.actionLabel : 'Юльчона ещё не здесь'}</strong><em>{selectedEncounterFound ? selectedMagic.nightEncounter.message : canEdit ? 'Лови момент, пока рыжий хвост снова не исчез.' : 'Кицу пока оставил только рыжий след.'}</em></span>
                       <Icon name={selectedEncounterFound ? 'check' : 'eye'} size={19} />
                     </button>
                   ) : (
@@ -2228,7 +2228,7 @@ function App() {
                           return <button key={option} type="button" className={`answer-button${answerClass}`} disabled={answerLocked || revealLocked} onClick={() => requestRiddleAnswer(selectedDay, index)}>{option}</button>
                         })}
                       </div>
-                      {selectedRiddleRevealed && selectedAnswer === undefined && <p className="reveal-note">Верный ответ подсвечен. Коснись его, если хочешь выбрать этот вариант.</p>}
+                      {selectedRiddleRevealed && selectedAnswer === undefined && <p className="reveal-note">{canEdit ? 'Верный ответ подсвечен. Коснись его, если хочешь выбрать этот вариант.' : 'Верный ответ уже подсвечен.'}</p>}
                       {isCorrect && <p className="answer-note"><Icon name="check" size={16} /> {selectedDay.riddle.explanation}</p>}
                       {selectedAnswer !== undefined && !isCorrect && (
                         <p className="try-again">Кицу запомнил этот ответ. {progress.fromsoftEmberUsedAt ? 'Негорящая искра уже погасла.' : progress.fromsoftRelic ? 'Негорящая искра может один раз вернуть выбор.' : 'Изменить его сможет только найденная искра FromSoftware.'}</p>
@@ -2242,8 +2242,8 @@ function App() {
                         </button>
                       )}
                       <div className="riddle-actions">
-                        <button type="button" className="text-button" disabled={!canEdit || selectedAnswer !== undefined || selectedHintUsed || selectedRiddleSolved || selectedRiddleRevealed} onClick={() => addHint(selectedDay.id)}><Icon name="hint" size={17} /> {selectedHintUsed ? 'Подсказка открыта' : selectedRiddleSolved || isCorrect ? 'Разгадано' : 'Подсказка'}</button>
-                        <button type="button" className="text-button muted" disabled={!canEdit || selectedAnswer !== undefined || selectedRiddleRevealed || selectedRiddleSolved} onClick={() => revealAnswer(selectedDay)}><Icon name="eye" size={17} /> {selectedRiddleRevealed ? 'Верный ответ открыт' : selectedRiddleSolved || isCorrect ? 'Разгадано' : 'Показать верный ответ'}</button>
+                        <button type="button" className="text-button" disabled={!canEdit || selectedAnswer !== undefined || selectedHintUsed || selectedRiddleSolved || selectedRiddleRevealed} onClick={() => addHint(selectedDay.id)}><Icon name="hint" size={17} /> {selectedHintUsed ? 'Подсказка открыта' : selectedRiddleSolved || isCorrect ? 'Разгадано' : canEdit ? 'Подсказка' : 'Подсказка ещё закрыта'}</button>
+                        <button type="button" className="text-button muted" disabled={!canEdit || selectedAnswer !== undefined || selectedRiddleRevealed || selectedRiddleSolved} onClick={() => revealAnswer(selectedDay)}><Icon name="eye" size={17} /> {selectedRiddleRevealed ? 'Верный ответ открыт' : selectedRiddleSolved || isCorrect ? 'Разгадано' : canEdit ? 'Показать верный ответ' : 'Ответ ещё закрыт'}</button>
                       </div>
                     </>
                   ) : (
@@ -2252,7 +2252,7 @@ function App() {
                       <span className="riddle-seal-lock"><Icon name="lock" size={23} /></span>
                       <small>Финальная печать дня</small>
                       <h3>Загадка пока спит</h3>
-                      <p>Отметь все моменты дня — после последней галочки Кицу зажжёт вопрос.</p>
+                      <p>{canEdit ? 'Отметь все моменты дня — после последней галочки Кицу зажжёт вопрос.' : 'Вопрос откроется, когда все моменты дня будут прожиты.'}</p>
                       <div className="riddle-seal-progress"><span style={{ width: `${selectedSceneIds.length > 0 ? (selectedCompletedSceneCount / selectedSceneIds.length) * 100 : 0}%` }} /></div>
                       <strong>{selectedCompletedSceneCount} / {selectedSceneIds.length} моментов</strong>
                     </div>
@@ -2263,18 +2263,18 @@ function App() {
                   <section className={selectedClaimed ? 'paper-card claim-card is-claimed' : 'paper-card claim-card'}>
                     <div className="claim-copy">
                       <span className="section-kicker">Награда главы</span>
-                      <h3>{selectedClaimed ? selectedAchievement.title : 'Печать ждёт тебя'}</h3>
-                      <p>{selectedClaimed ? selectedAchievement.description : 'Когда этот момент случится, забери свою печать. Кицу уже оставил для неё место.'}</p>
+                      <h3>{selectedClaimed ? selectedAchievement.title : canEdit ? 'Печать ждёт тебя' : 'Печать ещё закрыта'}</h3>
+                      <p>{selectedClaimed ? selectedAchievement.description : canEdit ? 'Когда этот момент случится, забери свою печать. Кицу уже оставил для неё место.' : 'Кицу оставил для неё место и пока хранит рисунок в тайне.'}</p>
                     </div>
                     <div className="claim-badge"><AchievementVisual achievement={selectedAchievement} locked={!selectedClaimed} /></div>
                     <button type="button" className={selectedClaimed ? 'claimed-button' : 'primary-button'} disabled={selectedClaimed || !canEdit} onClick={() => requestChapterClaim(selectedAchievement.id)}>
-                      {selectedClaimed ? <><Icon name="check" size={18} /> Получено</> : canEdit ? selectedDay.claimLabel : 'Награду заберёт Юльчона'}
+                      {selectedClaimed ? <><Icon name="check" size={18} /> Получено</> : canEdit ? selectedDay.claimLabel : 'Пока запечатано'}
                     </button>
                   </section>
                 )}
 
                 <section className="paper-card memory-card">
-                  <div className="memory-heading"><div><span className="section-kicker">Память дня</span><h3>Сохранить этот день</h3></div><Icon name="camera" size={25} /></div>
+                  <div className="memory-heading"><div><span className="section-kicker">Память дня</span><h3>{canEdit ? 'Сохранить этот день' : 'Память этого дня'}</h3></div><Icon name="camera" size={25} /></div>
                   {progress.photos[selectedDay.id] ? (
                     <div className="photo-preview">
                       <img src={progress.photos[selectedDay.id]} alt={`Фото дня · ${selectedDay.dateLabel}`} />
@@ -2370,7 +2370,7 @@ function App() {
 
             <section className="passport-section trip-counters-section">
               <div className="section-title"><div><span className="section-kicker">Секретный счёт Кицу</span><h2>Кицу, запомни!</h2></div><span className="trip-counters-seal"><Icon name="fox" size={19} /></span></div>
-              <p className="trip-counters-note">Когда встретится что-то из списка, коснись его. Все числа Кицу покажет только в конце путешествия.</p>
+              <p className="trip-counters-note">{canEdit ? 'Когда встретится что-то из списка, коснись его. Все числа Кицу покажет только в конце путешествия.' : 'Секретный счёт пока молчит. Все числа Кицу покажет только в конце путешествия.'}</p>
               <div className="trip-counter-list">
                 {tripCounterDefinitions.map((definition) => (
                   <TripCounterCard key={definition.id} definition={definition} editable={canEdit} onAdd={() => recordTripCounter(definition.id)} />
@@ -2515,7 +2515,7 @@ function App() {
               ) : (
                 <div className="private-letter-lock">
                   <span><Icon name="lock" size={23} /></span>
-                  <div><strong>Личные письма Юльчоны</strong><p>Кицу не раскрывает чужие письма. Их сможет прочитать только хозяйка этой истории.</p></div>
+                  <div><strong>Письма пока запечатаны</strong><p>Кицу хранит их до встречи с Юльчоной.</p></div>
                 </div>
               )}
             </section>
@@ -2589,7 +2589,7 @@ function App() {
               {!finaleReady ? (
                 <><Icon name="lock" size={28} /><h2>Последняя страница спит</h2><p>Кицу откроет её 13 октября, когда дорога домой станет частью истории.</p></>
               ) : !progress.finaleOpened ? (
-                <><Icon name="sparkles" size={30} /><h2>Огни готовы собраться вместе</h2><p>Не нужно было собрать всё идеально. Кицу сложит историю из того, что действительно случилось.</p><button type="button" className="finale-open-button" disabled={!canEdit} onClick={openFinale}>{canEdit ? 'Открыть коробку воспоминаний' : 'Коробку откроет Юльчона'}</button></>
+                <><Icon name="sparkles" size={30} /><h2>Огни готовы собраться вместе</h2><p>Не нужно было собрать всё идеально. Кицу сложит историю из того, что действительно случилось.</p><button type="button" className="finale-open-button" disabled={!canEdit} onClick={openFinale}>{canEdit ? 'Открыть коробку воспоминаний' : 'Финал пока запечатан'}</button></>
               ) : (
                 <>
                   <span className="finale-kanji">おかえり</span>
