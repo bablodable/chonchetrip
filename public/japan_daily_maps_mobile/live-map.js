@@ -229,7 +229,7 @@
         className: 'live-user-route',
       }).addTo(map);
       const meters = distanceInMeters({ lat: userPosition[0], lng: userPosition[1] }, target);
-      updateLocationButton(`Ты здесь · до золотой точки ${formatDistance(meters)}`, true);
+      updateLocationButton(`Ты здесь · до текущей цели ${formatDistance(meters)}`, true);
     } else {
       updateLocationButton('Ты здесь', true);
     }
@@ -278,17 +278,17 @@
 
   function handleLocationError(error) {
     const messages = {
-      1: 'Кицу не видит, где ты. Разреши доступ к геопозиции в Safari',
-      2: 'Кицу пока не нашёл тебя на карте. Попробуй ещё раз',
-      3: 'Кицу ищет слишком долго. Нажми ещё раз',
+      1: 'Доступ к геопозиции закрыт. Разреши его для этой страницы в Safari',
+      2: 'Не удалось определить твоё положение. Попробуй ещё раз',
+      3: 'Геопозиция отвечает слишком долго. Попробуй ещё раз',
     };
     locationButton?.classList.remove('is-waiting');
-    updateLocationButton(messages[error.code] ?? 'Кицу пока не видит, где ты. Попробуй ещё раз');
+    updateLocationButton(messages[error.code] ?? 'Не удалось определить твоё положение. Попробуй ещё раз');
   }
 
   function startLocationWatch(focus = false) {
     if (!navigator.geolocation) {
-      updateLocationButton(window.isSecureContext ? 'Кицу не смог найти твоё место' : 'Кицу сможет найти тебя в защищённой версии дневника');
+      updateLocationButton(window.isSecureContext ? 'Геопозиция недоступна на этом устройстве' : 'Геопозиция доступна только по защищённой ссылке');
       if (locationButton) locationButton.disabled = true;
       return;
     }

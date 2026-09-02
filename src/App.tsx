@@ -406,7 +406,7 @@ function daysUntil(date: string): number {
 function compressPhoto(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
-    reader.onerror = () => reject(new Error('Кицу не смог разглядеть этот снимок'))
+    reader.onerror = () => reject(new Error('Не удалось прочитать снимок. Попробуй выбрать его ещё раз'))
     reader.onload = () => {
       const image = new Image()
       image.onerror = () => reject(new Error('Этот снимок не открылся. Попробуй выбрать другой'))
@@ -418,7 +418,7 @@ function compressPhoto(file: File): Promise<string> {
         canvas.height = Math.round(image.height * scale)
         const context = canvas.getContext('2d')
         if (!context) {
-          reject(new Error('Этот формат снимка Кицу не узнаёт'))
+          reject(new Error('Этот формат снимка не поддерживается'))
           return
         }
         context.drawImage(image, 0, 0, canvas.width, canvas.height)
@@ -713,7 +713,7 @@ function TripCounterCard({ definition, editable, onAdd }: { definition: (typeof 
   return (
     <button type="button" className={`trip-counter-card counter-${definition.id}`} disabled={!editable} onClick={addOne}>
       <TripCounterArt id={definition.id} />
-      <span className="trip-counter-copy"><strong>{definition.title}</strong><small>{editable ? definition.actionLabel : 'Сюда заглянет Юльчона'}</small></span>
+      <span className="trip-counter-copy"><strong>{definition.title}</strong><small>{editable ? definition.actionLabel : 'Заполняет Юльчона'}</small></span>
       <span className="trip-counter-add"><Icon name={editable ? 'sparkles' : 'lock'} size={17} /></span>
       {burst > 0 && <i key={burst} className="trip-counter-burst">Запомнил ✦</i>}
     </button>
@@ -909,7 +909,7 @@ function DayVibeCard({ vibe }: { vibe: DayVibe }) {
     <section className="day-vibe-card" aria-label={`Настроение дня: ${vibe.label}`}>
       <span className="day-vibe-icon" aria-hidden="true">{vibe.icon}</span>
       <div className="day-vibe-copy">
-        <div className="day-vibe-meta"><span>Сколько сил взять с собой · {pace} из 4</span><strong>{vibe.label}</strong></div>
+        <div className="day-vibe-meta"><span>Темп дня · {pace} из 4</span><strong>{vibe.label}</strong></div>
         <h3>{vibe.title}</h3>
         <p>{vibe.description}</p>
         <div className="day-vibe-rule"><Icon name="sparkles" size={15} /><span>{vibe.rule}</span></div>
@@ -1031,7 +1031,7 @@ function TimelineCard({ item, complete, locked, editable, fromsoftRelic, onToggl
   return (
     <details className={complete ? 'timeline-card is-complete' : 'timeline-card'}>
       <summary>
-        <button className="stop-check" type="button" disabled={!editable} aria-label={complete ? 'Вернуть этот момент' : 'Этот момент прожит'} onClick={(event) => { event.preventDefault(); onToggle() }}>{complete && <Icon name="check" size={17} />}</button>
+        <button className="stop-check" type="button" disabled={!editable} aria-label={complete ? 'Убрать отметку о прохождении' : 'Отметить момент как пройденный'} onClick={(event) => { event.preventDefault(); onToggle() }}>{complete && <Icon name="check" size={17} />}</button>
         <span className={`kind-icon kind-${item.kind}`}><Icon name={item.kind} size={18} /></span>
         <span className="timeline-title"><small>{item.time}</small><strong>{item.title}</strong></span>
         <span className="details-chevron"><Icon name="chevron" size={18} /></span>
@@ -1188,7 +1188,7 @@ function DayMapCard({ day, completedStops }: { day: TripDay; completedStops: str
     <section className={open ? 'day-map-card is-open' : 'day-map-card'}>
       <button type="button" className="day-map-toggle" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
         <span className="day-map-icon"><Icon name="route" size={21} /></span>
-        <span><small>Маршрут дня</small><strong>Живая карта пути</strong></span>
+        <span><small>Маршрут дня</small><strong>Карта маршрута</strong></span>
         <Icon name="chevron" size={19} />
       </button>
       {open && (
@@ -1256,7 +1256,7 @@ function LockedDayContent({ editable, onForceUnlock }: { editable: boolean; onFo
       }}
     >
       <img src="/assets/kitsune-guide.webp" alt="Кицу, проводник путешествия" draggable="false" />
-      <span className="section-kicker">По часам Tokyo</span>
+      <span className="section-kicker">Время Японии</span>
       <h2>{holding ? 'Кицу снимает печать…' : 'Кицу хранит секрет'}</h2>
       <p>{holding ? 'Не отпускай. Печать исчезнет через пять секунд.' : 'Каждая глава просыпается в полночь по японскому времени. До этого маршрут и награда остаются под печатью.'}</p>
       <div className="locked-note"><Icon name="sparkles" size={18} /><span>Коллекцию можно листать заранее, но будущие награды всё равно останутся тайной.</span></div>
@@ -1934,7 +1934,7 @@ function App() {
       setProgress((current) => ({ ...current, photos: { ...current.photos, [dayId]: photo } }))
       showKitsuReaction('Этот кадр пахнет сегодняшним днём. Кицу спрятал его в плёнку памяти.')
     } catch (error) {
-      setPhotoError(error instanceof Error ? error.message : 'Снимок не попал в плёнку. Попробуй ещё раз')
+      setPhotoError(error instanceof Error ? error.message : 'Не удалось сохранить снимок. Попробуй ещё раз')
     }
   }
 
@@ -2150,17 +2150,23 @@ function App() {
 
                 <DayVibeCard vibe={selectedDay.vibe} />
 
+                <section className="paper-card fact-card">
+                  <div className="card-label"><Icon name="hint" size={18} /> Перед маршрутом</div>
+                  <img src="/assets/kitsune-guide.webp" alt="" />
+                  <p>{selectedDay.fact}</p>
+                </section>
+
                 {selectedMagic && (
                   <section className={selectedFoxFireFound ? 'paper-card kitsu-whisper-card is-found' : 'paper-card kitsu-whisper-card'} style={{ '--flame-color': selectedMagic.flameColor } as React.CSSProperties}>
                     <div className="paw-trail" aria-hidden="true"><i /><i /><i /></div>
                     <div className="kitsu-whisper-heading">
-                      <div><span className="section-kicker">Утренний шёпот</span><h2>Кицу оставил знак</h2></div>
+                      <div><span className="section-kicker">Лисий огонёк дня</span><h2>{selectedFoxFireFound ? 'Огонёк найден' : 'Кицу оставил улику'}</h2></div>
                       <span className={selectedFoxFireFound ? 'fox-fire is-burning' : 'fox-fire'} aria-hidden="true"><i /></span>
                     </div>
                     <blockquote>«{selectedMagic.whisper}»</blockquote>
                     <div className="magic-clue"><Icon name="sparkles" size={18} /><div><strong>{selectedFoxFireFound ? selectedMagic.flameTitle : 'Маленькая миссия'}</strong><p>{selectedFoxFireFound ? selectedMagic.discovery : selectedMagic.clue}</p></div></div>
                     <button type="button" className={selectedFoxFireFound ? 'magic-found-button' : 'magic-find-button'} disabled={selectedFoxFireFound || !canEdit} onClick={() => discoverFoxFire(selectedMagic)}>
-                      {selectedFoxFireFound ? <><Icon name="check" size={17} /> Огонёк с тобой</> : canEdit ? selectedMagic.actionLabel : 'Знак ждёт Юльчону'}
+                      {selectedFoxFireFound ? <><Icon name="check" size={17} /> Огонёк найден</> : canEdit ? selectedMagic.actionLabel : 'Найти сможет Юльчона'}
                     </button>
                   </section>
                 )}
@@ -2193,12 +2199,6 @@ function App() {
                       />
                     )
                   })}
-                </section>
-
-                <section className="paper-card fact-card">
-                  <div className="card-label"><Icon name="fox" size={18} /> Шёпот Кицу</div>
-                  <img src="/assets/kitsune-guide.webp" alt="" />
-                  <p>{selectedDay.fact}</p>
                 </section>
 
                 {selectedMagic?.nightEncounter && (
@@ -2239,7 +2239,7 @@ function App() {
                           return <button key={option} type="button" className={`answer-button${answerClass}`} disabled={answerLocked || revealLocked} onClick={() => requestRiddleAnswer(selectedDay, index)}>{option}</button>
                         })}
                       </div>
-                      {selectedRiddleRevealed && selectedAnswer === undefined && <p className="reveal-note">Кицу подсветил верный след. Коснись его, если хочешь выбрать этот ответ.</p>}
+                      {selectedRiddleRevealed && selectedAnswer === undefined && <p className="reveal-note">Верный ответ подсвечен. Коснись его, если хочешь выбрать этот вариант.</p>}
                       {isCorrect && <p className="answer-note"><Icon name="check" size={16} /> {selectedDay.riddle.explanation}</p>}
                       {selectedAnswer !== undefined && !isCorrect && (
                         <p className="try-again">Кицу запомнил этот ответ. {progress.fromsoftEmberUsedAt ? 'Негорящая искра уже погасла.' : progress.fromsoftRelic ? 'Негорящая искра может один раз вернуть выбор.' : 'Изменить его сможет только найденная искра FromSoftware.'}</p>
@@ -2254,7 +2254,7 @@ function App() {
                       )}
                       <div className="riddle-actions">
                         <button type="button" className="text-button" disabled={!canEdit || selectedAnswer !== undefined || selectedHintUsed || selectedRiddleSolved || selectedRiddleRevealed} onClick={() => addHint(selectedDay.id)}><Icon name="hint" size={17} /> {selectedHintUsed ? 'Подсказка открыта' : selectedRiddleSolved || isCorrect ? 'Разгадано' : 'Подсказка'}</button>
-                        <button type="button" className="text-button muted" disabled={!canEdit || selectedAnswer !== undefined || selectedRiddleRevealed || selectedRiddleSolved} onClick={() => revealAnswer(selectedDay)}><Icon name="eye" size={17} /> {selectedRiddleRevealed ? 'Верный след открыт' : selectedRiddleSolved || isCorrect ? 'Разгадано' : 'Показать верный след'}</button>
+                        <button type="button" className="text-button muted" disabled={!canEdit || selectedAnswer !== undefined || selectedRiddleRevealed || selectedRiddleSolved} onClick={() => revealAnswer(selectedDay)}><Icon name="eye" size={17} /> {selectedRiddleRevealed ? 'Верный ответ открыт' : selectedRiddleSolved || isCorrect ? 'Разгадано' : 'Показать верный ответ'}</button>
                       </div>
                     </>
                   ) : (
@@ -2503,7 +2503,7 @@ function App() {
 
             <section id="kitsu-fires" className="kitsu-magic-section kitsu-anchor-section">
               <div className="section-title"><div><span className="section-kicker">Kitsunebi</span><h2>Созвездие лисьих огней</h2></div><strong>{knownFoxFires.length}/{kitsuMagicDays.length}</strong></div>
-              <p className="kitsu-section-note">Каждый огонь рождается из одной настоящей личной находки — ровно такой, какой она случилась.</p>
+              <p className="kitsu-section-note">Каждый огонёк связан с одной настоящей находкой — именно такой, какой она запомнилась.</p>
               <div className="fox-fire-grid">
                 {kitsuMagicDays.map((magic, index) => {
                   const found = knownFoxFires.includes(magic.dayId)
@@ -2621,7 +2621,7 @@ function App() {
                 <>
                   <span className="finale-kanji">おかえり</span>
                   <h2>С возвращением из вашей Японии</h2>
-                  <p>Кицу собрал живую историю ровно такой, какой она случилась.</p>
+                  <p>Кицу собрал историю такой, какой она получилась.</p>
                   <div className="finale-stats">
                     <span><FinaleCount value={knownFoxFires.length} delay={80} /><small>лисьих огней</small></span>
                     <span><FinaleCount value={Object.keys(progress.photos).length} delay={170} /><small>кадров памяти</small></span>
