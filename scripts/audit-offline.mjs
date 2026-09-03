@@ -19,6 +19,12 @@ if (!offlineManifest.core.includes('/index.html')) throw new Error('Offline core
 if (!offlineManifest.core.some((url) => /^\/assets\/index-[^/]+\.js$/.test(url))) throw new Error('Offline core does not include the application bundle.')
 if (localUrls.some((url) => url.startsWith('/api/'))) throw new Error('API routes must never be cached.')
 if (!offlineManifest.trip.includes('/japan_daily_maps_mobile/vendor/leaflet/leaflet.js')) throw new Error('Offline maps do not include local Leaflet runtime.')
+for (const transitAsset of [
+  '/assets/transit/osaka-metro-map.webp',
+  '/assets/transit/tokyo-subway-map.webp',
+]) {
+  if (!offlineManifest.trip.includes(transitAsset)) throw new Error(`Offline pack does not include ${transitAsset}.`)
+}
 if (offlineManifest.external.length !== 0) throw new Error('Offline pack must not depend on third-party CDN resources.')
 
 for (const url of localUrls) await stat(resolve(outputDirectory, url.slice(1)))

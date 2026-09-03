@@ -42,6 +42,7 @@ import {
 } from './kitsuMagic'
 import { sceneGuides } from './sceneGuides'
 import { animeFrameGuides, type AnimeFrameGuide } from './animeFrameGuides'
+import { transitMaps } from './transitMaps'
 import {
   JAPAN_TIME_ZONE,
   chapterUnlockTime,
@@ -1193,6 +1194,91 @@ function DayMapCard({ day, completedStops }: { day: TripDay; completedStops: str
         </div>
       )}
     </section>
+  )
+}
+
+function TransitMapsSection() {
+  const [expandedMap, setExpandedMap] = useState<(typeof transitMaps)[number] | null>(null)
+  useBodyScrollLock(Boolean(expandedMap))
+
+  useEffect(() => {
+    if (!expandedMap) return
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setExpandedMap(null)
+    }
+    window.addEventListener('keydown', closeOnEscape)
+    return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [expandedMap])
+
+  return (
+    <>
+      <section id="kitsu-metro" className="transit-maps-section kitsu-anchor-section">
+        <div className="section-title">
+          <div><span className="section-kicker">Не потеряться в линиях</span><h2>Карты метро</h2></div>
+          <Icon name="route" size={19} />
+        </div>
+        <div className="transit-map-grid">
+          {transitMaps.map((metroMap) => (
+            <details key={metroMap.id} className={`transit-map-card city-${metroMap.id}`}>
+              <summary className="transit-map-summary">
+                <span className="transit-map-city">
+                  <span><small>{metroMap.operator}</small><strong>{metroMap.city}</strong></span>
+                  <i lang="ja">{metroMap.localName}</i>
+                </span>
+                <span className="transit-summary-home">{metroMap.homeSummary}</span>
+                <span className="transit-summary-action"><span className="when-closed">Показать карту</span><span className="when-open">Свернуть</span><Icon name="chevron" size={16} /></span>
+              </summary>
+              <div className="transit-map-body">
+                <div className="transit-home">
+                  <span className="transit-home-icon"><Icon name="rest" size={18} /></span>
+                  <span><small>Где мы живём</small><strong>{metroMap.home}</strong><em>{metroMap.homeArea}</em></span>
+                </div>
+                <div className="transit-home-stops">
+                  {metroMap.homeStops.map((stop) => (
+                    <div key={stop.name} className="transit-home-stop">
+                      <small>{stop.role}</small>
+                      <strong>{stop.name}</strong>
+                      <span className="transit-home-lines">
+                        {stop.lines.map((line) => (
+                          <span key={line.code}>
+                            <b style={{ '--line-color': line.color, '--line-text': line.textColor ?? '#fff' } as React.CSSProperties}>{line.code}</b>
+                            <span>{line.name}</span>
+                          </span>
+                        ))}
+                      </span>
+                      <em>{stop.note}</em>
+                    </div>
+                  ))}
+                </div>
+                {metroMap.extraLineCodes.length > 0 && (
+                  <div className="transit-extra-lines">
+                    <small>Ещё встретятся по маршруту</small>
+                    <span>{metroMap.lines.filter((line) => metroMap.extraLineCodes.includes(line.code)).map((line) => <span key={line.code}><b style={{ '--line-color': line.color, '--line-text': line.textColor ?? '#fff' } as React.CSSProperties}>{line.code}</b>{line.name}</span>)}</span>
+                  </div>
+                )}
+                <p className="transit-map-rail-note">{metroMap.railNote}</p>
+                <figure className="transit-map-preview">
+                  <button type="button" onClick={() => setExpandedMap(metroMap)} aria-label={`Открыть карту ${metroMap.city} на весь экран`}><img src={metroMap.mapImage} alt={metroMap.mapAlt} loading="lazy" decoding="async" /></button>
+                  <figcaption>Карта сохранена в офлайн-пакете. Тапни по ней, чтобы открыть на весь экран.</figcaption>
+                </figure>
+              </div>
+            </details>
+          ))}
+        </div>
+      </section>
+      {expandedMap && (
+        <div className="transit-map-lightbox" role="dialog" aria-modal="true" aria-label={`Карта ${expandedMap.city} на весь экран`} onClick={() => setExpandedMap(null)}>
+          <div className="transit-map-lightbox-head">
+            <span><small>{expandedMap.operator}</small><strong>{expandedMap.city}</strong></span>
+            <button type="button" autoFocus onClick={() => setExpandedMap(null)} aria-label="Закрыть полноэкранную карту">×</button>
+          </div>
+          <div className="transit-map-lightbox-stage" onClick={(event) => event.stopPropagation()}>
+            <img src={expandedMap.mapImage} alt={expandedMap.mapAlt} />
+          </div>
+          <small className="transit-map-lightbox-hint">Увеличивай двумя пальцами · нажми на тёмный фон, чтобы закрыть</small>
+        </div>
+      )}
+    </>
   )
 }
 
@@ -2740,6 +2826,7 @@ function App() {
                 ['kitsu-fires', 'Огни', 'sparkles'],
                 ['kitsu-letters', 'Письма', 'lock'],
                 ['kitsu-encounters', 'Истории', 'fox'],
+                ['kitsu-metro', 'Метро', 'route'],
                 ['kitsu-phrases', 'Фразы', 'hint'],
               ].map(([target, label, icon]) => <button key={target} type="button" onClick={() => document.getElementById(target)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}><Icon name={icon} size={15} />{label}</button>)}
             </nav>
@@ -2894,6 +2981,8 @@ function App() {
                 </>
               )}
             </section>
+
+            <TransitMapsSection />
 
             <section id="kitsu-phrases" className="phrasebook kitsu-anchor-section">
               <div className="section-title"><div><span className="section-kicker">На всякий случай</span><h2>Двенадцать фраз</h2></div></div>
