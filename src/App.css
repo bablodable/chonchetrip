@@ -808,8 +808,10 @@ button {
 
 .day-progress {
   display: grid;
+  width: 56px;
   min-width: 56px;
   height: 56px;
+  flex: 0 0 56px;
   place-content: center;
   border: 1px solid rgba(156, 54, 41, 0.19);
   border-radius: 50%;
@@ -827,9 +829,10 @@ button {
 .day-progress small {
   margin-top: 3px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 8.5px;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
+  line-height: 1;
   text-transform: uppercase;
 }
 

@@ -2482,7 +2482,7 @@ function App() {
               <div className={`screen-content day-content vibe-${selectedDay.vibe.tone}`}>
                 <section className="chapter-heading">
                   <div><span className="section-kicker">{selectedDay.dateLabel} · {selectedDay.city}</span><h2>Приключение дня</h2></div>
-                  <div className="day-progress"><strong>{selectedCompletedSceneCount}/{selectedSceneIds.length}</strong><small>моментов</small></div>
+                  <div className="day-progress" aria-label={`${selectedCompletedSceneCount} из ${selectedSceneIds.length} моментов пройдено`}><strong>{selectedCompletedSceneCount}/{selectedSceneIds.length}</strong><small>готово</small></div>
                 </section>
 
                 <DayVibeCard vibe={selectedDay.vibe} />
