@@ -865,6 +865,15 @@ button {
   border-color: color-mix(in srgb, var(--day-accent, #9f392b) 34%, transparent);
 }
 
+.timeline-card.timeline-status-fixed-express {
+  border-color: rgba(159, 57, 43, 0.34);
+  box-shadow: inset 4px 0 0 var(--red), 0 7px 22px rgba(74, 52, 36, 0.045);
+}
+
+.timeline-card.timeline-priority-optional {
+  border-style: dashed;
+}
+
 .timeline-card.is-complete {
   border-color: rgba(104, 85, 70, 0.1);
   background: rgba(241, 235, 224, 0.74);
@@ -1012,6 +1021,61 @@ button {
   color: var(--ink);
   font-size: 14px;
   line-height: 1.25;
+}
+
+.timeline-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.timeline-badge {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 18px;
+  align-items: center;
+  padding: 2px 7px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 8.5px;
+  font-weight: 900;
+  letter-spacing: 0.045em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.timeline-badge.priority-must {
+  color: #873126;
+  background: rgba(198, 76, 55, 0.13);
+}
+
+.timeline-badge.priority-high {
+  color: #805423;
+  background: rgba(202, 145, 76, 0.2);
+}
+
+.timeline-badge.priority-optional {
+  border-color: rgba(92, 82, 72, 0.2);
+  color: #665c53;
+  background: rgba(118, 108, 96, 0.08);
+}
+
+.timeline-badge.status-fixed-express {
+  color: #fff8ee;
+  background: var(--red);
+}
+
+.timeline-badge.status-express {
+  border-color: rgba(159, 57, 43, 0.22);
+  color: #873126;
+  background: rgba(255, 246, 235, 0.88);
+}
+
+.timeline-badge.status-timed-entry {
+  border-color: rgba(74, 108, 106, 0.2);
+  color: #436561;
+  background: rgba(224, 235, 230, 0.76);
 }
 
 .details-chevron {

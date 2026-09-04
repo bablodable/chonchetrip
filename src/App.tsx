@@ -184,6 +184,29 @@ const timelineLeadLabels: Record<TimelineItem['kind'], string> = {
   rest: 'Пауза',
 }
 
+const timelinePriorityLabels = {
+  must: 'MUST · обязательно',
+  high: 'HIGH',
+  optional: 'OPTIONAL',
+} as const
+
+const timelineStatusLabels = {
+  'fixed-express': 'EXPRESS PASS · фиксированный слот',
+  express: 'EXPRESS PASS',
+  'timed-entry': 'TIMED ENTRY · eTicket',
+} as const
+
+function TimelineBadges({ item }: { item: TimelineItem }) {
+  if (!item.priority && !item.status) return null
+
+  return (
+    <span className="timeline-badges">
+      {item.priority && <span className={`timeline-badge priority-${item.priority}`}>{timelinePriorityLabels[item.priority]}</span>}
+      {item.status && <span className={`timeline-badge status-${item.status}`}>{timelineStatusLabels[item.status]}</span>}
+    </span>
+  )
+}
+
 function getTimelineDetailLabel(item: TimelineItem, detail: string, index: number) {
   if (index === 0) return timelineLeadLabels[item.kind]
 
@@ -959,6 +982,10 @@ function TimelineCard({ item, complete, locked, editable, fromsoftRelic, onToggl
   const [holding, setHolding] = useState(false)
   const guides = sceneGuides[item.id] ?? []
   const animeFrames = animeFrameGuides[item.id] ?? []
+  const emphasisClasses = [
+    item.priority ? `timeline-priority-${item.priority}` : '',
+    item.status ? `timeline-status-${item.status}` : '',
+  ].filter(Boolean).join(' ')
 
   const cancelUnlockHold = () => {
     if (holdTimer.current !== undefined) window.clearTimeout(holdTimer.current)
@@ -983,7 +1010,7 @@ function TimelineCard({ item, complete, locked, editable, fromsoftRelic, onToggl
   if (locked) {
     return (
       <div
-        className={`timeline-card is-locked${holding ? ' is-holding' : ''}`}
+        className={`timeline-card is-locked${holding ? ' is-holding' : ''}${emphasisClasses ? ` ${emphasisClasses}` : ''}`}
         role={editable ? 'button' : undefined}
         tabIndex={editable ? 0 : undefined}
         aria-label={`${item.time}. ${item.title}. Юльчона ещё не здесь. Этот момент пока под печатью.${editable ? ' Чтобы открыть его раньше, удерживай пять секунд.' : ''}`}
@@ -1015,6 +1042,7 @@ function TimelineCard({ item, complete, locked, editable, fromsoftRelic, onToggl
           <span className="timeline-title">
             <small>{item.time}</small>
             <strong>{item.title}</strong>
+            <TimelineBadges item={item} />
             <span className="timeline-lock-note">{holding ? 'Не отпускай · Кицу снимает печать…' : 'Юльчона ещё не здесь'}</span>
           </span>
           <span className="details-chevron"><Icon name="lock" size={15} /></span>
@@ -1024,11 +1052,11 @@ function TimelineCard({ item, complete, locked, editable, fromsoftRelic, onToggl
   }
 
   return (
-    <details className={complete ? 'timeline-card is-complete' : 'timeline-card'}>
+    <details className={`timeline-card${complete ? ' is-complete' : ''}${emphasisClasses ? ` ${emphasisClasses}` : ''}`}>
       <summary>
         <button className="stop-check" type="button" disabled={!editable} aria-label={complete ? 'Убрать отметку о прохождении' : 'Отметить момент как пройденный'} onClick={(event) => { event.preventDefault(); onToggle() }}>{complete && <Icon name="check" size={17} />}</button>
         <span className={`kind-icon kind-${item.kind}`}><Icon name={item.kind} size={18} /></span>
-        <span className="timeline-title"><small>{item.time}</small><strong>{item.title}</strong></span>
+        <span className="timeline-title"><small>{item.time}</small><strong>{item.title}</strong><TimelineBadges item={item} /></span>
         <span className="details-chevron"><Icon name="chevron" size={18} /></span>
       </summary>
       <div className="timeline-details">

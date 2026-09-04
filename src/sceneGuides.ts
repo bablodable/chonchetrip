@@ -40,8 +40,8 @@ export const sceneGuides: Record<string, SceneGuide[]> = {
   'usj-entry': [
     { label: 'Важно', text: 'Frieren Story Walk eTicket забери сразу после входа, пока день не увёл к первым аттракционам.' },
   ],
-  'express-missions': [
-    { label: 'Важно', text: 'Время Express Pass — неподвижные точки дня. Всё остальное выбирай рядом с ними, когда появляется свободное окно.' },
+  'factory-of-fear': [
+    { label: 'Важно', text: 'Factory of Fear 10:50–11:20 и Jurassic Park 20:00–20:30 — неподвижные точки дня. Всё остальное адаптируй вокруг них.' },
   ],
   'usj-home': [
     { label: 'Важно', text: 'На Taisho меняется JR на Osaka Metro. После Nagahoribashi до Grand Hostel останется короткая прогулка.' },
