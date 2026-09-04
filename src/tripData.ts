@@ -409,7 +409,7 @@ export const tripDays: TripDay[] = [
     eyebrow: 'Глава 05 · Старая столица',
     title: 'По следам дракона',
     subtitle: 'Kiyomizu-dera, Gion и первая запись goshuin',
-    vibe: dayVibe('gentle', 'Чиловый', 'Медленный Kyoto', 'Улицы, заселение, вечерние фонари и домашний ужин складываются в одну неспешную прогулку.', 'После заселения ничего не догоняй: вечер специально оставлен спокойным.', '🍂'),
+    vibe: dayVibe('gentle', 'Чиловый', 'Медленный Kyoto', 'Улицы, заселение, вечерние фонари и домашний ужин складываются в одну неспешную прогулку.', 'Главное время вечера — бронь Mamaya в 18:30. После заселения ничего не догоняй.', '🍂'),
     cover: cover.kyoto,
     mapFile: '2026-10-04-kyoto-gion.html',
     mapRouteScenes: [['move-kyoto'], ['move-kyoto'], ['move-kyoto', 'stamp-gion'], ['tazuru-bags'], ['kiyomizu'], ['old-streets'], ['old-streets'], ['old-streets'], ['gion'], ['tazuru-checkin'], ['gion-evening'], ['gion-evening'], ['gion-evening'], ['kaiseki']],
@@ -434,7 +434,7 @@ export const tripDays: TripDay[] = [
       { id: 'gion', time: '~15:40–16:40', title: 'Найти драконов Gion', kind: 'place', details: ['Зайти в Kennin-ji и посмотреть на пару огромных драконов на потолке Dharma Hall. После храма вернуться к Tazuru, он находится рядом.'] },
       { id: 'tazuru-checkin', time: '~17:00', title: 'По-настоящему заселиться в Kyoto', kind: 'rest', details: ['Вернуться в Tazuru, пройти check-in, забрать оставленные утром чемоданы и отнести вещи в номер.', 'Взять ключ, проверить самое нужное и сделать короткую паузу перед вечерней прогулкой.'] },
       { id: 'gion-evening', time: 'После check-in', title: 'Выйти к вечерним фонарям Gion', kind: 'place', details: ['Пройти через Hanamikoji к Yasaka Shrine, а затем выйти к тихому каналу Gion Shirakawa.', 'Это уже прогулка без багажа и без спешки; к ужину перейти в Pontocho.'] },
-      { id: 'kaiseki', time: '~18:30', title: 'Поужинать по-домашнему в Kyoto', kind: 'food', food: primaryFood('Ужин', 'Mamaya', 'Домашняя Kyoto-кухня и obanzai: уютно и без лишней торжественности.', undefined, 'Если Mamaya не подойдёт, выбери другое место рядом в Pontocho.'), details: ['После Pontocho неспешно пройти вдоль Kamo River и вернуться в Tazuru.'] },
+      { id: 'kaiseki', time: '18:30 · забронировано', title: 'Поужинать по-домашнему в Kyoto', kind: 'food', food: primaryFood('Ужин', 'Mamaya', 'Домашняя Kyoto-кухня и obanzai: уютно и без лишней торжественности.'), details: ['Бронь подтверждена на двоих на имя Eduard. Прийти к 18:20 и показать переписку с mamaya.kyoto.', 'Ресторан предупредил: в загруженное время блюда могут подавать дольше. После ужина ничего обязательного не планируем; Mamaya ещё напишет ближе к дате.', 'После Pontocho неспешно пройти вдоль Kamo River и вернуться в Tazuru.'] },
     ],
   },
   {

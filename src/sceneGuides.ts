@@ -63,6 +63,9 @@ export const sceneGuides: Record<string, SceneGuide[]> = {
   'gion-evening': [
     { label: 'На выбор', text: 'Hanamikoji — ради фонарей, Shirakawa — ради тишины. Выбери настроение, проходить обе улицы не обязательно.' },
   ],
+  kaiseki: [
+    { label: 'Важно', text: 'Mamaya подтверждена на 4 октября, 18:30, для двух человек на имя Eduard. Лучше быть у ресторана к 18:20.' },
+  ],
 
   'fushimi-main': [
     { label: 'Короткая версия', text: 'Yotsutsuji — хорошая точка разворота: вид уже открыт, а полный подъём не обязателен.' },
